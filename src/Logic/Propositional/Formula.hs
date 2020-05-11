@@ -1,9 +1,8 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE TypeApplications #-}
 
-module Main where
+module Logic.Propositional.Formula where
 
 -- base
 import Control.Monad (ap)
@@ -11,11 +10,6 @@ import Control.Monad (ap)
 -- QuickCheck
 import Test.QuickCheck
 
-
-main :: IO ()
-main = do
-  putStrLn "hello world"
-  sample (arbitrary @(Formula Int))
 
 
 data Formula a
