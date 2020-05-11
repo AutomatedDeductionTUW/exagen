@@ -1,11 +1,17 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Logic.Propositional.Formula where
 
 -- base
 import Control.Monad (ap)
+
+-- prettyprinter
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Render.String
 
 -- QuickCheck
 import Test.QuickCheck
@@ -22,6 +28,7 @@ data Formula a
   | Iff (Formula a) (Formula a)
   | Imp (Formula a) (Formula a)
   deriving (Eq, Ord, Show, Functor, Foldable)
+
 
 instance Applicative Formula where
   pure :: a -> Formula a
@@ -75,13 +82,72 @@ genFormula' unaryConnectives binaryConnectives genA = genF
 
     genAtomic = Atomic <$> genA
     genUnary n f = resize (n - 1) (f <$> genF)
-    genBinary n f = resize (n `div` 2) (f <$> genF <*> genF)  -- TODO: randomize L/R balance? => no this comes in by choosing 'Atomic' early in the recursive case
+    genBinary n f = resize (n `div` 2) (f <$> genF <*> genF)
 
 genFormula :: Gen a -> Gen (Formula a)
 genFormula = genFormula' [Not] [And, Or, Imp, Iff]
 
 
+-- TODO: there should be parentheses separating And/Or
+prettyFormula
+  :: forall a ann.
+     (Int -> a -> Doc ann)
+  -> Int
+  -> Formula a
+  -> Doc ann
+prettyFormula prettyAtom = go
+  where
+    go :: Int -> Formula a -> Doc ann
+    -- go _ Falsum = "False"
+    -- go _ Verum = "True"
+    go prec (Atomic x) = prettyAtom prec x
+    go prec (Not p) = bracket (prec > 10) 1 (prettyPrefix 10) "~" p
+    go prec (And p q) = bracket (prec > 8) 0 (prettyInfix 8 "/\\") p q
+    go prec (Or p q)  = bracket (prec > 6) 0 (prettyInfix 6 "\\/") p q
+    go prec (Imp p q) = bracket (prec > 4) 0 (prettyInfix 4 "==>") p q
+    go prec (Iff p q) = bracket (prec > 2) 0 (prettyInfix 2 "<=>") p q
+    prettyPrefix :: Int -> Doc ann -> Formula a -> Doc ann
+    prettyPrefix newPrec sym p = sym <> go (newPrec+1) p  -- TODO: Remove +1 here to save parens on nested negations
+    prettyInfix :: Int -> Doc ann -> Formula a -> Formula a -> Doc ann
+    prettyInfix newPrec sym p q = go (newPrec+1) p <+> sym <> line <> go newPrec q
+    bracket :: forall b c. Bool -> Int -> (b -> c -> Doc ann) -> b -> c -> Doc ann
+    bracket br n f x y = (if br then parens else id) (nest (n+1) (align $ group $ f x y))
 
+-- instance Pretty a => Show (Formula a) where
+--   showsPrec _ = renderShowS . layoutPretty layoutOptions . enclose "[p| " " |]" . align . pretty
+--     where layoutOptions = LayoutOptions { layoutPageWidth = AvailablePerLine 80 1 }
+
+instance Pretty a => Pretty (Formula a) where
+  pretty = prettyFormula (const pretty) 0
+
+
+-- | Primitive propositions
+newtype Prop = P { pName :: String }
+  deriving (Eq, Ord)
+
+instance Show Prop where
+  show = pName
+
+instance Pretty Prop where
+  pretty = pretty . pName
+
+instance Arbitrary Prop where
+  arbitrary = P . getIdentifier <$> arbitrary
+
+
+
+-- Helper type to generate valid identifiers with QuickCheck
+newtype Identifier = Identifier { getIdentifier :: String }
+  deriving (Eq, Ord)
+
+instance Arbitrary Identifier where
+  arbitrary = genIdentifier
+
+genIdentifier :: Gen Identifier
+genIdentifier = Identifier <$> ((:) <$> genFirstChar <*> listOf genNextChar)
+  where
+    genFirstChar = elements $ ['a'..'z'] <> ['_']
+    genNextChar = elements $ ['a'..'z'] <> ['A'..'Z'] <> ['\'', '_'] <> ['0'..'9']
 
 
 
