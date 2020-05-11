@@ -11,7 +11,6 @@ import Control.Monad (ap)
 
 -- prettyprinter
 import Data.Text.Prettyprint.Doc
-import Data.Text.Prettyprint.Doc.Render.String
 
 -- QuickCheck
 import Test.QuickCheck
@@ -59,6 +58,7 @@ joinFormula (Iff fm1 fm2) = Iff (joinFormula fm1) (joinFormula fm2)
 instance Arbitrary a => Arbitrary (Formula a) where
   arbitrary = genFormula arbitrary
 
+-- The size parameter (given through QuickCheck) is the number of connectives in the formula
 genFormula'
   :: [Formula a -> Formula a]
   -> [Formula a -> Formula a -> Formula a]
@@ -66,7 +66,7 @@ genFormula'
   -> Gen (Formula a)
 genFormula' unaryConnectives binaryConnectives genA = genF
   where
-    genF = sized $ \sz ->
+    genF = sized $ \sz -> do
       case sz of
         0 -> frequency freqBase
         n -> frequency (freqRecursive n)
@@ -76,13 +76,17 @@ genFormula' unaryConnectives binaryConnectives genA = genF
       -- (1, pure Verum),
       (3, genAtomic)
       ]
-    freqRecursive n = freqBase ++ freqUnary n ++ freqBinary n
+    freqRecursive n = freqUnary n ++ freqBinary n
     freqUnary n = (\f -> (5, genUnary n f)) <$> unaryConnectives
     freqBinary n = (\f -> (5, genBinary n f)) <$> binaryConnectives
 
     genAtomic = Atomic <$> genA
     genUnary n f = resize (n - 1) (f <$> genF)
-    genBinary n f = resize (n `div` 2) (f <$> genF <*> genF)
+    genBinary n f = do
+      let n' = n - 1  -- the binary connective
+      leftSize <- chooseInt (0, n')  -- number of connectives in left argument
+      let rightSize = n' - leftSize  -- number of connectives in right argument
+      f <$> (resize leftSize genF) <*> (resize rightSize genF)
 
 genFormula :: Gen a -> Gen (Formula a)
 genFormula = genFormula' [Not] [And, Or, Imp, Iff]
@@ -111,7 +115,7 @@ prettyFormula prettyAtom = go
     prettyInfix :: Int -> Doc ann -> Formula a -> Formula a -> Doc ann
     prettyInfix newPrec sym p q = go (newPrec+1) p <+> sym <> line <> go newPrec q
     bracket :: forall b c. Bool -> Int -> (b -> c -> Doc ann) -> b -> c -> Doc ann
-    bracket br n f x y = (if br then parens else id) (nest (n+1) (align $ group $ f x y))
+    bracket br n f x y = (if br then parens else id) (nest n (align $ group $ f x y))
 
 -- instance Pretty a => Show (Formula a) where
 --   showsPrec _ = renderShowS . layoutPretty layoutOptions . enclose "[p| " " |]" . align . pretty

@@ -1,3 +1,5 @@
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Exagen where
@@ -18,10 +20,24 @@ import Logic.Propositional.Formula
 
 main :: IO ()
 main = do
-  fms <- sample' (resize 10 $ arbitrary @(Formula Prop))
-  traverse_ (putStrLn . showPretty) fms
+  let genProp = do
+        str <- elements ["p", "q", "r"]
+        return (P str)
+  fms <- sample' (resize 3 $ genFormula genProp)
+  forM_ fms $ \fm -> do
+    putStrLn $ showPretty fm
+    putStrLn ""
 
 
+
+-- newtype PropVar = PV { getPropVar :: String }
+--   deriving stock (Eq, Ord)
+--   deriving newtype (Show, Pretty)
+
+-- instance Arbitrary PropVar where
+--   arbitrary = do
+--     str <- elements ["p", "q", "r"]
+--     return (PV str)
 
 
 

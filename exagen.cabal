@@ -33,7 +33,7 @@ library
                   , Logic.Propositional.Formula
   build-depends:    base >= 4.12 && < 5
                   , prettyprinter
-                  , QuickCheck
+                  , QuickCheck >= 2.14
   default-language: Haskell2010
 
 executable exagen
