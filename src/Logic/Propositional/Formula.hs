@@ -83,7 +83,7 @@ genFormula' unaryConnectives binaryConnectives genA = genF
     genAtomic = Atomic <$> genA
     genUnary n f = resize (n - 1) (f <$> genF)
     genBinary n f = do
-      let n' = n - 1  -- the binary connective
+      let n' = n - 1  -- the binary connective takes one off the size
       leftSize <- chooseInt (0, n')  -- number of connectives in left argument
       let rightSize = n' - leftSize  -- number of connectives in right argument
       f <$> (resize leftSize genF) <*> (resize rightSize genF)
