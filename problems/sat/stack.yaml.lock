@@ -18,6 +18,20 @@ packages:
       sha256: e58892088b95190bfb59a7c0803f7ef65338e57fc9b938d7c166563605003902
   original:
     hackage: splitmix-0.0.4@sha256:fb9bb8b54a2e76c8a021fe5c4c3798047e1f60e168379a1f80693047fe00ad0e,4813
+- completed:
+    hackage: combinat-0.2.9.0@sha256:3daed23a2376f8d9903dc2c1c3758f1f2a0527178c81023080507e5f5ddf5b7a,5107
+    pantry-tree:
+      size: 4818
+      sha256: 7c14bb4cc6cb0b2d6f14ae8265241966fe6c2e07827d18acad8de1bdc1ba8540
+  original:
+    hackage: combinat-0.2.9.0@sha256:3daed23a2376f8d9903dc2c1c3758f1f2a0527178c81023080507e5f5ddf5b7a,5107
+- completed:
+    hackage: list-transformer-1.0.6@sha256:e214728decb4844b1c6ea0e3243324cfc11ad6da5629d16f06b92f00b6a5bed0,1455
+    pantry-tree:
+      size: 280
+      sha256: 7d2a46b5ade8b57a62888af490d6fb20b217e6fa92b5bf40d53c6e9fd7a3809c
+  original:
+    hackage: list-transformer-1.0.6@sha256:e214728decb4844b1c6ea0e3243324cfc11ad6da5629d16f06b92f00b6a5bed0,1455
 snapshots:
 - completed:
     size: 524996

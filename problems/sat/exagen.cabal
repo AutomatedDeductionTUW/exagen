@@ -30,11 +30,16 @@ library
   import:           warnings
   hs-source-dirs:   src
   exposed-modules:  Exagen
+                  , Control.Monad.Choose
                   , Logic.Propositional.Formula
   build-depends:    base >= 4.12 && < 5
+                  , combinat
                   , containers
+                  , list-transformer
+                  , mtl
                   , prettyprinter
                   , QuickCheck >= 2.14
+                  , random
   default-language: Haskell2010
 
 executable exagen
