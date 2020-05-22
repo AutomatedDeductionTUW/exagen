@@ -41,61 +41,12 @@ instance MonadChoose m => MonadChoose (ReaderT r m) where
   {-# INLINE choose #-}
   choose = lift . choose
 
-
-{-
-
-newtype RandomChoiceT g m a = RandomChoiceT { unRandomChoiceT :: StateT g m a }
-  deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus, MonadTrans)
-
-runRandomChoiceT :: RandomChoiceT g m a -> g -> m (a, g)
-runRandomChoiceT r g = runStateT (unRandomChoiceT r) g
-
-randomRM :: (Monad m, RandomGen g, Random a) => (a, a) -> RandomChoiceT g m a
-randomRM range = do
-  g <- RandomChoiceT get
-  let (x, g') = randomR range g
-  RandomChoiceT (put g')
-  return x
-
-instance (MonadPlus m, RandomGen g) => MonadChoose (RandomChoiceT g m) where
-  choose [] =
-    mzero
-  choose [x] =
-    return x
-  choose xs = do
-    i <- randomRM (0, length xs - 1)
-    return (xs !! i)
-
-
--- RandomChoiceT using the global random generator
-type RandomIO {- a -} = RandomChoiceT StdGen IO {- a -}
-
-evalRandomIO :: RandomChoiceT StdGen IO a -> IO a
-evalRandomIO r = do
-  g <- getStdGen
-  (x, g') <- runRandomChoiceT r g
-  setStdGen g'
-  return x
-
--- evalRandomIO' :: RandomChoiceT StdGen Identity a -> IO a
--- evalRandomIO' r = do
---   g <- getStdGen
---   let Identity (x, g') = runRandomChoiceT r g
---   setStdGen g'
---   return x
-
--}
-
-
-
-
 instance Monad m => MonadChoose (ListT m) where
   {-# INLINE choose #-}
   choose = select
 
 
-
--- | Improved version of 'RandomChoiceT' that supports proper backtracking.
+-- | Random choice with support for proper backtracking.
 newtype RandomListT g m a = RandomListT { unRandomListT :: ListT (StateT g m) a }
   deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus)
 
@@ -155,4 +106,3 @@ allBlah' = runIdentity . List.Transformer.fold (flip (:)) [] reverse . evalState
 
 randomBlah :: Int -> IO (Maybe String)
 randomBlah = evalRandomListIO' . evalStateT (blah @(RandomListT StdGen Identity))
--- randomBlah = evalRandomIO . evalStateT (blah @RandomIO)

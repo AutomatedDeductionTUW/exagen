@@ -7,7 +7,6 @@
 module Exagen where
 
 -- base
-import Control.Exception (assert)
 import Control.Monad
 import Data.Foldable
 import Data.Functor.Identity
@@ -48,8 +47,7 @@ main = do
   {-
   let Pair numFormulas numSuitableFormulas :: Pair Int Int =
         runIdentity $
-        ListT.fold (\(Pair n k) fm -> Pair (n+1) (if suitable fm then k+1 else k)) (Pair 0 0) id $
-        -- ListT.fold (\(Pair n k) fm -> Pair (n+1) (if suitable fm then assert (suitableFull fm) (k+1) else assert (not $ suitableFull fm) k)) (Pair 0 0) id $
+        ListT.fold (\(Pair n k) fm -> Pair (n+1) (if suitableFast fm then k+1 else k)) (Pair 0 0) id $
         genExamFormula
   putStrLn $ "Size of suitable sample space: " <> show numSuitableFormulas
   putStrLn $ "Size of sample space: " <> show numFormulas
@@ -67,9 +65,9 @@ main = do
   -- (aborted because it takes too long)
 
 
--- Only checks those criteria from 'suitableFull' that haven't been inlined in the generator
-suitable :: Ord a => Formula a -> Bool
-suitable fm =
+-- Only checks those criteria from 'suitable' that haven't been inlined into the generator
+suitableFast :: Ord a => Formula a -> Bool
+suitableFast fm =
   foldl1 (&&)
   [ numAtoms fm == 3
   , -- there is at least one atom with pure polarity
@@ -84,8 +82,8 @@ suitable fm =
   -- , not (anySubformula isTrivialBinaryConnective fm)
   ]
 
-suitableFull :: Ord a => Formula a -> Bool
-suitableFull fm =
+suitable :: Ord a => Formula a -> Bool
+suitable fm =
   foldl1 (&&)
   [ numAtoms fm == 3
   , -- there is at least one atom with pure polarity
@@ -123,8 +121,8 @@ randomExamFormula = go 1000
       maybeFm <- evalRandomListIO' genExamFormula
       case maybeFm of
         Nothing -> error "empty sample space"
-        Just fm | suitable fm -> assert (suitableFull fm) $ return fm
-        Just fm -> assert (not $ suitableFull fm) $ go (n - 1)
+        Just fm | suitable fm -> return fm
+                | otherwise -> go (n - 1)
 
 -- NOTE: don't actually use this as it will keep the whole list in memory
 -- allExamFormulas :: ListT Identity (Formula Prop)
@@ -216,89 +214,6 @@ genFormulaPruned totalSize genProp = formula totalSize
       if isTrivialBinaryConnective fm
         then mzero
         else return fm
-{-
-genExamFormula :: MonadChoose m => m (Formula Prop)
-genExamFormula = evalStateT (runReaderT (myGenFormula genExamProp) initialInfo) initialState
-  where
-    initialInfo = GenInfo
-      { size = 4  -- TODO
-                  -- , allowedConnectives = error "TODO"
-                  -- , requiredConnectives = [[CImp], [CIff], [CNot], [CAnd, COr]]
-      }
-    initialState = GenState
-      { requiredConnectives = [[CImp], [CIff], [CNot], [CAnd, COr]]
-      }
-
-data GenInfo = GenInfo
-  { size :: Int
-  -- , -- | how many of each connective can still be used
-  --   allowedConnectives :: Map Connective Int
-  -- , requiredConnectives :: [[Connective]]
-  }
-
-data GenState = GenState
-  { requiredConnectives :: [[Connective]]
-  }
-
--- myResize :: MonadState GenState m => Int -> m a -> m a
--- myResize newSize mx = do
---   oldState <- gets size
---   modify' $ \s -> s{ size = newSize }
---   x <- mx
---   modify' $ \s -> s{ size = newSize }
-
-myResize :: MonadReader GenInfo m => Int -> m a -> m a
-myResize newSize = local $ \r -> r{ size = newSize }
-
-myScale :: MonadReader GenInfo m => (Int -> Int) -> m a -> m a
-myScale f = local $ \r -> r{ size = f (size r) }
-
-type GenT m = ReaderT GenInfo (StateT GenState m)
-
-myGenFormula :: forall m a. (Eq a, MonadChoose m) => GenT m a -> GenT m (Formula a)
-myGenFormula genProp = formula
-  where
-    formula :: GenT m (Formula a)
-    formula = do
-      n <- asks size
-      case n of
-        0 -> base
-        _ -> recursive
-
-    base :: GenT m (Formula a)
-    base = Atomic <$> genProp
-
-    recursive :: GenT m (Formula a)
-    recursive = do
-      m <- choose [ unaryConnective Not
-                  , binaryConnective And
-                  , binaryConnective Or
-                  , binaryConnective Imp
-                  , binaryConnective Iff
-                  ]
-      m
-
-    unaryConnective :: (Formula a -> Formula a) -> GenT m (Formula a)
-    unaryConnective f = do
-      inner <- myScale (subtract 1) formula
-      let fm = f inner
-      if isNestedNot fm
-        then mzero
-        else return fm
-
-    binaryConnective :: (Formula a -> Formula a -> Formula a) -> GenT m (Formula a)
-    binaryConnective f = do
-      n <- asks size
-      let n' = n - 1
-      leftSize <- choose [0 .. n']
-      let rightSize = n' - leftSize
-      left <- myResize leftSize formula
-      right <- myResize rightSize formula
-      let fm = f left right
-      if isTrivialBinaryConnective fm
-        then mzero
-        else return fm
--}
 
 
 -- Return true for binary connectives where both arguments are a literal using the same atom.
@@ -356,23 +271,6 @@ isIff _ = False
 -- Number of different atoms that occur in the formula
 numAtoms :: Ord a => Formula a -> Int
 numAtoms = Set.size . Set.fromList . toList
-
--- numImp :: Formula a -> Int
--- numImp (Atomic _) = 0
--- numImp (Not f) = numImp f
--- numImp (And f g) = numImp f + numImp g
--- numImp (Or  f g) = numImp f + numImp g
--- numImp (Imp f g) = 1 + numImp f + numImp g
--- numImp (Iff f g) = numImp f + numImp g
-
-numIff :: Formula a -> Int
-numIff (Atomic _) = 0
-numIff (Not f) = numIff f
-numIff (And f g) = numIff f + numIff g
-numIff (Or  f g) = numIff f + numIff g
-numIff (Imp f g) = numIff f + numIff g
-numIff (Iff f g) = 1 + numIff f + numIff g
-
 
 subformulas :: Formula a -> [Formula a]
 subformulas f = f : properSubformulas f
