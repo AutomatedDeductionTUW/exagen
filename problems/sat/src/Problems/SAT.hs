@@ -1,7 +1,7 @@
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -38,13 +38,10 @@ import Data.Text.Prettyprint.Doc.Render.String
 -- QuickCheck
 import Test.QuickCheck (Arbitrary(..), elements)
 
--- random
-import System.Random
-
 -- exagen
 import Control.Monad.Choose
 import Logic.Propositional.Formula hiding (Prop(..))
-import Options (SATOptions(..))
+import Options (Options(..), SATOptions(..))
 
 
 -- For the exam we just add all parentheses except
@@ -71,24 +68,10 @@ showLatex atomToLatex = go (0 :: Int)
     bracket False s = s
 
 
--- Returns the seed that has been set
-setSeed :: Maybe Int -> IO Int
-setSeed Nothing = do
-  -- If no seed has been specified, we generate a random one to use
-  seed <- randomIO
-  setSeed (Just seed)
-setSeed (Just seed) = do
-  setStdGen (mkStdGen seed)
-  return seed
-
-
 -- TODO: add extra criterion to filter out formulas with too many parentheses in the rendered latex?
 --       (visual complexity is probably a factor in how many mistakes people make)
-main :: SATOptions -> IO ()
-main SATOptions{optNumExams,optOutputDir,optSeed} = do
-
-  actualSeed <- setSeed optSeed
-  putStrLn $ "Random generator seed: " <> show actualSeed
+main :: Options -> SATOptions -> IO ()
+main Options{optNumExams,optOutputDir} SATOptions = do
 
   fms <- randomDistinctExamFormulas optNumExams
 
