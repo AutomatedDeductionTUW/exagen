@@ -28,6 +28,9 @@ import Control.Monad.State.Strict
 import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Render.String
 
+-- QuickCheck
+import Test.QuickCheck (Arbitrary(..), elements)
+
 -- exagen
 import Control.Monad.Choose
 import Logic.Propositional.Formula hiding (Prop(..))
@@ -103,15 +106,9 @@ suitableFast fm =
   [ numAtoms fm == 3
   , -- there is at least one atom with pure polarity
     hasAtomPolarity Neg fm || hasAtomPolarity Pos fm
-  -- , -- at least one but at most two equivalences
-  --   let n = countSubformulas isIff fm
-  --   in 1 <= n && n <= 2
-  -- , anySubformula isImp fm
-  -- , anySubformula isNot fm
-  -- , anySubformula isAnd fm || anySubformula isOr fm
   , not (anySubformula isNestedNot fm)
-  -- , not (anySubformula isTrivialBinaryConnective fm)
   ]
+
 
 suitable :: Ord a => Formula a -> Bool
 suitable fm =
@@ -142,6 +139,42 @@ instance Show Prop where
 instance Pretty Prop where
   pretty = pretty . show
 
+instance Arbitrary Prop where
+  arbitrary = elements [P, Q, R]
+
+
+-- | Permutation of 'Prop' values
+data PropPerm = PropPerm
+  { permName :: String
+  , applyPerm :: Prop -> Prop
+  }
+
+allPropPerms :: [PropPerm]
+allPropPerms =
+  [ PropPerm "PQR" id
+  , PropPerm "QPR" pq
+  , PropPerm "RQP" pr
+  , PropPerm "PRQ" qr
+  , PropPerm "QRP" (pr . pq)
+  , PropPerm "RPQ" (qr . pq)
+  ]
+  where
+    pq P = Q
+    pq Q = P
+    pq x = x
+    pr P = R
+    pr R = P
+    pr x = x
+    qr Q = R
+    qr R = Q
+    qr x = x
+
+instance Show PropPerm where
+  show = permName
+
+instance Arbitrary PropPerm where
+  arbitrary = elements allPropPerms
+
 
 randomDistinctExamFormulas :: Int -> IO [Formula Prop]
 randomDistinctExamFormulas = go [] Set.empty
@@ -154,10 +187,11 @@ randomDistinctExamFormulas = go [] Set.empty
     go fs _ 0 = return fs
     go fs normalizedFormulas n = do
       f <- randomExamFormula
-      let nf = normalize f
-      if nf `Set.member` normalizedFormulas
+      let fperms = [ applyPerm p <$> f | p <- allPropPerms ]
+          nfperms = Set.fromList (normalize <$> fperms)
+      if any (`Set.member` normalizedFormulas) nfperms
         then go fs normalizedFormulas n
-        else go (f:fs) (Set.insert nf normalizedFormulas) (n - 1)
+        else go (f:fs) (normalizedFormulas `Set.union` nfperms) (n - 1)
 
 
 randomExamFormula :: IO (Formula Prop)

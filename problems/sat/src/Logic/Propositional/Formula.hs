@@ -35,7 +35,6 @@ data Formula a
   | Imp (Formula a) (Formula a)
   deriving (Eq, Ord, Show, Functor, Foldable)
 
-
 instance Applicative Formula where
   pure :: a -> Formula a
   pure = Atomic
@@ -60,7 +59,6 @@ joinFormula (Imp fm1 fm2) = Imp (joinFormula fm1) (joinFormula fm2)
 joinFormula (Iff fm1 fm2) = Iff (joinFormula fm1) (joinFormula fm2)
 -- joinFormula (Forall s fm) = Forall s (joinFormula fm)
 -- joinFormula (Exists s fm) = Exists s (joinFormula fm)
-
 
 instance Arbitrary a => Arbitrary (Formula a) where
   arbitrary = genFormula arbitrary

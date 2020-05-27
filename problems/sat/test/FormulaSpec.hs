@@ -12,7 +12,7 @@ import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
 
 import Logic.Propositional.Formula hiding (Prop(..))
-import Exagen hiding (Prop(..))
+import Exagen
 
 
 instance Eq a => EqProp (Formula a) where
@@ -26,42 +26,6 @@ numIff (And f g) = numIff f + numIff g
 numIff (Or  f g) = numIff f + numIff g
 numIff (Imp f g) = numIff f + numIff g
 numIff (Iff f g) = 1 + numIff f + numIff g
-
-
-data Prop = P | Q | R
-  deriving (Eq, Ord, Show)
-
-instance Arbitrary Prop where
-  arbitrary = elements [P, Q, R]
-
-
-data Perm = Perm
-  { permName :: String
-  , applyPerm :: Prop -> Prop
-  }
-
-instance Show Perm where
-  show = permName
-
-instance Arbitrary Perm where
-  arbitrary = elements
-    [ Perm "PQR" id
-    , Perm "QPR" pq
-    , Perm "RQP" pr
-    , Perm "PRQ" qr
-    , Perm "QRP" (pr . pq)
-    , Perm "RPQ" (qr . pq)
-    ]
-    where
-      pq P = Q
-      pq Q = P
-      pq x = x
-      pr P = R
-      pr R = P
-      pr x = x
-      qr Q = R
-      qr R = Q
-      qr x = x
 
 
 spec :: Spec
@@ -83,7 +47,7 @@ spec = do
         normalize f `shouldBe` normalize g
 
       it "discovers atom permutations" $ do
-        property $ \(fm :: Formula Prop) (p :: Perm) ->
+        property $ \(fm :: Formula Prop) (p :: PropPerm) ->
                      let fm' = fmap (applyPerm p) fm
                      in normalize fm == normalize fm'
 
