@@ -18,8 +18,14 @@ import qualified Data.Map.Strict as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 
+-- directory
+import System.Directory
+
+-- filepath
+import System.FilePath
+
 -- list-transformer
-import List.Transformer as ListT
+import qualified List.Transformer as ListT
 
 -- mtl
 -- import Control.Monad.Reader
@@ -39,9 +45,6 @@ import System.Random
 import Control.Monad.Choose
 import Logic.Propositional.Formula hiding (Prop(..))
 import Options (SATOptions(..))
-
-
-data Pair a b = Pair !a !b
 
 
 -- For the exam we just add all parentheses except
@@ -79,15 +82,17 @@ setSeed (Just seed) = do
   return seed
 
 
+-- TODO: add extra criterion to filter out formulas with too many parentheses in the rendered latex?
+--       (visual complexity is probably a factor in how many mistakes people make)
 main :: SATOptions -> IO ()
-main SATOptions{numExams,outputDir,seed} = do
+main SATOptions{optNumExams,optOutputDir,optSeed} = do
 
-  actualSeed <- setSeed seed
+  actualSeed <- setSeed optSeed
   putStrLn $ "Random generator seed: " <> show actualSeed
 
-  fms <- randomDistinctExamFormulas numExams
+  fms <- randomDistinctExamFormulas optNumExams
 
-  case outputDir of
+  case optOutputDir of
     Nothing -> do
       forM_ fms $ \fm -> do
         putStrLn $ showPretty fm
@@ -98,11 +103,17 @@ main SATOptions{numExams,outputDir,seed} = do
         -- putStrLn $ "Polarities: " <> show (atomPolarity fm)
         -- putStrLn ""
 
-    Just path -> do
-      error "TODO"
+    Just outputDir -> do
+      outputDirExists <- doesDirectoryExist outputDir
+      unless outputDirExists $
+        error ("The given output directory does not exist: " <> show outputDir)
 
-    -- TODO: add extra criterion to filter out formulas with too many parentheses in the rendered latex?
-    --       (visual complexity is probably a factor in how many mistakes people make)
+      forM_ (zip fms [1..]) $ \(fm, i :: Int) -> do
+        let examDir = outputDir </> ("exam-" <> show i)
+        createDirectoryIfMissing False examDir
+        let file = examDir </> "sat.tex"
+        putStrLn $ "Writing file: " <> file
+        writeFile file ("\\[ " <> showLatex show fm <> " \\]\n")
 
 
 -- Results for size = 5:
@@ -123,6 +134,10 @@ enumerateSampleSpace = do
         genExamFormula
   putStrLn $ "Size of suitable sample space: " <> show numSuitableFormulas
   putStrLn $ "Size of sample space: " <> show numFormulas
+
+-- | 'Pair a b' is a strict pair, as opposed to the built-in tuple '(a,b)', which is lazy.
+data Pair a b = Pair !a !b
+  deriving (Eq, Ord, Show)
 
 
 -- Only checks those criteria from 'suitable' that haven't been inlined into the generator
