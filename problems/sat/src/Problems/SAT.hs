@@ -32,6 +32,9 @@ import Data.Text.Prettyprint.Doc.Render.String
 -- QuickCheck
 import Test.QuickCheck (Arbitrary(..), elements)
 
+-- random
+import System.Random
+
 -- exagen
 import Control.Monad.Choose
 import Logic.Propositional.Formula hiding (Prop(..))
@@ -65,8 +68,22 @@ showLatex atomToLatex = go (0 :: Int)
     bracket False s = s
 
 
+-- Returns the seed that has been set
+setSeed :: Maybe Int -> IO Int
+setSeed Nothing = do
+  -- If no seed has been specified, we generate a random one to use
+  seed <- randomIO
+  setSeed (Just seed)
+setSeed (Just seed) = do
+  setStdGen (mkStdGen seed)
+  return seed
+
+
 main :: SATOptions -> IO ()
-main SATOptions{numExams,outputDir} = do
+main SATOptions{numExams,outputDir,seed} = do
+
+  actualSeed <- setSeed seed
+  putStrLn $ "Random generator seed: " <> show actualSeed
 
   fms <- randomDistinctExamFormulas numExams
 
@@ -186,7 +203,7 @@ instance Arbitrary PropPerm where
 
 
 randomDistinctExamFormulas :: Int -> IO [Formula Prop]
-randomDistinctExamFormulas = go [] Set.empty
+randomDistinctExamFormulas = fmap reverse . go [] Set.empty
   where
     go
       :: [Formula Prop]  -- ^ the formulas generated so far

@@ -18,6 +18,7 @@ data Options
 data SATOptions = SATOptions
   { numExams :: Int
   , outputDir :: Maybe String
+  , seed :: Maybe Int
   }
   deriving Show
 
@@ -44,6 +45,7 @@ satOptions =
   pure SATOptions
   <*> optNumExams
   <*> optional optOutputDir
+  <*> optional optSeed
   where
     optNumExams = option auto $
       short 'n'
@@ -52,9 +54,16 @@ satOptions =
       <> help "How many exams to generate"
 
     optOutputDir = strOption $
-      long "output"
+      short 'o'
+      <> long "output"
       <> metavar "DIR"
       <> help "Base directory for output. Exams will be written to folder $DIR/exam-$N/"
+
+    optSeed = option auto $
+      short 's'
+      <> long "seed"
+      <> metavar "SEED"
+      <> help "Set initial random generator seed."
 
 
 satOptionsInfo :: ParserInfo SATOptions
