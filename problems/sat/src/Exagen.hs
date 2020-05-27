@@ -42,6 +42,7 @@ main = do
   forM_ fms $ \fm -> do
     putStrLn $ showPretty fm
     putStrLn $ "Normalized: " <> showPretty (normalize fm)
+    -- putStrLn $ "Normalizeds: " <> showPretty (sortFlatFormula (normalize fm))
     -- putStrLn $ "Proper Subformulas:\n" <> showPretty (properSubformulas fm)
     putStrLn $ "Polarities: " <> show (atomPolarity fm)
     putStrLn ""

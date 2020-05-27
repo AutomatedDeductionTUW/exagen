@@ -9,7 +9,7 @@ module Logic.Propositional.Formula where
 -- base
 import Control.Monad (ap)
 import Data.Foldable
-import Data.List (sort)
+import Data.List (nub, sort)
 
 -- containers
 -- import Data.Map.Strict (Map)
@@ -64,6 +64,12 @@ joinFormula (Iff fm1 fm2) = Iff (joinFormula fm1) (joinFormula fm2)
 
 instance Arbitrary a => Arbitrary (Formula a) where
   arbitrary = genFormula arbitrary
+  shrink (Atomic _) = []
+  shrink (Not f) = [f] ++ (Not <$> shrink f)
+  shrink (And f g) = [f, g] ++ (flip And g <$> shrink f) ++ (And f <$> shrink g)
+  shrink (Or  f g) = [f, g] ++ (flip Or  g <$> shrink f) ++ (Or  f <$> shrink g)
+  shrink (Iff f g) = [f, g] ++ (flip Iff g <$> shrink f) ++ (Iff f <$> shrink g)
+  shrink (Imp f g) = [f, g] ++ (flip Imp g <$> shrink f) ++ (Imp f <$> shrink g)
 
 -- The size parameter (given through QuickCheck) is the number of connectives in the formula
 genFormula'
@@ -170,7 +176,8 @@ genIdentifier = Identifier <$> ((:) <$> genFirstChar <*> listOf genNextChar)
 -- * Commutativity of And/Or/Iff
 -- * Finally, all atoms are uniformly replaced by integers
 normalize :: Ord a => Formula a -> FlatFormula Int
-normalize = normalizeAtoms . sortFlatFormula . flatten
+normalize = sortFlatFormula . normalizeAtoms . sortFlatFormula . flatten
+-- normalize = normalizeAtomsIso . sortFlatFormula . flatten
 
 -- | Flattens associative binary connectives (And/Or)
 flatten :: Formula a -> FlatFormula a
@@ -203,9 +210,17 @@ sortFlatFormula (FlatIff f g) =
      then FlatIff f' g'
      else FlatIff g' f'
 
--- | Replaces atoms by increasing integers (using an order isomorphism)
+-- | Replaces atoms by increasing integers (in order of occurrence)
 normalizeAtoms :: Ord a => FlatFormula a -> FlatFormula Int
 normalizeAtoms f = fmap (table Map.!) f
+  where
+    atoms = toList f
+    distinctAtoms = nub atoms
+    table = Map.fromList (zip distinctAtoms [0..])
+
+-- | Replaces atoms by increasing integers (using an order isomorphism)
+normalizeAtomsIso :: Ord a => FlatFormula a -> FlatFormula Int
+normalizeAtomsIso f = fmap (table Map.!) f
   where
     atoms = toList f
     distinctAtoms = Set.toAscList (Set.fromList atoms)
