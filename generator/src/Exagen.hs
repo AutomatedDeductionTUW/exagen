@@ -12,12 +12,18 @@ import qualified Problems.SAT
 
 main :: IO ()
 main = do
-  opts@Options{optSeed,optCommand} <- parseOptions
+  opts@Options{optSeed} <- parseOptions
 
   actualSeed <- setSeed optSeed
   putStrLn $ "Random generator seed: " <> show actualSeed
 
-  case optCommand of
+  let opts' = opts{ optSeed = Just actualSeed }
+  runCommand opts'
+
+
+runCommand :: Options -> IO ()
+runCommand opts =
+  case optCommand opts of
     GenSAT cmdOpts -> Problems.SAT.main opts cmdOpts
 
 

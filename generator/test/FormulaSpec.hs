@@ -12,7 +12,7 @@ import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
 
 import Logic.Propositional.Formula hiding (Prop(..))
-import Exagen
+import Problems.SAT
 
 
 instance Eq a => EqProp (Formula a) where

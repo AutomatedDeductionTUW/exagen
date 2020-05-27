@@ -71,7 +71,7 @@ showLatex atomToLatex = go (0 :: Int)
 -- TODO: add extra criterion to filter out formulas with too many parentheses in the rendered latex?
 --       (visual complexity is probably a factor in how many mistakes people make)
 main :: Options -> SATOptions -> IO ()
-main Options{optNumExams,optOutputDir} SATOptions = do
+main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
 
   fms <- randomDistinctExamFormulas optNumExams
 
@@ -96,7 +96,12 @@ main Options{optNumExams,optOutputDir} SATOptions = do
         createDirectoryIfMissing False examDir
         let file = examDir </> "sat.tex"
         putStrLn $ "Writing file: " <> file
-        writeFile file ("\\[ " <> showLatex show fm <> " \\]\n")
+        let content = mconcat
+              [ "% Random number generator seed: ", show optSeed, "\n"
+              , "% Index: ", show i, "\n"
+              , "\\[ " <> showLatex show fm <> " \\]\n"
+              ]
+        writeFile file content
 
 
 -- Results for size = 5:
