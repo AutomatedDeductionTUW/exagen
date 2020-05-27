@@ -9,7 +9,7 @@ module Exagen where
 -- base
 import Control.Monad
 import Data.Foldable
-import Data.Functor.Identity
+-- import Data.Functor.Identity
 
 -- containers
 import Data.Map.Strict (Map)
@@ -18,7 +18,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 -- list-transformer
-import List.Transformer as ListT
+-- import List.Transformer as ListT
 
 -- mtl
 -- import Control.Monad.Reader
@@ -36,16 +36,44 @@ import Logic.Propositional.Formula hiding (Prop(..))
 data Pair a b = Pair !a !b
 
 
+-- For the exam we just add all parentheses except
+-- * the outer ones around the whole formula
+-- * the ones around negations
+showLatex :: (a -> String) -> Formula a -> String
+showLatex atomToLatex = go (0 :: Int)
+  where
+    -- prec: the precedence of the operator in the parent node
+    --       => if it is higher than the precedence of the current node,
+    --          we have to add parentheses to keep the same parse tree
+    go _ (Atomic a) = atomToLatex a
+    go prec (Not f)   = bracket (prec > 10) $ goPrefix 10 "\\lnot " f
+    go prec (And f g) = bracket (prec > 8) $ goInfix 8 " \\land " f g
+    go prec (Or  f g) = bracket (prec > 8) $ goInfix 8 " \\lor " f g
+    go prec (Iff f g) = bracket (prec > 8) $ goInfix 8 " \\leftrightarrow " f g
+    go prec (Imp f g) = bracket (prec > 8) $ goInfix 8 " \\rightarrow " f g
+
+    goPrefix prec sym f = sym <> go (prec+1) f
+
+    goInfix prec sym f g = go (prec+1) f <> sym <> go (prec+1) g
+
+    bracket True s = "( " <> s <> " )"
+    bracket False s = s
+
+
 main :: IO ()
 main = do
   fms <- randomDistinctExamFormulas 10
   forM_ fms $ \fm -> do
     putStrLn $ showPretty fm
+    putStrLn $ "Latex: " <> showLatex show fm
     putStrLn $ "Normalized: " <> showPretty (normalize fm)
     -- putStrLn $ "Normalizeds: " <> showPretty (sortFlatFormula (normalize fm))
     -- putStrLn $ "Proper Subformulas:\n" <> showPretty (properSubformulas fm)
     putStrLn $ "Polarities: " <> show (atomPolarity fm)
     putStrLn ""
+
+    -- TODO: add extra criterion to filter out formulas with too many parentheses in the rendered latex?
+    --       (visual complexity is probably a factor in how many mistakes people make)
 
   {-
   let Pair numFormulas numSuitableFormulas :: Pair Int Int =
