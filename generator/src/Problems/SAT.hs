@@ -11,6 +11,7 @@ module Problems.SAT where
 import Control.Monad
 import Data.Foldable
 import Data.Functor.Identity
+import Text.Printf (printf)
 
 -- containers
 import Data.Map.Strict (Map)
@@ -92,7 +93,7 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
         error ("The given output directory does not exist: " <> show outputDir)
 
       forM_ (zip fms [1..]) $ \(fm, i :: Int) -> do
-        let examDir = outputDir </> ("exam-" <> show i)
+        let examDir = outputDir </> (printf "exam-%02d" i)
         createDirectoryIfMissing False examDir
         let file = examDir </> "sat.tex"
         putStrLn $ "Writing file: " <> file
