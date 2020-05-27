@@ -32,11 +32,14 @@ library
   exposed-modules:  Exagen
                   , Control.Monad.Choose
                   , Logic.Propositional.Formula
+                  , Options
+                  , Problems.SAT
   build-depends:    base >= 4.12 && < 5
                   , combinat
                   , containers
                   , list-transformer
                   , mtl
+                  , optparse-applicative
                   , prettyprinter
                   , QuickCheck >= 2.14
                   , random
