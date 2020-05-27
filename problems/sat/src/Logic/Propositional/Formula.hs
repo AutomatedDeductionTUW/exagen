@@ -8,6 +8,13 @@ module Logic.Propositional.Formula where
 
 -- base
 import Control.Monad (ap)
+import Data.Foldable
+import Data.List (sort)
+
+-- containers
+-- import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 
 -- prettyprinter
 import Data.Text.Prettyprint.Doc
@@ -157,14 +164,91 @@ genIdentifier = Identifier <$> ((:) <$> genFirstChar <*> listOf genNextChar)
 
 
 
+-- | Normalizes a formula to remove certain superficial differences
+--
+-- * Associativity of nested And/Or
+-- * Commutativity of And/Or/Iff
+-- * Finally, all atoms are uniformly replaced by integers
+normalize :: Ord a => Formula a -> FlatFormula Int
+normalize = normalizeAtoms . sortFlatFormula . flatten
+
+-- | Flattens associative binary connectives (And/Or)
+flatten :: Formula a -> FlatFormula a
+flatten (Atomic a) = FlatAtomic a
+flatten (Not f) = FlatNot (flatten f)
+flatten (Iff f g) = FlatIff (flatten f) (flatten g)
+flatten (Imp f g) = FlatImp (flatten f) (flatten g)
+flatten (And f g) = FlatAnd (conjuncts (flatten f) ++ conjuncts (flatten g))
+flatten (Or  f g) = FlatOr  (disjuncts (flatten f) ++ disjuncts (flatten g))
+
+conjuncts :: FlatFormula a -> [FlatFormula a]
+conjuncts (FlatAnd fs) = fs
+conjuncts f = [f]
+
+disjuncts :: FlatFormula a -> [FlatFormula a]
+disjuncts (FlatOr fs) = fs
+disjuncts f = [f]
+
+-- | Sorts arguments of all commutative connectives recursively
+sortFlatFormula :: Ord a => FlatFormula a -> FlatFormula a
+sortFlatFormula f@(FlatAtomic _) = f
+sortFlatFormula (FlatNot f) = FlatNot (sortFlatFormula f)
+sortFlatFormula (FlatAnd fs) = FlatAnd (sort (map sortFlatFormula fs))
+sortFlatFormula (FlatOr  fs) = FlatOr  (sort (map sortFlatFormula fs))
+sortFlatFormula (FlatImp f g) = FlatImp (sortFlatFormula f) (sortFlatFormula g)
+sortFlatFormula (FlatIff f g) =
+  let f' = sortFlatFormula f
+      g' = sortFlatFormula g
+  in if f' <= g'
+     then FlatIff f' g'
+     else FlatIff g' f'
+
+-- | Replaces atoms by increasing integers (using an order isomorphism)
+normalizeAtoms :: Ord a => FlatFormula a -> FlatFormula Int
+normalizeAtoms f = fmap (table Map.!) f
+  where
+    atoms = toList f
+    distinctAtoms = Set.toAscList (Set.fromList atoms)
+    table = Map.fromList (zip distinctAtoms [0..])
 
 
--- flatten before printing?
 data FlatFormula a
   = FlatAtomic a
-  | FlatNot (Formula a)
-  | FlatAnd [Formula a]
-  | FlatOr [Formula a]
-  | FlatIff (Formula a)
-  | FlatImp (Formula a)
-  deriving (Show, Eq, Ord)
+  | FlatNot (FlatFormula a)
+  | FlatAnd [FlatFormula a]
+  | FlatOr  [FlatFormula a]
+  | FlatIff (FlatFormula a) (FlatFormula a)
+  | FlatImp (FlatFormula a) (FlatFormula a)
+  deriving (Show, Eq, Ord, Functor, Foldable)
+
+
+prettyFlatFormula
+  :: forall a ann.
+     (Int -> a -> Doc ann)
+  -> Int
+  -> FlatFormula a
+  -> Doc ann
+prettyFlatFormula prettyAtom = go
+  where
+    go :: Int -> FlatFormula a -> Doc ann
+    -- go _ Falsum = "False"
+    -- go _ Verum = "True"
+    go prec (FlatAtomic x) = prettyAtom prec x
+    go prec (FlatNot p) = bracket (prec > 10) 1 (prettyPrefix 10) "~" p
+    go _    (FlatAnd []) = "True"
+    go prec (FlatAnd [p]) = go prec p
+    go prec (FlatAnd (p:ps)) = bracket (prec > 8) 0 (prettyInfix 8 "/\\") p (FlatAnd ps)
+    go _    (FlatOr []) = "False"
+    go prec (FlatOr [p]) = go prec p
+    go prec (FlatOr (p:ps)) = bracket (prec > 6) 0 (prettyInfix 6 "\\/") p (FlatOr ps)
+    go prec (FlatImp p q) = bracket (prec > 4) 0 (prettyInfix 4 "==>") p q
+    go prec (FlatIff p q) = bracket (prec > 2) 0 (prettyInfix 2 "<=>") p q
+    prettyPrefix :: Int -> Doc ann -> FlatFormula a -> Doc ann
+    prettyPrefix newPrec sym p = sym <> go (newPrec+1) p  -- TODO: Remove +1 here to save parens on nested negations
+    prettyInfix :: Int -> Doc ann -> FlatFormula a -> FlatFormula a -> Doc ann
+    prettyInfix newPrec sym p q = go (newPrec+1) p <+> sym <> line <> go newPrec q
+    bracket :: forall b c. Bool -> Int -> (b -> c -> Doc ann) -> b -> c -> Doc ann
+    bracket br n f x y = (if br then parens else id) (nest n (align $ group $ f x y))
+
+instance Pretty a => Pretty (FlatFormula a) where
+  pretty = prettyFlatFormula (const pretty) 0

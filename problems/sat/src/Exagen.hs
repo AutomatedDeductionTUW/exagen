@@ -14,6 +14,7 @@ import Data.Functor.Identity
 -- containers
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import Data.Set (Set)
 import qualified Data.Set as Set
 
 -- list-transformer
@@ -37,9 +38,10 @@ data Pair a b = Pair !a !b
 
 main :: IO ()
 main = do
-  fms <- replicateM 10 randomExamFormula
+  fms <- randomDistinctExamFormulas 10
   forM_ fms $ \fm -> do
     putStrLn $ showPretty fm
+    putStrLn $ "Normalized: " <> showPretty (normalize fm)
     -- putStrLn $ "Proper Subformulas:\n" <> showPretty (properSubformulas fm)
     putStrLn $ "Polarities: " <> show (atomPolarity fm)
     putStrLn ""
@@ -112,11 +114,28 @@ instance Pretty Prop where
   pretty = pretty . show
 
 
+randomDistinctExamFormulas :: Int -> IO [Formula Prop]
+randomDistinctExamFormulas = go [] Set.empty
+  where
+    go
+      :: [Formula Prop]  -- ^ the formulas generated so far
+      -> Set (FlatFormula Int)  -- ^ the formulas generated so far, in normalized form
+      -> Int  -- ^ how many do we still have to generate
+      -> IO [Formula Prop]
+    go fs _ 0 = return fs
+    go fs normalizedFormulas n = do
+      f <- randomExamFormula
+      let nf = normalize f
+      if nf `Set.member` normalizedFormulas
+        then go fs normalizedFormulas n
+        else go (f:fs) (Set.insert nf normalizedFormulas) (n - 1)
+
+
 randomExamFormula :: IO (Formula Prop)
 randomExamFormula = go 1000
   where
     go :: Int -> IO (Formula Prop)
-    go 0 = error "max tries exceeded"
+    go 0 = error "maximum number of tries exceeded"
     go n = do
       maybeFm <- evalRandomListIO' genExamFormula
       case maybeFm of

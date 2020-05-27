@@ -35,6 +35,11 @@ spec = do
       it "different ways to count equivalences gives the same result" $
         property $ \(fm :: Formula Int) -> countSubformulas isIff fm == numIff fm
 
+    describe "normalized formula" $ do
+      it "is sorted" $ do
+        property $ \(fm :: Formula Integer) -> let fm' = normalize fm
+                                               in fm' == sortFlatFormula fm'
+
     describe "Formula instances" $ do
       modifyMaxSuccess (const 10) $ do
         let trigger = undefined :: Formula (Int, Int, Int)
