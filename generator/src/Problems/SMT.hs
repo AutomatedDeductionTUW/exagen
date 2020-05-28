@@ -81,6 +81,8 @@ main Options{optNumExams,optOutputDir,optSeed} SMTOptions{optTemplate} = do
         putStrLn $ "Writing file: " <> file
         writeFile file content
 
+        -- TODO: call z3, check unsat
+
 
 variations :: MonadChoose m => m [Variation String]
 variations = do
@@ -103,7 +105,7 @@ data Variation c = AddOffset !c !Int
 
 -- | Apply a single variation to a term
 vary1 :: Eq c => Variation c -> Term c -> Term c
-vary1 (AddOffset c x) = substConst c (A "+" [C c, N x])
+vary1 (AddOffset c x) = simplifyAddOffset . substConst c (A "+" [C c, N x])
 
 -- | Apply a list of variations
 vary :: Eq c => [Variation c] -> Term c -> Term c
@@ -121,6 +123,30 @@ fromEither :: Either a a -> a
 fromEither (Left x) = x
 fromEither (Right x) = x
 
+
+simplifyAddOffset :: Term c -> Term c
+simplifyAddOffset = normalizeNegative . simplifyPlusTwice . normalizePlus
+
+-- | rewrite (- X 3) into (+ X -3)
+normalizePlus :: Term c -> Term c
+normalizePlus (A "-" [t, N x]) = A "+" [normalizePlus t, N (-x)]
+normalizePlus (A fn args) = A fn (map normalizePlus args)
+normalizePlus t@(C _) = t
+normalizePlus t@(N _) = t
+
+-- | rewrite (+ X -3) into (- X 3)
+normalizeNegative :: Term c -> Term c
+normalizeNegative (A "+" [t, N x]) | x < 0 = A "-" [normalizeNegative t, N (-x)]
+normalizeNegative (A fn args) = A fn (map normalizeNegative args)
+normalizeNegative t@(C _) = t
+normalizeNegative t@(N _) = t
+
+-- | rewrite (+ (+ X 3) 5) into (+ X 8)
+simplifyPlusTwice :: Term c -> Term c
+simplifyPlusTwice (A "+" [A "+" [t, N x], N y]) = A "+" [simplifyPlusTwice t, N (x+y)]
+simplifyPlusTwice (A fn args) = A fn (map simplifyPlusTwice args)
+simplifyPlusTwice t@(C _) = t
+simplifyPlusTwice t@(N _) = t
 
 
 data Term c
