@@ -229,3 +229,21 @@ formatFormula :: Term String -> Expr String
 formatFormula (C c) = Value c
 formatFormula (N n) = Value (show n)
 formatFormula (A fn args) = SExpr (Value fn : map formatFormula args)
+
+
+{-
+-- 5+c -> c+5
+-- c+(-5) -> c-5
+normalize1 :: Term String -> Term String
+normalize1 (A "+" [ N x, C c ]) = A "+" [ C c, N x ]
+normalize1 (A "+" [ C c, N x ]) | x < 0 = A "-" [ C c, N (-x) ]
+normalize1 t = t
+
+-- replace c -> c+5
+replace :: String -> Int -> Term String -> Term String
+replace c x = substC c (A "+" [ C c, N x ])
+
+simplify1 :: Term String -> Term String
+simplify1 (A "+" [ N x, N y ]) = N (x + y)
+simplify1 (A "+" [A "+" [ A c [], N x ], N y ]) = A "+" [ A c [], N (x + y) ]
+-}
