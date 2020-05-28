@@ -8,6 +8,7 @@ import System.Random
 -- exagen
 import Options
 import qualified Problems.SAT
+import qualified Problems.SMT
 
 
 main :: IO ()
@@ -25,6 +26,7 @@ runCommand :: Options -> IO ()
 runCommand opts =
   case optCommand opts of
     GenSAT cmdOpts -> Problems.SAT.main opts cmdOpts
+    GenSMT cmdOpts -> Problems.SMT.main opts cmdOpts
 
 
 -- Returns the seed that has been set

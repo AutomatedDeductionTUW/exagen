@@ -2,6 +2,7 @@ module Options
   ( Options(..)
   , Command(..)
   , SATOptions(..)
+  , SMTOptions(..)
   , parseOptions
   ) where
 
@@ -23,11 +24,19 @@ data Options = Options
 -- | Subcommand to execute
 data Command
   = GenSAT SATOptions
+  | GenSMT SMTOptions
   deriving Show
 
 
 -- | Options for subcommand "sat"
 data SATOptions = SATOptions
+  deriving Show
+
+
+-- | Options for subcommand "smt"
+data SMTOptions = SMTOptions
+  { optTemplate :: FilePath
+  }
   deriving Show
 
 
@@ -50,6 +59,7 @@ options =
       <> long "output"
       <> metavar "DIR"
       <> help "Base directory for output. Exams will be written to folder $DIR/exam-$N/"
+      <> action "directory"
 
     seed = option auto $
       short 's'
@@ -59,6 +69,7 @@ options =
 
     cmd = hsubparser . mconcat . fmap (uncurry command) $
       [ ("sat", GenSAT <$> satOptionsInfo)
+      , ("smt", GenSMT <$> smtOptionsInfo)
       ]
 
 
@@ -78,6 +89,24 @@ satOptions =
 satOptionsInfo :: ParserInfo SATOptions
 satOptionsInfo =
   info satOptions (progDesc "Generate exam problem for the SAT part")
+
+
+smtOptions :: Parser SMTOptions
+smtOptions =
+  pure SMTOptions
+  <*> template
+  where
+    template = strOption $
+      short 't'
+      <> long "template"
+      <> metavar "FILE"
+      <> help "Path to the problem template file in SMT-LIB 2 format"
+      <> action "file"
+
+
+smtOptionsInfo :: ParserInfo SMTOptions
+smtOptionsInfo =
+  info smtOptions (progDesc "Generate exam problem for the SMT part")
 
 
 parseOptions :: IO Options

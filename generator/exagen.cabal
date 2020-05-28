@@ -31,20 +31,27 @@ library
   hs-source-dirs:   src
   exposed-modules:  Exagen
                   , Control.Monad.Choose
+                  , Data.SExpr
                   , Logic.Propositional.Formula
                   , Options
                   , Problems.SAT
+                  , Problems.SMT
   build-depends:    base >= 4.12 && < 5
                   , combinat
                   , containers
                   , directory >= 1.3.6.1
                   , filepath
+                  , lens
                   , list-transformer
+                  , megaparsec >= 7.0.5 && <8
                   , mtl
                   , optparse-applicative
+                  , parser-combinators
                   , prettyprinter
                   , QuickCheck >= 2.14
                   , random
+                  , safe
+                  , text
   default-language: Haskell2010
 
 executable exagen

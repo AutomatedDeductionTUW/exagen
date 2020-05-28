@@ -28,10 +28,11 @@ import System.Random hiding (next)
 class MonadPlus m => MonadChoose m where
   choose :: [a] -> m a
 
--- NOTE: don't use this instance, the built-in list monad seems to build the full list in memory before returning
--- instance MonadChoose [] where
---   {-# INLINE choose #-}
---   choose = id
+-- | NOTE: This instance should only be used for a small amount of data,
+-- because the built-in list monad builds the full list in memory before returning
+instance MonadChoose [] where
+  {-# INLINE choose #-}
+  choose = id
 
 instance MonadChoose m => MonadChoose (StateT s m) where
   {-# INLINE choose #-}
@@ -87,7 +88,6 @@ evalRandomListIO unlift r = do
 
 evalRandomListIO' :: RandomListT StdGen Identity a -> IO (Maybe a)
 evalRandomListIO' = evalRandomListIO (pure . runIdentity)
-
 
 
 
