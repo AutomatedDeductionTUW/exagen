@@ -56,13 +56,13 @@ main Options{optNumExams,optOutputDir,optSeed} SMTOptions{optTemplate} = do
 
       varyTemplate v =
         combine $
-        over (mapped . _Right) (formatFormula . vary v) template
+        over (mapped . _Right) (formatAssert . vary v) template
 
   forM_ (zip vs [1..]) $ \(v, i :: Int) -> do
     let varied = varyTemplate v
     let content = mconcat
-          [ "% Random number generator seed: ", show optSeed, "\n"
-          , "% Index: ", show i, "\n"
+          [ ";; Random number generator seed: ", show optSeed, "\n"
+          , ";; Index: ", show i, "\n"
           ] ++ unlines (formatExpr id <$> varied)
 
     case optOutputDir of
