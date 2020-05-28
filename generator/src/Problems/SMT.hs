@@ -14,6 +14,7 @@ module Problems.SMT where
 import Control.Monad (unless, forM_, ap, join)
 import Data.Monoid
 import Text.Printf (printf)
+import System.Exit
 
 -- combinat
 import Math.Combinat.Permutations
@@ -26,6 +27,9 @@ import System.FilePath ((</>))
 
 -- lens
 import Control.Lens
+
+-- process
+import System.Process
 
 -- random
 import System.Random
@@ -81,7 +85,29 @@ main Options{optNumExams,optOutputDir,optSeed} SMTOptions{optTemplate} = do
         putStrLn $ "Writing file: " <> file
         writeFile file content
 
-        -- TODO: call z3, check unsat
+        result <- z3 file
+        case result of
+          Unsat ->
+            -- putStrLn "unsat"
+            return ()  -- everything fine
+          Other s -> do
+            putStrLn "Unexpected z3 output:"
+            putStrLn s
+            exitFailure
+
+
+-- NOTE: I didn't want to implement a full parser for z3's output,
+-- so we just recognize 'unsat' for now
+data Z3Result
+  = Unsat
+  | Other String
+
+z3 :: FilePath -> IO Z3Result
+z3 path = do
+  output <- readProcess "z3" [path] ""
+  if output == "unsat\n"
+    then return Unsat
+    else return (Other output)
 
 
 variations :: MonadChoose m => m [Variation String]
