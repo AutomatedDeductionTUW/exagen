@@ -151,7 +151,7 @@ fromEither (Right x) = x
 
 
 simplifyAddOffset :: Term c -> Term c
-simplifyAddOffset = normalizeNegative . simplifyPlusTwice . normalizePlus
+simplifyAddOffset = normalizeZero . normalizeNegative . simplifyPlusTwice . normalizePlus
 
 -- | rewrite (- X 3) into (+ X -3)
 normalizePlus :: Term c -> Term c
@@ -166,6 +166,14 @@ normalizeNegative (A "+" [t, N x]) | x < 0 = A "-" [normalizeNegative t, N (-x)]
 normalizeNegative (A fn args) = A fn (map normalizeNegative args)
 normalizeNegative t@(C _) = t
 normalizeNegative t@(N _) = t
+
+-- | rewrite (+ X 0) and (- X 0) into X
+normalizeZero :: Term c -> Term c
+normalizeZero (A "+" [t, N 0]) = normalizeZero t
+normalizeZero (A "-" [t, N 0]) = normalizeZero t
+normalizeZero (A fn args) = A fn (map normalizeZero args)
+normalizeZero t@(C _) = t
+normalizeZero t@(N _) = t
 
 -- | rewrite (+ (+ X 3) 5) into (+ X 8)
 simplifyPlusTwice :: Term c -> Term c
