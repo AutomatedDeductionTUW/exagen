@@ -8,7 +8,11 @@ for exam in exam-*; do
     echo "Compiling $exam"
 
     ln -sf "../template.tex" "$exam/$exam.tex"
-    ( cd "$exam" && latexmk -quiet -pdf "$exam.tex" )
+    (
+        cd "$exam"
+        echo hi
+        latexmk -quiet -pdf "$exam.tex"
+    )
 done
 
 mkdir -p final
