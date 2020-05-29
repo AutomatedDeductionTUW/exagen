@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import re
 
@@ -12,6 +11,7 @@ mapped_symbols = {
 # potentially needed around args
 infix_symbols = {
     "+": True,
+    "-": True,
     "=": False,
     r"\le": False,
     r"\append": True
@@ -72,10 +72,3 @@ def parse(expr):
     else:
         result = "{}({})".format(symbol, parse_terms(expr[1:]))
     return result, p_outside
-
-
-if __name__ == "__main__":
-    import sys
-    print(f"Args: {sys.argv}")
-    input_smt = sys.stdin.read()
-    print("hi")

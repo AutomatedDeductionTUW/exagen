@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 
 
+import formula_parser
+import lisp_parser
 
 
 if __name__ == "__main__":
     import sys
     print(f"Args: {sys.argv}")
-    input_smt = sys.stdin.read()
+    for stmt in lisp_parser.parse_file("/dev/stdin"):
+        if len(stmt) > 0 and stmt[0] == "assert":
+            formula = stmt[1]
+            print(formula_parser.parse(formula))
+            print(stmt[1])
+            print()
     print("hi")
