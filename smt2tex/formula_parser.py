@@ -4,7 +4,8 @@ import re
 mapped_symbols = {
     "add": "+",
     "leq": r"\le",
-    "app": r"\append"
+    "app": r"\append",
+    "or": r"\lor",
 }
 
 # value means parenthesis is
@@ -14,7 +15,8 @@ infix_symbols = {
     "-": True,
     "=": False,
     r"\le": False,
-    r"\append": True
+    r"\append": True,
+    r"\lor": False,
 }
 
 def prettify_var(var):
@@ -60,6 +62,25 @@ def parse(expr):
             result = "{}({})".format(handle_forall(expr[1]), block)
         else:
             result = handle_forall(expr[1])+block
+    elif symbol == "not":
+        assert len(expr) == 2
+        expr = expr[1]
+        symbol = get_symbol(expr[0])
+        if symbol == "=":  # maybe generalize to negated_infix_symbols?
+            block1, p_in1 = parse(expr[1])
+            block2, p_in2 = parse(expr[2])
+            if p_in1 and infix_symbols[symbol]:
+                block1 = "(" + block1 + ")"
+            if p_in2 and infix_symbols[symbol]:
+                block2 = "(" + block2 + ")"
+            result = "{} {} {}".format(block1, r" \neq ", block2)
+            p_outside = True
+        else:
+            block, p_in = parse(expr)
+            if p_in:
+                block = "(" + block + ")"
+            result = "\lnot {}".format(block)
+            p_outside = False
     elif symbol in infix_symbols:
         block1, p_in1 = parse(expr[1])
         block2, p_in2 = parse(expr[2])
