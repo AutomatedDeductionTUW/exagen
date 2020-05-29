@@ -6,6 +6,8 @@ mapped_symbols = {
     "leq": r"\le",
     "app": r"\append",
     "or": r"\lor",
+    "select": r"\mathit{read}",
+    "store": r"\mathit{write}",
 }
 
 # value means parenthesis is
