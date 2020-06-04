@@ -105,13 +105,16 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
   case optOutputDir of
     Nothing -> do
       forM_ fms $ \fm -> do
+        -- TODO: format as table
         putStrLn $ showPretty fm
+        putStrLn $ "Satisfiable? " <> show (satisfiable fm)
+        putStrLn $ "Valid? " <> show (valid fm)
         -- putStrLn $ "Latex: " <> showLatex show fm
         -- putStrLn $ "Normalized: " <> showPretty (normalize fm)
         -- putStrLn $ "Normalizeds: " <> showPretty (sortFlatFormula (normalize fm))
         -- putStrLn $ "Proper Subformulas:\n" <> showPretty (properSubformulas fm)
-        -- putStrLn $ "Polarities: " <> show (atomPolarity fm)
-        -- putStrLn ""
+        putStrLn $ "Polarities: " <> show (atomPolarity fm)
+        putStrLn ""
 
     Just outputDir -> do
       outputDirExists <- doesDirectoryExist outputDir
@@ -126,6 +129,9 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
         let content = mconcat
               [ "% Random number generator seed: ", show optSeed, "\n"
               , "% Index: ", show i, "\n"
+              , "% Satisfiable? ", show (satisfiable fm), "\n"
+              , "% Valid? ", show (valid fm), "\n"
+              , "% Polarities: ", show (atomPolarity fm), "\n"
               , "\\[ " <> showLatex show fm <> " \\]\n"
               ]
         writeFile file content

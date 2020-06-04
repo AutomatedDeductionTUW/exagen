@@ -10,6 +10,7 @@ module Logic.Propositional.Formula where
 import Control.Monad (ap)
 import Data.Foldable
 import Data.List (nub, sort)
+import Data.Maybe (fromJust)
 
 -- containers
 -- import Data.Map.Strict (Map)
@@ -101,6 +102,34 @@ genFormula' unaryConnectives binaryConnectives genA = genF
 
 genFormula :: Gen a -> Gen (Formula a)
 genFormula = genFormula' [Not] [And, Or, Imp, Iff]
+
+
+eval :: Formula Bool -> Bool
+eval (Atomic b) = b
+eval (Not f) = not (eval f)
+eval (And f g) = eval f && eval g
+eval (Or f g) = eval f || eval g
+eval (Iff f g) = eval f == eval g
+eval (Imp f g) = not (eval f) || eval g
+
+
+allAssignments :: [a] -> [[(a, Bool)]]
+allAssignments [] = [[]]
+allAssignments (x:xs) =
+  [ (x, v) : assignment | assignment <- allAssignments xs, v <- [ True, False ] ]
+
+
+-- | Naive satisfiability test (evaluates the formula under all interpretations)
+satisfiable :: Eq a => Formula a -> Bool
+satisfiable fm = or [ evalUnderAssignment a fm | a <- allAssignments (distinctAtoms fm) ]
+  where
+    distinctAtoms = nub . toList
+    evalUnderAssignment a = eval . fmap (\x -> fromJust (lookup x a))
+
+
+-- | Naive validity test (evaluates the formula under all interpretations)
+valid :: Eq a => Formula a -> Bool
+valid = not . satisfiable . Not
 
 
 -- TODO: there should be parentheses separating And/Or
