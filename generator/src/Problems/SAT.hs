@@ -11,6 +11,7 @@ module Problems.SAT where
 import Control.Monad
 import Data.Foldable
 import Data.Functor.Identity
+import Data.Semigroup
 import Text.Printf (printf)
 
 -- containers
@@ -69,8 +70,33 @@ showLatex atomToLatex = go (0 :: Int)
     bracket False s = s
 
 
--- TODO: add extra criterion to filter out formulas with too many parentheses in the rendered latex?
---       (visual complexity is probably a factor in how many mistakes people make)
+-- TODO: same recursion scheme as in 'showLatex'... maybe factor it out
+nestedLatexParens :: forall a. Formula a -> Int
+nestedLatexParens = getMax . go (0 :: Int)
+  where
+    -- prec: the precedence of the operator in the parent node
+    --       => if it is higher than the precedence of the current node,
+    --          we have to add parentheses to keep the same parse tree
+    go :: Int -> Formula a -> Max Int
+    go _ (Atomic _) = 0
+    go prec (Not f)   = bracket (prec > 10) $ goPrefix 10 f
+    go prec (And f g) = bracket (prec > 8) $ goInfix 8 f g
+    go prec (Or  f g) = bracket (prec > 8) $ goInfix 8 f g
+    go prec (Iff f g) = bracket (prec > 8) $ goInfix 8 f g
+    go prec (Imp f g) = bracket (prec > 8) $ goInfix 8 f g
+
+    goPrefix prec f = go (prec+1) f
+
+    goInfix prec f g = go (prec+1) f <> go (prec+1) g
+
+    bracket True = (+1)
+    bracket False = id
+
+
+
+
+--       also, check SAT/UNSAT?
+
 main :: Options -> SATOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
 
@@ -137,22 +163,20 @@ suitableFast fm =
   , -- there is at least one atom with pure polarity
     hasAtomPolarity Neg fm || hasAtomPolarity Pos fm
   , not (anySubformula isNestedNot fm)
+  , nestedLatexParens fm < 3
   ]
 
 
 suitable :: Ord a => Formula a -> Bool
 suitable fm =
   foldl1 (&&)
-  [ numAtoms fm == 3
-  , -- there is at least one atom with pure polarity
-    hasAtomPolarity Neg fm || hasAtomPolarity Pos fm
+  [ suitableFast fm
   , -- at least one but at most two equivalences
     let n = countSubformulas isIff fm
     in 1 <= n && n <= 2
   , anySubformula isImp fm
   , anySubformula isNot fm
   , anySubformula isAnd fm || anySubformula isOr fm
-  , not (anySubformula isNestedNot fm)
   , not (anySubformula isTrivialBinaryConnective fm)
   ]
 
