@@ -5,6 +5,8 @@ set -euo pipefail
 
 SMT2TEX="../smt2tex/smt2tex.py"
 
+trash final/
+
 for exam in exam-*; do
     echo "Compiling $exam"
 

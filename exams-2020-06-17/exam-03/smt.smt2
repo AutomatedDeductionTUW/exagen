@@ -1,5 +1,7 @@
 ;; Random number generator seed: Just 123
 ;; Index: 3
+(set-logic QF_AUFLIA)
+(set-info :latex-linebreak-after-clause "3")
 (define-sort A () (Array Int Int))
 (declare-fun b () Int)
 (declare-fun c () Int)
