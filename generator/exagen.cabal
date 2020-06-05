@@ -34,6 +34,7 @@ library
                   , Data.SExpr
                   , Logic.Propositional.Formula
                   , Options
+                  , Problems.Redundancy
                   , Problems.SAT
                   , Problems.SMT
   build-depends:    base >= 4.12 && < 5

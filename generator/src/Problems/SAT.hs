@@ -94,9 +94,6 @@ nestedLatexParens = getMax . go (0 :: Int)
 
 
 
-
---       also, check SAT/UNSAT?
-
 main :: Options -> SATOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
 

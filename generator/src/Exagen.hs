@@ -7,6 +7,7 @@ import System.Random
 
 -- exagen
 import Options
+import qualified Problems.Redundancy
 import qualified Problems.SAT
 import qualified Problems.SMT
 
@@ -25,6 +26,7 @@ main = do
 runCommand :: Options -> IO ()
 runCommand opts =
   case optCommand opts of
+    GenRed cmdOpts -> Problems.Redundancy.main opts cmdOpts
     GenSAT cmdOpts -> Problems.SAT.main opts cmdOpts
     GenSMT cmdOpts -> Problems.SMT.main opts cmdOpts
 

@@ -3,6 +3,7 @@ module Options
   , Command(..)
   , SATOptions(..)
   , SMTOptions(..)
+  , RedOptions(..)
   , parseOptions
   ) where
 
@@ -25,6 +26,7 @@ data Options = Options
 data Command
   = GenSAT SATOptions
   | GenSMT SMTOptions
+  | GenRed RedOptions
   deriving Show
 
 
@@ -37,6 +39,11 @@ data SATOptions = SATOptions
 data SMTOptions = SMTOptions
   { optTemplate :: FilePath
   }
+  deriving Show
+
+
+-- | Options for subcommand "red"
+data RedOptions = RedOptions
   deriving Show
 
 
@@ -70,6 +77,7 @@ options =
     cmd = hsubparser . mconcat . fmap (uncurry command) $
       [ ("sat", GenSAT <$> satOptionsInfo)
       , ("smt", GenSMT <$> smtOptionsInfo)
+      , ("red", GenRed <$> redOptionsInfo)
       ]
 
 
@@ -107,6 +115,16 @@ smtOptions =
 smtOptionsInfo :: ParserInfo SMTOptions
 smtOptionsInfo =
   info smtOptions (progDesc "Generate exam problem for the SMT part")
+
+
+redOptions :: Parser RedOptions
+redOptions =
+  pure RedOptions
+
+
+redOptionsInfo :: ParserInfo RedOptions
+redOptionsInfo =
+  info redOptions (progDesc "Generate exam problem for the redundancy part")
 
 
 parseOptions :: IO Options
