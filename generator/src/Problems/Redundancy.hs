@@ -94,9 +94,17 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
   putStrLn "\nNow the real stuff:\n"
 
   putStr "Left premise:  "
-  printPretty (Clause [applySubstitutionL theta ul, applySubstitutionL theta el, ulground])
+  printPretty (Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground])
   putStr "Right premise: "
   printPretty (Clause [ul, el])
+  putStr "Conclusion:    "
+  printPretty (Clause [applySubstitutionL theta el, ulground])
+  -- TODO
+  -- Criteria:
+  -- * The two non-ground literals should share at least one variable
+  -- * At least one function of arity two should appear
+  -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
+  --         So if someone gets more unary functions, they will have more nesting instead.
 
 -- TODO:
 --
@@ -150,13 +158,20 @@ instance (Pretty fn, Pretty v) => Pretty (Substitution fn v) where
 applySubstitution :: Ord v => Substitution fn v -> Term fn v -> Term fn v
 applySubstitution (Substitution s) t = t >>= (\v -> fromMaybe (Var v) (Map.lookup v s))
 
+applySubstitutionA :: Ord v => Substitution fn v -> Atom p fn v -> Atom p  fn v
+applySubstitutionA theta (Equality t1 t2) = Equality (applySubstitution theta t1) (applySubstitution theta t2)
+applySubstitutionA theta (Uninterpreted p ts) = Uninterpreted p (applySubstitution theta <$> ts)
+
 applySubstitutionL :: Ord v => Substitution fn v -> Literal p fn v -> Literal p  fn v
-applySubstitutionL theta (EqualityLiteral t1 t2) = EqualityLiteral (applySubstitution theta t1) (applySubstitution theta t2)
-applySubstitutionL theta (UninterpretedLiteral p ts) = UninterpretedLiteral p (applySubstitution theta <$> ts)
+applySubstitutionL theta (Literal pos atom) = Literal pos (applySubstitutionA theta atom)
 
 
 isNonGroundLiteral :: Literal p fn v -> Bool
 isNonGroundLiteral = getAny . foldMap (const (Any True))
+
+complementary :: Literal p fn v -> Literal p fn v
+complementary (Literal pos a) = Literal (not pos) a
+
 
 newtype Clause p fn v = Clause { literals :: [Literal p fn v] }
   deriving (Eq, Ord, Show, Functor, Foldable)
@@ -166,15 +181,27 @@ instance (Pretty p, Pretty fn, Pretty v) => Pretty (Clause p fn v) where
   pretty (Clause (l:ls)) = pretty l <+> nest 4 (fillSep (map (\x -> "\\/" <+> pretty x) ls))
 
 
--- TODO: Negation
-data Literal p fn v
-  = EqualityLiteral (Term fn v) (Term fn v)
-  | UninterpretedLiteral p [Term fn v]
+data Literal p fn v = Literal
+  { isPositive :: Bool
+  , atom :: Atom p fn v
+  }
   deriving (Eq, Ord, Show, Functor, Foldable)
 
 instance (Pretty p, Pretty fn, Pretty v) => Pretty (Literal p fn v) where
-  pretty (EqualityLiteral t1 t2) = pretty t1 <+> pretty '=' <+> pretty t2
-  pretty (UninterpretedLiteral p args) =
+  pretty (Literal True (Equality t1 t2)) = pretty t1 <+> "=" <+> pretty t2
+  pretty (Literal False (Equality t1 t2)) = pretty t1 <+> "≠" <+> pretty t2
+  pretty (Literal True a) = pretty a
+  pretty (Literal False a) = "¬" <> pretty a
+
+
+data Atom p fn v
+  = Equality (Term fn v) (Term fn v)
+  | Uninterpreted p [Term fn v]
+  deriving (Eq, Ord, Show, Functor, Foldable)
+
+instance (Pretty p, Pretty fn, Pretty v) => Pretty (Atom p fn v) where
+  pretty (Equality t1 t2) = pretty t1 <+> "=" <+> pretty t2
+  pretty (Uninterpreted p args) =
     pretty p <> align (encloseSep lparen rparen comma (map pretty args))
 
 
@@ -308,19 +335,32 @@ genTerm GenOptions{minDepth,maxDepth,sig,vars} = term
     var = Var <$> choose vars
 
 
+genLiteral' :: forall m p fn v. MonadChoose m => GenT m (Atom p fn v) -> GenT m (Literal p fn v)
+genLiteral' genAtom = do
+  atom <- genAtom
+  pos <- choose [True, False]
+  return (Literal pos atom)
+
 genUninterpretedLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
-genUninterpretedLiteral opts@GenOptions{sig} = do
+genUninterpretedLiteral opts = genLiteral' (genUninterpretedAtom opts)
+
+genEqualityLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
+genEqualityLiteral opts = genLiteral' (genEqualityAtom opts)
+
+
+genUninterpretedAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Atom p fn v)
+genUninterpretedAtom opts@GenOptions{sig} = do
   let predicateSymbols = Set.toList (sigPredicateSymbols sig)
   p <- choose predicateSymbols
   args <- local (over depth (+1)) $ replicateM (arity p) (genTerm opts)
-  return (UninterpretedLiteral (symbol p) args)
+  return (Uninterpreted (symbol p) args)
 
 
-genEqualityLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
-genEqualityLiteral opts = do
+genEqualityAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Atom p fn v)
+genEqualityAtom opts = do
   t1 <- local (over depth (+1)) (genTerm opts)
   t2 <- local (over depth (+1)) (genTerm opts)
-  return (EqualityLiteral t1 t2)
+  return (Equality t1 t2)
 
 
 genSubstitution
