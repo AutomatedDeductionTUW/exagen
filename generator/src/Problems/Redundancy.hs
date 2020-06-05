@@ -1,6 +1,11 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Problems.Redundancy where
 
@@ -8,6 +13,8 @@ module Problems.Redundancy where
 import Control.Exception (assert)
 import Control.Monad (ap)
 import Data.Foldable
+import Data.Maybe
+import Data.Monoid
 import Data.Void
 
 -- containers
@@ -35,21 +42,61 @@ import Options (Options(..), RedOptions(..))
 main :: Options -> RedOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 
-  let sig = Set.fromList
+  let sigFns = Set.fromList @(Symbol String)
         [ Symbol "f" 1
         , Symbol "g" 2
         , Symbol "h" 1
         , Symbol "c" 0
         , Symbol "d" 0
         ]
-      vars = [ "x", "y", "z" ]
+      sigPreds = Set.fromList @(Symbol String)
+        [ Symbol "P" 1
+        ]
+      sig = Signature { sigFunctionSymbols = sigFns
+                      , sigPredicateSymbols = sigPreds
+                      }
+      vars = [minBound .. maxBound] :: [Variable]
       opts = GenOptions{ minDepth = 2
                        , maxDepth = 3
                        , sig = sig
+                       , vars = vars
                        }
 
-  ts <- replicateM optNumExams (randomTerm opts vars)
+  ts <- replicateM optNumExams (randomTerm opts)
   forM_ ts printPretty
+
+  putStrLn "\nLiterals:"
+  ul <- randomGen (filterGen isNonGroundLiteral $ genUninterpretedLiteral opts)
+  ulground <- randomGen (genUninterpretedLiteral opts{ vars = [] @Variable })
+  el <- randomGen (genEqualityLiteral opts)
+  printPretty ul
+  printPretty ulground
+  printPretty el
+
+  putStrLn "\nClauses:"
+  printPretty (Clause [] :: Clause String String String)
+  printPretty (Clause [ul])
+  printPretty (Clause [el])
+  printPretty (Clause [el, ul])
+  printPretty (Clause $ concat $ replicate 5 [el, ul])
+
+  let thetaOpts = GenOptions{ minDepth = 0
+                            , maxDepth = 1
+                            , sig = sig
+                            , vars = [] @Variable
+                            }
+  theta <- randomGen (genSubstitution thetaOpts vars)
+  putStrLn "\nGround substitution:"
+  printPretty theta
+
+  putStrLn ""
+  putStrLn (replicate 100 '=')
+  putStrLn "\nNow the real stuff:\n"
+
+  putStr "Left premise:  "
+  printPretty (Clause [applySubstitutionL theta ul, applySubstitutionL theta el, ulground])
+  putStr "Right premise: "
+  printPretty (Clause [ul, el])
 
 -- TODO:
 --
@@ -78,10 +125,63 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 -- Also check the note Laura sent (ADuctExam20S.pdf)
 
 
+data Variable = X | Y | Z
+  deriving (Eq, Ord, Show, Enum, Bounded)
+
+instance Pretty Variable where
+  pretty X = "x"
+  pretty Y = "y"
+  pretty Z = "z"
+
+
+-- type Substitution fn v = v -> Term fn v
+
+-- use map instead of function so we can print it
+newtype Substitution fn v =
+  Substitution { unSubstitution :: Map v (Term fn v) }
+  deriving (Eq, Ord, Show)
+
+instance (Pretty fn, Pretty v) => Pretty (Substitution fn v) where
+  pretty (Substitution s) = encloseSep lbrace rbrace comma (map prettyPair pairs)
+    where
+      pairs = Map.toList s
+      prettyPair (v, t) = pretty v <+> "->" <+> pretty t
+
+applySubstitution :: Ord v => Substitution fn v -> Term fn v -> Term fn v
+applySubstitution (Substitution s) t = t >>= (\v -> fromMaybe (Var v) (Map.lookup v s))
+
+applySubstitutionL :: Ord v => Substitution fn v -> Literal p fn v -> Literal p  fn v
+applySubstitutionL theta (EqualityLiteral t1 t2) = EqualityLiteral (applySubstitution theta t1) (applySubstitution theta t2)
+applySubstitutionL theta (UninterpretedLiteral p ts) = UninterpretedLiteral p (applySubstitution theta <$> ts)
+
+
+isNonGroundLiteral :: Literal p fn v -> Bool
+isNonGroundLiteral = getAny . foldMap (const (Any True))
+
+newtype Clause p fn v = Clause { literals :: [Literal p fn v] }
+  deriving (Eq, Ord, Show, Functor, Foldable)
+
+instance (Pretty p, Pretty fn, Pretty v) => Pretty (Clause p fn v) where
+  pretty (Clause []) = "⚡️"
+  pretty (Clause (l:ls)) = pretty l <+> nest 4 (fillSep (map (\x -> "\\/" <+> pretty x) ls))
+
+
+-- TODO: Negation
+data Literal p fn v
+  = EqualityLiteral (Term fn v) (Term fn v)
+  | UninterpretedLiteral p [Term fn v]
+  deriving (Eq, Ord, Show, Functor, Foldable)
+
+instance (Pretty p, Pretty fn, Pretty v) => Pretty (Literal p fn v) where
+  pretty (EqualityLiteral t1 t2) = pretty t1 <+> pretty '=' <+> pretty t2
+  pretty (UninterpretedLiteral p args) =
+    pretty p <> align (encloseSep lparen rparen comma (map pretty args))
+
+
 data Term fn v
   = Var v
   | App fn [Term fn v]
-  deriving (Eq, Ord, Show, Functor)
+  deriving (Eq, Ord, Show, Functor, Foldable)
 
 instance Applicative (Term fn) where
   pure = Var
@@ -108,25 +208,50 @@ data Symbol a = Symbol
   }
   deriving (Eq, Ord, Show, Functor)
 
--- newtype Signature a = Signature { unSignature :: Set (Symbol a) }
-type Signature a = Set (Symbol a)
-
--- type Signature a = Map a Int
--- constantSymbols = map fst . filter ((==0) . snd) . Map.toList $ sig
--- functionSymbols = filter ((>0) . snd) . Map.toList $ sig
+data Signature p fn = Signature
+  { sigFunctionSymbols :: Set (Symbol fn)
+  , sigPredicateSymbols :: Set (Symbol p)
+  }
 
 
-randomTerm :: GenOptions fn -> [v] -> IO (Term fn v)
-randomTerm opts vars = do
-  let genVar = lift (choose vars)
-  maybeTerm <- evalRandomListIO' $ runGen (genTerm opts genVar)
+-- randomUninterpretedLiteral :: GenOptions p fn -> [v] -> IO
+-- randomUninterpretedLiteral opts@GenOptions{sig} vars =
+
+
+filterGen :: MonadChoose m => (a -> Bool) -> m a -> m a
+filterGen = filterGen' 1000
+
+filterGen' :: MonadChoose m => Int -> (a -> Bool) -> m a -> m a
+filterGen' maxTries p gen = go maxTries
+  where
+    go 0 = mzero
+    go n = do
+      x <- gen
+      if p x
+        then return x
+        else go (n - 1)
+
+
+randomGen :: forall a. (forall m. MonadChoose m => GenT m a) -> IO a
+randomGen g = do
+  maybeTerm <- evalRandomListIO' $ runGen g
+  case maybeTerm of
+    Just x -> return x
+    Nothing -> error "empty sample space"
+
+
+randomTerm :: GenOptions p fn v -> IO (Term fn v)
+randomTerm opts = do
+  maybeTerm <- evalRandomListIO' $ runGen (genTerm opts)
   case maybeTerm of
     Just t -> return t
     Nothing -> error "empty sample space"
 
 
-genGroundTerm :: MonadChoose m => GenOptions fn -> GenT m (Term fn Void)
-genGroundTerm go = genTerm go mzero
+genGroundTerm :: MonadChoose m => GenOptions p fn v -> GenT m (Term fn Void)
+genGroundTerm opts = genTerm opts'
+  where opts' = opts{ vars = [] :: [Void] }
+
 
 runGen :: GenT m a -> m a
 runGen g = runReaderT g initialCtx
@@ -135,10 +260,11 @@ runGen g = runReaderT g initialCtx
       { _depth = 0
       }
 
-data GenOptions fn = GenOptions
+data GenOptions p fn v = GenOptions
   { minDepth :: Int
   , maxDepth :: Int
-  , sig :: Signature fn
+  , sig :: Signature p fn
+  , vars :: [v]
   }
 
 type GenT m = ReaderT GenCtx m
@@ -150,11 +276,11 @@ data GenCtx = GenCtx
 depth :: Lens' GenCtx Int
 depth = lens _depth (\x y -> x{ _depth = y })
 
-genTerm :: forall m fn v. MonadChoose m => GenOptions fn -> GenT m v -> GenT m (Term fn v)
-genTerm GenOptions{minDepth,maxDepth,sig} genVar = term
+genTerm :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Term fn v)
+genTerm GenOptions{minDepth,maxDepth,sig,vars} = term
   where
-    constantSymbols = filter ((==0) . arity) . Set.toList $ sig
-    functionSymbols = filter ((>0) . arity) . Set.toList $ sig
+    constantSymbols = filter ((==0) . arity) . Set.toList . sigFunctionSymbols $ sig
+    functionSymbols = filter ((>0) . arity) . Set.toList . sigFunctionSymbols $ sig
 
     term :: GenT m (Term fn v)
     term = do
@@ -179,9 +305,35 @@ genTerm GenOptions{minDepth,maxDepth,sig} genVar = term
       return (App (symbol c) [])
 
     var :: GenT m (Term fn v)
-    var = Var <$> genVar
+    var = Var <$> choose vars
 
 
+genUninterpretedLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
+genUninterpretedLiteral opts@GenOptions{sig} = do
+  let predicateSymbols = Set.toList (sigPredicateSymbols sig)
+  p <- choose predicateSymbols
+  args <- local (over depth (+1)) $ replicateM (arity p) (genTerm opts)
+  return (UninterpretedLiteral (symbol p) args)
+
+
+genEqualityLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
+genEqualityLiteral opts = do
+  t1 <- local (over depth (+1)) (genTerm opts)
+  t2 <- local (over depth (+1)) (genTerm opts)
+  return (EqualityLiteral t1 t2)
+
+
+genSubstitution
+  :: forall m p fn v. (MonadChoose m, Ord v)
+  => GenOptions p fn v   -- ^ options control the generation of terms in the range
+  -> [v]   -- ^ domain of the generated substitution (will be identity on all other values)
+  -> GenT m (Substitution fn v)
+genSubstitution opts domain = do
+  pairs <- traverse (\v -> fmap (v,) (genTerm opts)) domain
+  return $ Substitution (Map.fromList pairs)
+  -- return $ \v -> case lookup v pairs of
+  --                  Just t -> t
+  --                  Nothing -> Var v
 
 
 assertM :: Applicative m => Bool -> m ()
