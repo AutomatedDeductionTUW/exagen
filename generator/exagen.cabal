@@ -37,6 +37,7 @@ library
                   , Problems.Redundancy
                   , Problems.SAT
                   , Problems.SMT
+                  , Text.Show.Latex
   build-depends:    base >= 4.12 && < 5
                   , combinat
                   , containers

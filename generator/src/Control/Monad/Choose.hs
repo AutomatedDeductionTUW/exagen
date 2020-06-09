@@ -8,6 +8,7 @@ module Control.Monad.Choose where
 
 -- base
 import Control.Applicative
+import Control.Monad.Fail
 import Data.Functor.Identity
 
 -- combinat
@@ -27,6 +28,30 @@ import System.Random hiding (next)
 
 class MonadPlus m => MonadChoose m where
   choose :: [a] -> m a
+
+
+filterChoice' :: MonadChoose m => Int -> (a -> Bool) -> m a -> m (Maybe a)
+filterChoice' maxTries p g = go maxTries
+  where
+    go n | n <= 0 = return Nothing
+    go n = do
+      x <- g
+      if p x
+        then return (Just x)
+        else go (n - 1)
+
+
+filterChoice :: MonadChoose m => (a -> Bool) -> m a -> m (Maybe a)
+filterChoice = filterChoice' 1000
+
+
+filterChoiceFail :: (MonadChoose m, MonadFail m) => (a -> Bool) -> m a -> m a
+filterChoiceFail p g = do
+  mx <- filterChoice p g
+  case mx of
+    Nothing -> Control.Monad.Fail.fail "exceeded maximum number of tries"
+    Just x -> return x
+
 
 -- | NOTE: This instance should only be used for a small amount of data,
 -- because the built-in list monad builds the full list in memory before returning
@@ -49,7 +74,7 @@ instance Monad m => MonadChoose (ListT m) where
 
 -- | Random choice with support for proper backtracking.
 newtype RandomListT g m a = RandomListT { unRandomListT :: ListT (StateT g m) a }
-  deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus)
+  deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus, MonadFail)
 
 instance MonadTrans (RandomListT g) where
   {-# INLINE lift #-}
@@ -88,7 +113,6 @@ evalRandomListIO unlift r = do
 
 evalRandomListIO' :: RandomListT StdGen Identity a -> IO (Maybe a)
 evalRandomListIO' = evalRandomListIO (pure . runIdentity)
-
 
 
 

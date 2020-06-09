@@ -1,21 +1,26 @@
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Problems.Redundancy where
 
 -- base
+import Control.Applicative
 import Control.Exception (assert)
 import Control.Monad (ap)
+import Control.Monad.Fail
 import Data.Foldable
 import Data.List (intercalate)
 import Data.Maybe
 import Data.Monoid
+import Data.String
 import Data.Void
 
 -- containers
@@ -50,70 +55,6 @@ import Text.Show.Latex
 main :: Options -> RedOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 
-  let sigFns = Set.fromList @(Symbol String)
-        [ Symbol "f" 1
-        , Symbol "g" 2
-        , Symbol "h" 1
-        , Symbol "c" 0
-        , Symbol "d" 0
-        ]
-      sigPreds = Set.fromList @(Symbol String)
-        [ Symbol "P" 1
-        ]
-      sig = Signature { sigFunctionSymbols = sigFns
-                      , sigPredicateSymbols = sigPreds
-                      }
-      vars = [minBound .. maxBound] :: [Variable]
-      opts = GenOptions{ minDepth = 2
-                       , maxDepth = 3
-                       , sig = sig
-                       , vars = vars
-                       }
-
-  ts <- replicateM optNumExams (randomTerm opts)
-  forM_ ts printPretty
-
-  putStrLn "\nLiterals:"
-  ul <- randomGen (filterGen isNonGroundLiteral $ genUninterpretedLiteral opts)
-  ulground <- randomGen (genUninterpretedLiteral opts{ vars = [] @Variable })
-  el <- randomGen (genEqualityLiteral opts)
-  printPretty ul
-  printPretty ulground
-  printPretty el
-
-  -- putStrLn "\nClauses:"
-  -- printPretty (Clause [] :: Clause String String String)
-  -- printPretty (Clause [ul])
-  -- printPretty (Clause [el])
-  -- printPretty (Clause [el, ul])
-  -- printPretty (Clause $ concat $ replicate 5 [el, ul])
-
-  let thetaOpts = GenOptions{ minDepth = 0
-                            , maxDepth = 1
-                            , sig = sig
-                            , vars = [] @Variable
-                            }
-  theta <- randomGen (genSubstitution thetaOpts vars)
-  putStrLn "\nGround substitution:"
-  printPretty theta
-
-  putStrLn ""
-  putStrLn (replicate 100 '=')
-  putStrLn ""
-
-  let c1 = Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground]
-  let c2 = Clause [ul, el]
-  let c3 = Clause [applySubstitutionL theta el, ulground]
-  putStr "Left premise:  "
-  printPretty c1
-  putStrLn $ showLatex c1
-  putStr "Right premise: "
-  printPretty c2
-  putStrLn $ showLatex c2
-  putStrLn (replicate 80 '-')
-  putStr "Conclusion:    "
-  printPretty c3
-  putStrLn $ showLatex c3
   -- TODO
   -- Criteria:
   -- * Exactly one variable in each non-ground literal, and they should be different
@@ -121,9 +62,7 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets more unary functions, they will have more nesting instead.
 
-  let inf = Inference{ premises = [ c1, c2 ]
-                     , conclusion = c3
-                     }
+  inf <- randomExamInference
   putStrLn "\nInference: "
   printPretty inf
   putStrLn $ "\n" ++ showLatex inf
@@ -146,6 +85,75 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 -- Questions:
 -- a) Is the inference sound? prove using Sup+BR
 -- b) Is the inference simplifying?
+
+
+newtype PredSym = PredSym String
+  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
+
+newtype FnSym = FnSym String
+  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
+
+
+randomExamInference :: IO (Inference PredSym FnSym Variable)
+randomExamInference = do
+  let sigFns = Set.fromList @(Symbol FnSym)
+        [ Symbol "f" 1
+        , Symbol "g" 2
+        , Symbol "h" 1
+        , Symbol "a" 0
+        , Symbol "b" 0
+        , Symbol "c" 0
+        , Symbol "d" 0
+        ]
+      sigPreds = Set.fromList @(Symbol PredSym)
+        [ Symbol "P" 1
+        ]
+      sig = Signature { sigFunctionSymbols = sigFns
+                      , sigPredicateSymbols = sigPreds
+                      }
+      vars = [minBound .. maxBound] :: [Variable]
+      opts = GenOptions{ minDepth = 2
+                       , maxDepth = 3
+                       , sig = sig
+                       , vars = vars
+                       }
+
+  -- Generate literals
+  -- l1: non-ground uninterpreted literal
+  -- l2: ground uninterpreted literal
+  -- l3: non-ground equality literal
+  l1 <- randomGen (filterChoiceFail isNonGroundLiteral $ genUninterpretedLiteral opts)
+  l2 <- randomGen (genUninterpretedLiteral opts{ vars = [] @Variable })
+  l3 <- randomGen (filterChoiceFail isNonGroundLiteral $ genEqualityLiteral opts)
+
+  -- Generate ground substitution
+  let thetaOpts = GenOptions{ minDepth = 0
+                            , maxDepth = 1
+                            , sig = sig
+                            , vars = [] @Variable
+                            }
+  theta <- randomGen (genSubstitution thetaOpts vars)
+
+  -- Clauses
+  -- c1: left premise, ground, redundant after inference, one additional irrelevant literal
+  -- c2: right premise, non-ground
+  -- c3: conclusion after applying subsumption resolution
+  let c1 = Clause [applySubstitutionL theta (complementary l1), l2, applySubstitutionL theta l3]
+  let c2 = Clause [l1, l3]
+  let c3 = Clause [l2, applySubstitutionL theta l3]
+
+  -- TODO
+  -- Criteria:
+  -- * Exactly one variable in each non-ground literal, and they should be different
+  -- * At least one function of arity two should appear
+  -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
+  --         So if someone gets more unary functions, they will have more nesting instead.
+  let inf = Inference{ premises = [ c1, c2 ]
+                     , conclusion = c3
+                     }
+  return inf
+
+
 
 
 data Inference p fn v = Inference
@@ -302,40 +310,18 @@ data Symbol a = Symbol
   }
   deriving (Eq, Ord, Show, Functor)
 
+
 data Signature p fn = Signature
   { sigFunctionSymbols :: Set (Symbol fn)
   , sigPredicateSymbols :: Set (Symbol p)
   }
 
 
-filterGen :: MonadChoose m => (a -> Bool) -> m a -> m a
-filterGen = filterGen' 1000
-
-filterGen' :: MonadChoose m => Int -> (a -> Bool) -> m a -> m a
-filterGen' maxTries p gen = go maxTries
-  where
-    go 0 = fail "exceeded maximum number of tries"
-    go n = do
-      x <- gen
-      if p x
-        then return x
-        else go (n - 1)
-
-
--- randomGen :: forall a. (forall m. MonadChoose m => GenT m a) -> IO a
-randomGen :: GenT (RandomListT StdGen Identity) a -> IO a
+randomGen :: RandomGen a -> IO a
 randomGen g = do
-  maybeTerm <- evalRandomListIO' $ runGen g
-  case maybeTerm of
+  mx <- evalRandomListIO' $ runGen g
+  case mx of
     Just x -> return x
-    Nothing -> error "empty sample space"
-
-
-randomTerm :: GenOptions p fn v -> IO (Term fn v)
-randomTerm opts = do
-  maybeTerm <- evalRandomListIO' $ runGen (genTerm opts)
-  case maybeTerm of
-    Just t -> return t
     Nothing -> error "empty sample space"
 
 
@@ -345,7 +331,7 @@ genGroundTerm opts = genTerm opts'
 
 
 runGen :: GenT m a -> m a
-runGen g = runReaderT g initialCtx
+runGen g = runReaderT (unGenT g) initialCtx
   where
     initialCtx = GenCtx
       { _depth = 0
@@ -358,7 +344,11 @@ data GenOptions p fn v = GenOptions
   , vars :: [v]
   }
 
-type GenT m = ReaderT GenCtx m
+newtype GenT m a = GenT { unGenT :: ReaderT GenCtx m a }
+  deriving newtype (Functor, Applicative, Alternative, Monad, MonadFail)
+  deriving newtype (MonadPlus, MonadChoose, MonadReader GenCtx)
+
+type RandomGen = GenT (RandomListT StdGen Identity)
 
 data GenCtx = GenCtx
   { _depth :: Int   -- starts at 0 for the whole term, +1 each time we go into a term's arguments
@@ -435,9 +425,6 @@ genSubstitution
 genSubstitution opts domain = do
   pairs <- traverse (\v -> fmap (v,) (genTerm opts)) domain
   return $ Substitution (Map.fromList pairs)
-  -- return $ \v -> case lookup v pairs of
-  --                  Just t -> t
-  --                  Nothing -> Var v
 
 
 assertM :: Applicative m => Bool -> m ()
