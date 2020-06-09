@@ -44,6 +44,9 @@ import Options (Options(..), RedOptions(..))
 import Text.Show.Latex
 
 
+
+
+
 main :: Options -> RedOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 
@@ -98,22 +101,32 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
   putStrLn (replicate 100 '=')
   putStrLn ""
 
+  let c1 = Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground]
+  let c2 = Clause [ul, el]
+  let c3 = Clause [applySubstitutionL theta el, ulground]
   putStr "Left premise:  "
-  printPretty (Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground])
-  putStrLn $ showLatex (Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground])
+  printPretty c1
+  putStrLn $ showLatex c1
   putStr "Right premise: "
-  printPretty (Clause [ul, el])
-  putStrLn $ showLatex (Clause [ul, el])
+  printPretty c2
+  putStrLn $ showLatex c2
   putStrLn (replicate 80 '-')
   putStr "Conclusion:    "
-  printPretty (Clause [applySubstitutionL theta el, ulground])
-  putStrLn $ showLatex (Clause [applySubstitutionL theta el, ulground])
+  printPretty c3
+  putStrLn $ showLatex c3
   -- TODO
   -- Criteria:
   -- * Exactly one variable in each non-ground literal, and they should be different
   -- * At least one function of arity two should appear
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets more unary functions, they will have more nesting instead.
+
+  let inf = Inference{ premises = [ c1, c2 ]
+                     , conclusion = c3
+                     }
+  putStrLn "\nInference: "
+  printPretty inf
+  putStrLn $ "\n" ++ showLatex inf
 
 -- TODO:
 --
@@ -130,16 +143,28 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 --
 --  (note that the main premise is the left one!)
 --
---
--- Question:
--- a) sound?
--- b) redundant?
---
--- IT SHOULD PROBABLY NOT BE SUBSUMPTION BUT SUBSUMPTION RESOLUTION (as in Laura's note)
--- otherwise we cannot ask them to prove soundness...
---
---
--- Also check the note Laura sent (ADuctExam20S.pdf)
+-- Questions:
+-- a) Is the inference sound? prove using Sup+BR
+-- b) Is the inference simplifying?
+
+
+data Inference p fn v = Inference
+  { premises :: [Clause p fn v]
+  , conclusion :: Clause p fn v
+  }
+  deriving (Eq, Ord, Show)
+
+instance (Pretty p, Pretty fn, Pretty v) => Pretty (Inference p fn v) where
+  pretty Inference{premises,conclusion} =
+    vsep (pretty <$> premises) <> hardline
+    <> pretty (replicate 50 '-') <> hardline
+    <> pretty conclusion
+
+instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Inference p fn v) where
+  showLatex Inference{premises,conclusion} =
+    "\\prftree" <> concat (wrap . showLatex <$> premises) <> wrap (showLatex conclusion)
+    where
+      wrap s = '{' : s ++ "}"
 
 
 data Variable = X | Y | Z
