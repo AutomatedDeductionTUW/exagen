@@ -1,161 +1,146 @@
-% vim:ft=tex:
+
+\def\Drop{{\sf DROP}}
+
+\def\z{{\tt 0}}
+\def\o{{\tt 1}}
+\def\t{{\tt 2}}
+
+\def\qu{\quad}
+\def\qqu{\qu\qu}
+
+\def\set#1{\{#1\}}
+\def\ra{\rightarrow}
+\def\sseq{\subseteq}
+
+\def\header{{\vspace*{-7em}
+\noindent
+Automated Deduction -- SS 2020\\[2pt]
+{\Large\bf Final Exam {\small -- June 17, 2020}}\\
+\hrule\medskip}}
+
+\documentclass{article}[8pt]
+\usepackage{times,fullpage}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{latexsym}
+
 %
-\RequirePackage[l2tabu, orthodox]{nag}
-\documentclass[12pt]{scrartcl}
+% Logic
+%
+\newcommand{\andl}{\wedge}
+\newcommand{\bigandl}{\bigwedge}
+\newcommand{\orl}{\vee}
+\newcommand{\bigorl}{\bigvee}
+\newcommand{\notl}{\neg}
+\newcommand{\impl}{\rightarrow}
+\newcommand{\imply}{\rightarrow}
+\newcommand{\implies}{\rightarrow}
+\newcommand{\iffl}{\leftrightarrow}
+\newcommand{\true}{1}
+\newcommand{\false}{0}
+\newcommand{\intI}{I}
+\newcommand{\complem}[1]{\overline{#1}}
+\newcommand{\setof}[1]{\{#1\}}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FONTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage{lmodern}        % Improved version of the original Computer Modern font
-\usepackage{stmaryrd}       % For \llbracket and \rrbracket
-% Define font from package 'stmaryrd' for arbitrary size,
-% see https://tex.stackexchange.com/a/128801
-\DeclareFontFamily{U}{stmry}{}
-\DeclareFontShape{U}{stmry}{m}{n}
-{
-    <-5.5>    stmary5
-    <5.5-6.5> stmary6
-    <6.5-7.5> stmary7
-    <7.5-8.5> stmary8
-    <8.5-9.5> stmary9
-    <9.5->    stmary10
-}{}
+%\usepackage[top=4pt ,foot=0pt, bottom=0.01in, left=1in, right=.7in]{geometry}
 
-\usepackage[T1]{fontenc}    % Determines font encoding of the output. Font packages have to be included before this line.
-\usepackage[utf8]{inputenc} % Determines encoding of the input. All input files have to use UTF8 encoding.
-\usepackage[english]{babel}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PACKAGES
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsthm}     % NOTE: amsthm is incompatible with Springer document classes
-% \usepackage{thmtools}
-% \usepackage{mathtools}
-% \usepackage{prftree}
-% \usepackage{cancel}
-% \usepackage{keycommand}
-\usepackage{listings}
-% \usepackage{lstautogobble}
-\usepackage{microtype}  % Small-scale typographic enhancements.
-\usepackage[shortlabels]{enumitem}
-\usepackage[hidelinks]{hyperref}  % optional argument [hidelinks] hides colored boxes around clickable areas
-\usepackage{prftree}
-\usepackage{mathtools}
-\usepackage{booktabs}   % Improves the typesettings of tables.
-\usepackage{tabularx}
-\usepackage{multirow}   % Allows table elements to span several rows.
-% \usepackage{pdfpages}  % to include pages from existing pdf files with \includepdf[pages={1,2}]{./path/to/file.pdf}
-\usepackage{xcolor}
-\usepackage{todonotes}  % Add optional argument [disable] to hide TODOs, or [obeyFinal] to hide only in final mode
-
-\usepackage{tikz}
-\usetikzlibrary{arrows, arrows.meta, backgrounds, calc, decorations.markings, positioning, shapes.geometric}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SETTINGS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \setlist{nolistsep}  % less vertical spacing for itemize/enumerate environments
-
-\theoremstyle{plain}        % italic text
-\newtheorem{lemma}{Lemma}
-\newtheorem{theorem}{Theorem}
-
-\theoremstyle{definition}   % upright text
-\newtheorem{definition}{Definition}
-\newtheorem{example}{Example}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% METADATA
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\title{template}
-\author{Automated Deduction}
-
-% Set PDF document properties
-\hypersetup{
-    pdfpagemode     = UseNone,                  % Don't show bookmarks when opening the pdf file, see also https://latex.org/forum/viewtopic.php?p=70568#p70568
-    pdfpagelayout   = OneColumn,                % How the document is shown in PDF viewers (optional). Values: SinglePage, OneColumn, TwoColumnLeft, TwoColumnRight, TwoPageLeft, TwoPageRight
-    % pdfauthor       = {\authorname},          % The author's name in the document properties (optional).
-    % pdftitle        = {\thesistitle},         % The document's title in the document properties (optional).
-    % pdfsubject      = {subject},              % The document's subject in the document properties (optional).
-    % pdfkeywords     = {keyword, another keyword}, % The document's keywords in the document properties (optional).
-    colorlinks,
-    % linkbordercolor = {Melon},                % The color of the borders of boxes around crosslinks (optional).
-    % linkcolor={black},
-    % citecolor={black},
-    % urlcolor={black},
-}
-
-\lstset{%
-    basicstyle=\ttfamily,%
-    % keywordstyle=\bfseries\color{blue},%
-    columns=flexible,%
-    % numberstyle=\tiny,%
-    % numbersep=5pt,%
-    % numbers=left,%
-}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% MACROS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\newcommand{\todoi}[1]{\todo[inline,caption={}]{#1}}    % caption={} allows itemize etc. inside todoi, see https://tex.stackexchange.com/a/54068
-
-% This is the provability analogue to \models (note that \vdash is smaller)
-\DeclareRobustCommand\proves{\mathrel{|}\joinrel\mkern-.5mu\mathrel{-}}
-
-\newcommand{\limpl}{\rightarrow}    % logical implication
-\newcommand{\Limpl}{\Rightarrow}    % logical implication (variant)
-\newcommand{\liff}{\leftrightarrow} % logical equivalence
-\newcommand{\Liff}{\Leftrightarrow} % logical equivalence (variant)
-
-\newcommand{\Land}{\bigwedge}
-\newcommand{\Lor}{\bigvee}
-
-\newcommand{\union}{\cup}
-\newcommand{\Union}{\bigcup}
-\newcommand{\intersect}{\cap}
-\newcommand{\Intersect}{\bigcap}
-
-\newcommand{\eql}{\simeq}
-\newcommand{\neql}{\not\eql}
-
-\newcommand{\nat}{\mathbb{N}}
-% \newcommand{\int}{\mathbb{Z}}
-
-\newcommand{\naf}{{\sim}}           % negation as failure, default negation
-\newcommand{\caF}{\mathcal{F}}
-\newcommand{\caM}{\mathcal{M}}
-\newcommand{\caT}{\mathcal{T}}
-
-\newcommand{\vampire}{\textsc{Vampire}}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-\maketitle
+\pagestyle{empty}
+\header
+
+%\noindent
+%This exam sheet consist of six problems, yielding a total of 100 points. Good luck!\medskip
+
+%Splitting+ dpll
+
+\medskip
+
+\noindent
+{\bf Problem 1.} (25 points)
+Consider the formula :
+\[ \ldots\]
+\begin{itemize}
+\item[(a)]
+Which atoms are pure in the above formula?
+\item[(b)] Compute a clausal normal form $C$ of the above formula by
+  applying the CNF transformation algorithm with naming and
+  optimization based on polarities of subformulas;
+\item[(c)] Decide the satisfiability of the computed CNF formula $C$
+  by applying  the DPLL method to $C$. If $C$ is
+satisfiable,  give an interpretation which
+satisfies it.
+\end{itemize}
+
+\medskip
+% SMTin theories
+
+\noindent
+{\bf Problem 2.} (25 points) %SAT(5)+Separate reasoning(5)+Dec.procedures(5)+model(5)
+Consider the formula:
+\[\ldots,\]
+where $\ldots$  are constants,
+$\ldots$ is a unary function symbols,
+$A$ is an array constant  and
+$+, 1$ are interpreted
+in the standard way over the integers. \medskip
 
 
+\noindent
+Use the Nelson-Oppen decision procedure in conjunction with DPLL-based
+reasoning in the combination of the theories of arrays,
+uninterpreted functions, and linear integer arithmetic.
+Use the decision procedures for the theory of arrays and the theory of uninterpreted functions and use
+simple mathematical reasoning for deriving new equalities among the
+constants in the theory of linear integer arithmetic.
+If the formula is satisfiable, give an interpretation that satisfies the formula.\bigskip
 
-\section{SAT}
-\input{sat.tex}
+%ground superposition
+\noindent
+{\bf Problem 3.} (25 points)
+Consider the KBO ordering $\succ$ generated by the precedence
+$ ... $ and the weight function $w$ with $... $.
+Let $\sigma$ be a well-behaved selection function
+wrt $\succ$.  Consider the set $S$ of ground formulas:
+\[
+  \begin{array}{l}
+...
+\end{array}
+\]
+\noindent Show that $S$ is unsatisfiable by applying saturation on $S$ using an
+inference process based on the ground superposition
+calculus $\textrm{Sup}_{\succ,\sigma}$ (with the inference rules of
+binary  resolution $\textrm{BR}_{\sigma}$ included).
+ Give details on what literals
+ are selected and which terms are maximal. \bigskip
+
+ % different proof when w(f)=0, w(a)=w(b)=w(c)=1, and f>>a>>b>>c
+ % as in this new case f(b)>a
 
 
-\section{SMT}
-\input{smt.smt2.tex}
+%non-ground superposition, mgu
+\noindent{\bf Problem 4.} (25 points)
+Consider the following inference:
+\[
+\begin{array}{l}
+ ... \end{array}
+\]
+in the non-ground
+superposition inference system $\textrm{Sup}$ (including the rules of the non-ground
+binary resolution  inference system $\textrm{BR}$), where
+where $f$ is a function symbol, %$p$ is a predicate symbol, $f$ is a function symbol,
+$x$ is a variable and $a,b,c$ are
+constants.  %\\
+%
 
+          \begin{itemize}
+            \item[(a)] Prove that the above inference is a sound
+              inference of $\textrm{Sup}$.
+            \item[(b)] Is the above inference a simplifying inference
+              of $\textrm{Sup}$?
+              Justify your answer.
+\end{itemize}
 
-% \bibliographystyle{abbrv}
-% \bibliography{/Users/jakob/Documents/Library/library.bib}
 
 \end{document}
