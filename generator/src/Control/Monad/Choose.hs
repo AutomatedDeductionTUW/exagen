@@ -98,11 +98,15 @@ blah = do
   x <- choose [k .. k + 5]
   return (show x)
 
--- allBlah :: Int -> [String]
--- allBlah = evalStateT (blah @[])
+allBlahSlow :: Int -> [String]
+allBlahSlow = evalStateT (blah @[])
 
-allBlah' :: Int -> [String]
-allBlah' = runIdentity . List.Transformer.fold (flip (:)) [] reverse . evalStateT (blah @(ListT Identity))
+allBlahStream :: forall m. Monad m => Int -> ListT m String
+allBlahStream = evalStateT (blah @(ListT m))
+
+printStream :: Show a => ListT IO a -> IO ()
+printStream stream = runListT $ do x <- stream
+                                   liftIO $ print x
 
 randomBlah :: Int -> IO (Maybe String)
 randomBlah = evalRandomListIO' . evalStateT (blah @(RandomListT StdGen Identity))

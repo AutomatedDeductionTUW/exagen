@@ -13,6 +13,7 @@ module Problems.Redundancy where
 import Control.Exception (assert)
 import Control.Monad (ap)
 import Data.Foldable
+import Data.List (intercalate)
 import Data.Maybe
 import Data.Monoid
 import Data.Void
@@ -34,9 +35,13 @@ import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Render.String
 import Data.Text.Prettyprint.Doc.Render.Text (putDoc)
 
+-- random
+import System.Random (StdGen)
+
 -- exagen
 import Control.Monad.Choose
 import Options (Options(..), RedOptions(..))
+import Text.Show.Latex
 
 
 main :: Options -> RedOptions -> IO ()
@@ -73,12 +78,12 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
   printPretty ulground
   printPretty el
 
-  putStrLn "\nClauses:"
-  printPretty (Clause [] :: Clause String String String)
-  printPretty (Clause [ul])
-  printPretty (Clause [el])
-  printPretty (Clause [el, ul])
-  printPretty (Clause $ concat $ replicate 5 [el, ul])
+  -- putStrLn "\nClauses:"
+  -- printPretty (Clause [] :: Clause String String String)
+  -- printPretty (Clause [ul])
+  -- printPretty (Clause [el])
+  -- printPretty (Clause [el, ul])
+  -- printPretty (Clause $ concat $ replicate 5 [el, ul])
 
   let thetaOpts = GenOptions{ minDepth = 0
                             , maxDepth = 1
@@ -91,17 +96,21 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 
   putStrLn ""
   putStrLn (replicate 100 '=')
-  putStrLn "\nNow the real stuff:\n"
+  putStrLn ""
 
   putStr "Left premise:  "
   printPretty (Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground])
+  putStrLn $ showLatex (Clause [applySubstitutionL theta (complementary ul), applySubstitutionL theta el, ulground])
   putStr "Right premise: "
   printPretty (Clause [ul, el])
+  putStrLn $ showLatex (Clause [ul, el])
+  putStrLn (replicate 80 '-')
   putStr "Conclusion:    "
   printPretty (Clause [applySubstitutionL theta el, ulground])
+  putStrLn $ showLatex (Clause [applySubstitutionL theta el, ulground])
   -- TODO
   -- Criteria:
-  -- * The two non-ground literals should share at least one variable
+  -- * Exactly one variable in each non-ground literal, and they should be different
   -- * At least one function of arity two should appear
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets more unary functions, they will have more nesting instead.
@@ -141,6 +150,11 @@ instance Pretty Variable where
   pretty Y = "y"
   pretty Z = "z"
 
+instance ShowLatex Variable where
+  showLatex X = "x"
+  showLatex Y = "y"
+  showLatex Z = "z"
+
 
 -- type Substitution fn v = v -> Term fn v
 
@@ -173,12 +187,26 @@ complementary :: Literal p fn v -> Literal p fn v
 complementary (Literal pos a) = Literal (not pos) a
 
 
+
+-- TODO: We probably don't need this here
+data KBOParams fn = KBOParams
+  { precedence :: [fn]
+  , weights :: Map fn Int
+  , variableWeight :: Int
+  }
+
+
+
 newtype Clause p fn v = Clause { literals :: [Literal p fn v] }
   deriving (Eq, Ord, Show, Functor, Foldable)
 
 instance (Pretty p, Pretty fn, Pretty v) => Pretty (Clause p fn v) where
   pretty (Clause []) = "⚡️"
   pretty (Clause (l:ls)) = pretty l <+> nest 4 (fillSep (map (\x -> "\\/" <+> pretty x) ls))
+
+instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Clause p fn v) where
+  showLatex (Clause []) = " \\Box "
+  showLatex (Clause ls) = intercalate " \\lor " (map showLatex ls)
 
 
 data Literal p fn v = Literal
@@ -193,6 +221,12 @@ instance (Pretty p, Pretty fn, Pretty v) => Pretty (Literal p fn v) where
   pretty (Literal True a) = pretty a
   pretty (Literal False a) = "¬" <> pretty a
 
+instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Literal p fn v) where
+  showLatex (Literal True (Equality t1 t2)) = showLatex t1 <> " = " <> showLatex t2
+  showLatex (Literal False (Equality t1 t2)) = showLatex t1 <> " \\neq " <> showLatex t2
+  showLatex (Literal True a) = showLatex a
+  showLatex (Literal False a) = " \\lnot " <> showLatex a
+
 
 data Atom p fn v
   = Equality (Term fn v) (Term fn v)
@@ -201,8 +235,11 @@ data Atom p fn v
 
 instance (Pretty p, Pretty fn, Pretty v) => Pretty (Atom p fn v) where
   pretty (Equality t1 t2) = pretty t1 <+> "=" <+> pretty t2
-  pretty (Uninterpreted p args) =
-    pretty p <> align (encloseSep lparen rparen comma (map pretty args))
+  pretty (Uninterpreted p args) = pretty p <> align (encloseSep lparen rparen comma (map pretty args))
+
+instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Atom p fn v) where
+  showLatex (Equality t1 t2) = showLatex t1 <> " = " <> showLatex t2
+  showLatex (Uninterpreted p args) = showLatex p <> " ( " <> intercalate " , " (map showLatex args) <> " )"
 
 
 data Term fn v
@@ -228,6 +265,11 @@ instance (Pretty fn, Pretty v) => Pretty (Term fn v) where
   pretty (App c []) = pretty c
   pretty (App fn args) = pretty fn <> align (encloseSep lparen rparen comma (map pretty args))
 
+instance (ShowLatex fn, ShowLatex v) => ShowLatex (Term fn v) where
+  showLatex (Var v) = showLatex v
+  showLatex (App c []) = showLatex c
+  showLatex (App fn args) = showLatex fn <> " ( " <> intercalate " , " (map showLatex args) <> " )"
+
 
 data Symbol a = Symbol
   { symbol :: !a
@@ -241,17 +283,13 @@ data Signature p fn = Signature
   }
 
 
--- randomUninterpretedLiteral :: GenOptions p fn -> [v] -> IO
--- randomUninterpretedLiteral opts@GenOptions{sig} vars =
-
-
 filterGen :: MonadChoose m => (a -> Bool) -> m a -> m a
 filterGen = filterGen' 1000
 
 filterGen' :: MonadChoose m => Int -> (a -> Bool) -> m a -> m a
 filterGen' maxTries p gen = go maxTries
   where
-    go 0 = mzero
+    go 0 = fail "exceeded maximum number of tries"
     go n = do
       x <- gen
       if p x
@@ -259,7 +297,8 @@ filterGen' maxTries p gen = go maxTries
         else go (n - 1)
 
 
-randomGen :: forall a. (forall m. MonadChoose m => GenT m a) -> IO a
+-- randomGen :: forall a. (forall m. MonadChoose m => GenT m a) -> IO a
+randomGen :: GenT (RandomListT StdGen Identity) a -> IO a
 randomGen g = do
   maybeTerm <- evalRandomListIO' $ runGen g
   case maybeTerm of
