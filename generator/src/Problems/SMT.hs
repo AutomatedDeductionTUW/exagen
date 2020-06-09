@@ -12,12 +12,17 @@ module Problems.SMT where
 
 -- base
 import Control.Monad (unless, forM_, ap, join)
+import Data.Foldable
 import Data.Monoid
 import Text.Printf (printf)
 import System.Exit
 
 -- combinat
 import Math.Combinat.Permutations
+
+-- containers
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 -- directory
 import System.Directory
@@ -59,15 +64,21 @@ main Options{optNumExams,optOutputDir,optSeed} SMTOptions{optTemplate} = do
   let template = separate parseAssert templateExprs
 
       varyTemplate v =
-        combine $
-        over (mapped . _Right) (formatAssert . vary v) template
+        over (mapped . _Right) (vary v) template
+
+      formatTemplate = combine . over (mapped . _Right) (formatAssert)
 
   forM_ (zip vs [1..]) $ \(v, i :: Int) -> do
     let varied = varyTemplate v
+        terms = toListOf (folded . _Right) varied
+        formatted = formatTemplate varied
     let content = mconcat
           [ ";; Random number generator seed: ", show optSeed, "\n"
           , ";; Index: ", show i, "\n"
-          ] ++ unlines (formatExpr id <$> varied)
+          , ";; Uninterpreted constants: ", show (foldMap uninterpretedConstants terms), "\n"
+          , ";; Numeric constants: ", show (foldMap numericConstants terms), "\n"
+          , ";; Function symbols: ", show (foldMap functions terms), "\n"
+          ] ++ unlines (formatExpr id <$> formatted)
 
     case optOutputDir of
       Nothing -> do
@@ -188,6 +199,21 @@ data Term c
   | C c     -- ^ uninterpreted constant symbol
   | A !String ![Term c]  -- ^ function application
   deriving (Eq, Ord, Show, Functor, Foldable)
+
+
+uninterpretedConstants :: Ord c => Term c -> Set c
+uninterpretedConstants = Set.fromList . toList
+
+numericConstants :: Term c -> Set Int
+numericConstants (N x) = Set.singleton x
+numericConstants (C _) = Set.empty
+numericConstants (A _ ts) = Set.unions (map numericConstants ts)
+
+functions :: Term c -> Set String
+functions (N _) = Set.empty
+functions (C _) = Set.empty
+functions (A fn ts) = Set.unions (Set.singleton fn : map functions ts)
+
 
 
 instance Applicative Term where

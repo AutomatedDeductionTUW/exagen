@@ -30,7 +30,8 @@ if __name__ == "__main__":
                 print(latex)
 
             if clause_number in linebreaks:
-                print("\\land \\\\")
+                print("~\\\\~")
+                # print("~\\land \\\\~")
 
             clause_number += 1
 

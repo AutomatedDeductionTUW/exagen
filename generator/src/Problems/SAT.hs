@@ -129,7 +129,7 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
               , "% Satisfiable? ", show (satisfiable fm), "\n"
               , "% Valid? ", show (valid fm), "\n"
               , "% Polarities: ", show (atomPolarity fm), "\n"
-              , "\\[ " <> showLatex show fm <> " \\]\n"
+              , showLatex show fm <> "\n"
               ]
         writeFile file content
 
