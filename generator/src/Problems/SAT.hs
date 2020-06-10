@@ -52,6 +52,8 @@ showLatex atomToLatex = go (0 :: Int)
     --       => if it is higher than the precedence of the current node,
     --          we have to add parentheses to keep the same parse tree
     go _ (Atomic a) = atomToLatex a
+    go _ (Const True) = " \\top "
+    go _ (Const False) = " \\bot "
     go prec (Not f)   = bracket (prec > 10) $ goPrefix 10 "\\lnot " f
     go prec (And f g) = bracket (prec > 8) $ goInfix 8 " \\land " f g
     go prec (Or  f g) = bracket (prec > 8) $ goInfix 8 " \\lor " f g
@@ -75,6 +77,7 @@ nestedLatexParens = getMax . go (0 :: Int)
     --          we have to add parentheses to keep the same parse tree
     go :: Int -> Formula a -> Max Int
     go _ (Atomic _) = 0
+    go _ (Const _) = 0
     go prec (Not f)   = bracket (prec > 10) $ goPrefix 10 f
     go prec (And f g) = bracket (prec > 8) $ goInfix 8 f g
     go prec (Or  f g) = bracket (prec > 8) $ goInfix 8 f g
@@ -348,10 +351,7 @@ genFormulaPruned totalSize genProp = formula totalSize
 isTrivialBinaryConnective :: Eq a => Formula a -> Bool
 isTrivialBinaryConnective = isTrivial
   where
-    isTrivial (And f g) = isLiteralWithSameAtom f g
-    isTrivial (Or  f g) = isLiteralWithSameAtom f g
-    isTrivial (Imp f g) = isLiteralWithSameAtom f g
-    isTrivial (Iff f g) = isLiteralWithSameAtom f g
+    isTrivial (Binary _ f g) = isLiteralWithSameAtom f g
     isTrivial _ = False
 
     isLiteralWithSameAtom f g =
@@ -404,11 +404,9 @@ subformulas f = f : properSubformulas f
 
 properSubformulas :: Formula a -> [Formula a]
 properSubformulas (Atomic _) = []
+properSubformulas (Const _) = []
 properSubformulas (Not g) = subformulas g
-properSubformulas (And f g) = subformulas f ++ subformulas g
-properSubformulas (Or  f g) = subformulas f ++ subformulas g
-properSubformulas (Iff f g) = subformulas f ++ subformulas g
-properSubformulas (Imp f g) = subformulas f ++ subformulas g
+properSubformulas (Binary _ f g) = subformulas f ++ subformulas g
 
 
 hasAtomPolarity :: Ord a => Polarity -> Formula a -> Bool
@@ -437,6 +435,7 @@ polarity :: Formula a -> Formula (a, Polarity)
 polarity = go Pos
   where
     go pol (Atomic x) = Atomic (x, pol)
+    go _   (Const x) = Const x
     go pol (Not f) = Not (go (flipPolarity pol) f)
     go pol (And f g) = And (go pol f) (go pol g)
     go pol (Or  f g) = Or  (go pol f) (go pol g)

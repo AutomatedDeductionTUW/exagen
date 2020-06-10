@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Logic.Formula where
@@ -24,17 +25,28 @@ import Data.Text.Prettyprint.Doc
 import Test.QuickCheck
 
 
-
 data Formula a
-  = Atomic a
-  -- | Falsum
-  -- | Verum
+  = Atomic !a
+  | Const !Bool
   | Not (Formula a)
-  | And (Formula a) (Formula a)
-  | Or  (Formula a) (Formula a)
-  | Iff (Formula a) (Formula a)
-  | Imp (Formula a) (Formula a)
+  | Binary !Conn2 (Formula a) (Formula a)
   deriving (Eq, Ord, Show, Functor, Foldable)
+{-# COMPLETE Atomic, Const, Not, And, Or, Iff, Imp :: Formula #-}
+
+data Conn2 = And' | Or' | Iff' | Imp'
+  deriving (Eq, Ord, Show)
+
+pattern And :: Formula a -> Formula a -> Formula a
+pattern And f g = Binary And' f g
+
+pattern Or :: Formula a -> Formula a -> Formula a
+pattern Or f g = Binary Or' f g
+
+pattern Iff :: Formula a -> Formula a -> Formula a
+pattern Iff f g = Binary Iff' f g
+
+pattern Imp :: Formula a -> Formula a -> Formula a
+pattern Imp f g = Binary Imp' f g
 
 instance Applicative Formula where
   pure :: a -> Formula a
@@ -50,25 +62,17 @@ instance Monad Formula where
   fm >>= f = joinFormula (f <$> fm)
 
 joinFormula :: Formula (Formula a) -> Formula a
--- joinFormula Falsum = Falsum
--- joinFormula Verum = Verum
 joinFormula (Atomic fm) = fm
+joinFormula (Const b) = Const b
 joinFormula (Not fm) = Not (joinFormula fm)
-joinFormula (And fm1 fm2) = And (joinFormula fm1) (joinFormula fm2)
-joinFormula (Or  fm1 fm2) = Or  (joinFormula fm1) (joinFormula fm2)
-joinFormula (Imp fm1 fm2) = Imp (joinFormula fm1) (joinFormula fm2)
-joinFormula (Iff fm1 fm2) = Iff (joinFormula fm1) (joinFormula fm2)
--- joinFormula (Forall s fm) = Forall s (joinFormula fm)
--- joinFormula (Exists s fm) = Exists s (joinFormula fm)
+joinFormula (Binary conn fm1 fm2) = Binary conn (joinFormula fm1) (joinFormula fm2)
 
 instance Arbitrary a => Arbitrary (Formula a) where
   arbitrary = genFormula arbitrary
   shrink (Atomic _) = []
+  shrink (Const _) = []
   shrink (Not f) = [f] ++ (Not <$> shrink f)
-  shrink (And f g) = [f, g] ++ (flip And g <$> shrink f) ++ (And f <$> shrink g)
-  shrink (Or  f g) = [f, g] ++ (flip Or  g <$> shrink f) ++ (Or  f <$> shrink g)
-  shrink (Iff f g) = [f, g] ++ (flip Iff g <$> shrink f) ++ (Iff f <$> shrink g)
-  shrink (Imp f g) = [f, g] ++ (flip Imp g <$> shrink f) ++ (Imp f <$> shrink g)
+  shrink (Binary c f g) = [f, g] ++ (Binary c <$> shrink f <*> pure g) ++ (Binary c f <$> shrink g)
 
 -- The size parameter (given through QuickCheck) is the number of connectives in the formula
 genFormula'
@@ -106,6 +110,7 @@ genFormula = genFormula' [Not] [And, Or, Imp, Iff]
 
 eval :: Formula Bool -> Bool
 eval (Atomic b) = b
+eval (Const b) = b
 eval (Not f) = not (eval f)
 eval (And f g) = eval f && eval g
 eval (Or f g) = eval f || eval g
@@ -142,8 +147,8 @@ prettyFormula
 prettyFormula prettyAtom = go
   where
     go :: Int -> Formula a -> Doc ann
-    -- go _ Falsum = "False"
-    -- go _ Verum = "True"
+    go _ (Const False) = "False"
+    go _ (Const True) = "True"
     go prec (Atomic x) = prettyAtom prec x
     go prec (Not p) = bracket (prec > 10) 1 (prettyPrefix 10) "~" p
     go prec (And p q) = bracket (prec > 8) 0 (prettyInfix 8 "/\\") p q
@@ -209,6 +214,7 @@ normalize = sortFlatFormula . normalizeAtoms . sortFlatFormula . flatten
 -- | Flattens associative binary connectives (And/Or)
 flatten :: Formula a -> FlatFormula a
 flatten (Atomic a) = FlatAtomic a
+flatten (Const b) = FlatConst b
 flatten (Not f) = FlatNot (flatten f)
 flatten (Iff f g) = FlatIff (flatten f) (flatten g)
 flatten (Imp f g) = FlatImp (flatten f) (flatten g)
@@ -226,6 +232,7 @@ disjuncts f = [f]
 -- | Sorts arguments of all commutative connectives recursively
 sortFlatFormula :: Ord a => FlatFormula a -> FlatFormula a
 sortFlatFormula f@(FlatAtomic _) = f
+sortFlatFormula f@(FlatConst _) = f
 sortFlatFormula (FlatNot f) = FlatNot (sortFlatFormula f)
 sortFlatFormula (FlatAnd fs) = FlatAnd (sort (map sortFlatFormula fs))
 sortFlatFormula (FlatOr  fs) = FlatOr  (sort (map sortFlatFormula fs))
@@ -255,7 +262,8 @@ normalizeAtomsIso f = fmap (table Map.!) f
 
 
 data FlatFormula a
-  = FlatAtomic a
+  = FlatAtomic !a
+  | FlatConst !Bool
   | FlatNot (FlatFormula a)
   | FlatAnd [FlatFormula a]
   | FlatOr  [FlatFormula a]
@@ -273,8 +281,8 @@ prettyFlatFormula
 prettyFlatFormula prettyAtom = go
   where
     go :: Int -> FlatFormula a -> Doc ann
-    -- go _ Falsum = "False"
-    -- go _ Verum = "True"
+    go _ (FlatConst False) = "False"
+    go _ (FlatConst True) = "True"
     go prec (FlatAtomic x) = prettyAtom prec x
     go prec (FlatNot p) = bracket (prec > 10) 1 (prettyPrefix 10) "~" p
     go _    (FlatAnd []) = "True"

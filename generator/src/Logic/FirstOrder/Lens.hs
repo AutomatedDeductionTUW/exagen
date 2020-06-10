@@ -39,7 +39,6 @@ class HasTerms fn v fn' v' a a'
 type HasTerms' fn v a = HasTerms fn v fn v a a
 
 instance HasTerms fn v fn' v' (Term fn v) (Term fn' v') where
-  -- tterms :: Applicative f => (Term fn v -> f (Term fn' v')) -> Term fn v -> f (Term fn' v')
   terms = id
 
 instance HasTerms fn v fn' v' (Atom p fn v) (Atom p fn' v') where
@@ -57,5 +56,4 @@ instance HasTerms fn v fn' v' (Clause p fn v) (Clause p fn' v') where
 
 -- instance HasTerms fn v fn' v' a a
 --          => HasTerms fn v fn' v' [a] [a] where
---   -- tterms :: Applicative f => (Term fn v -> f (Term fn' v')) -> Term fn v -> f (Term fn' v')
 --   terms = error "TODO"
