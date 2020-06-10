@@ -2,6 +2,12 @@
 
 module Exagen where
 
+-- base
+import Control.Monad
+
+-- directory
+import System.Directory
+
 -- random
 import System.Random
 
@@ -14,7 +20,14 @@ import qualified Problems.SMT
 
 main :: IO ()
 main = do
-  opts@Options{optSeed} <- parseOptions
+  opts@Options{optOutputDir,optSeed} <- parseOptions
+
+  case optOutputDir of
+    Nothing -> pure ()
+    Just outputDir -> do
+      outputDirExists <- doesDirectoryExist outputDir
+      unless outputDirExists $
+        fail ("The given output directory does not exist: " <> show outputDir)
 
   actualSeed <- setSeed optSeed
   putStrLn $ "Random generator seed: " <> show actualSeed

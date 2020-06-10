@@ -12,16 +12,12 @@ import Control.Monad
 import Data.Foldable
 import Data.Functor.Identity
 import Data.Semigroup
-import Text.Printf (printf)
 
 -- containers
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
-
--- directory
-import System.Directory
 
 -- filepath
 import System.FilePath
@@ -35,15 +31,15 @@ import Control.Monad.State.Strict
 
 -- prettyprinter
 import Data.Text.Prettyprint.Doc
-import Data.Text.Prettyprint.Doc.Render.String
 
 -- QuickCheck
 import Test.QuickCheck (Arbitrary(..), elements)
 
 -- exagen
 import Control.Monad.Choose
-import Logic.Propositional.Formula hiding (Prop(..))
+import Logic.Formula hiding (Prop(..))
 import Options (Options(..), SATOptions(..))
+import Util
 
 
 -- For the exam we just add all parentheses except
@@ -114,13 +110,8 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
         putStrLn ""
 
     Just outputDir -> do
-      outputDirExists <- doesDirectoryExist outputDir
-      unless outputDirExists $
-        error ("The given output directory does not exist: " <> show outputDir)
-
       forM_ (zip fms [1..]) $ \(fm, i :: Int) -> do
-        let examDir = outputDir </> (printf "exam-%02d" i)
-        createDirectoryIfMissing False examDir
+        examDir <- getExamDir outputDir i
         let file = examDir </> "sat.tex"
         putStrLn $ "Writing file: " <> file
         let content = mconcat
@@ -146,6 +137,7 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
 -- (aborted because it takes too long)
 enumerateSampleSpace :: IO ()
 enumerateSampleSpace = do
+  -- putStrLn $ "Size of sample space: " <> show (length @[] genExamFormula)
   let Pair numFormulas numSuitableFormulas :: Pair Int Int =
         runIdentity $
         ListT.fold (\(Pair n k) fm -> Pair (n+1) (if suitableFast fm then k+1 else k)) (Pair 0 0) id $
@@ -257,15 +249,11 @@ randomExamFormula = go 1000
     go :: Int -> IO (Formula Prop)
     go 0 = error "maximum number of tries exceeded"
     go n = do
-      maybeFm <- evalRandomListIO' genExamFormula
+      maybeFm <- evalRandomChoiceIO genExamFormula
       case maybeFm of
         Nothing -> error "empty sample space"
         Just fm | suitable fm -> return fm
                 | otherwise -> go (n - 1)
-
--- NOTE: don't actually use this as it will keep the whole list in memory
--- allExamFormulas :: ListT Identity (Formula Prop)
--- allExamFormulas = filter suitable (genExamFormula @(ListT Identity))
 
 
 genExamProp :: MonadChoose m => m Prop
@@ -421,12 +409,6 @@ properSubformulas (And f g) = subformulas f ++ subformulas g
 properSubformulas (Or  f g) = subformulas f ++ subformulas g
 properSubformulas (Iff f g) = subformulas f ++ subformulas g
 properSubformulas (Imp f g) = subformulas f ++ subformulas g
-
-
-showPretty :: Pretty a => a -> String
-showPretty = renderString . layoutPretty layoutOptions . align . pretty
-  where
-    layoutOptions = LayoutOptions { layoutPageWidth = AvailablePerLine 80 1 }
 
 
 hasAtomPolarity :: Ord a => Polarity -> Formula a -> Bool

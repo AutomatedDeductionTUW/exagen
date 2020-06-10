@@ -1,9 +1,9 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -11,10 +11,9 @@
 module Problems.SMT where
 
 -- base
-import Control.Monad (unless, forM_, ap, join)
+import Control.Monad (forM_, ap, join)
 import Data.Foldable
 import Data.Monoid
-import Text.Printf (printf)
 import System.Exit
 
 -- combinat
@@ -23,9 +22,6 @@ import Math.Combinat.Permutations
 -- containers
 import Data.Set (Set)
 import qualified Data.Set as Set
-
--- directory
-import System.Directory
 
 -- filepath
 import System.FilePath ((</>))
@@ -46,6 +42,7 @@ import Safe
 import Control.Monad.Choose
 import Data.SExpr
 import Options (Options(..), SMTOptions(..))
+import Util
 
 
 main :: Options -> SMTOptions -> IO ()
@@ -86,12 +83,7 @@ main Options{optNumExams,optOutputDir,optSeed} SMTOptions{optTemplate} = do
         putStrLn content
 
       Just outputDir -> do
-        outputDirExists <- doesDirectoryExist outputDir
-        unless outputDirExists $
-          error ("The given output directory does not exist: " <> show outputDir)
-
-        let examDir = outputDir </> (printf "exam-%02d" i)
-        createDirectoryIfMissing False examDir
+        examDir <- getExamDir outputDir i
         let file = examDir </> "smt.smt2"
         putStrLn $ "Writing file: " <> file
         writeFile file content
@@ -125,6 +117,10 @@ variations :: MonadChoose m => m [Variation String]
 variations = do
   b_offset <- choose [-3, -2, -1, 0, 1, 2, 3]
   c_offset <- choose [-3, -2, -1, 0, 1, 2, 3]
+  -- TODO: other possible variations
+  -- * shuffle equations (e.g. add n on both sides and simplify)
+  -- * rename constants "b"/"c"
+  -- * reorder equations (or any commutative operation)
 
   return [ AddOffset "b" b_offset
          , AddOffset "c" c_offset
@@ -263,21 +259,3 @@ formatFormula :: Term String -> Expr String
 formatFormula (C c) = Value c
 formatFormula (N n) = Value (show n)
 formatFormula (A fn args) = SExpr (Value fn : map formatFormula args)
-
-
-{-
--- 5+c -> c+5
--- c+(-5) -> c-5
-normalize1 :: Term String -> Term String
-normalize1 (A "+" [ N x, C c ]) = A "+" [ C c, N x ]
-normalize1 (A "+" [ C c, N x ]) | x < 0 = A "-" [ C c, N (-x) ]
-normalize1 t = t
-
--- replace c -> c+5
-replace :: String -> Int -> Term String -> Term String
-replace c x = substC c (A "+" [ C c, N x ])
-
-simplify1 :: Term String -> Term String
-simplify1 (A "+" [ N x, N y ]) = N (x + y)
-simplify1 (A "+" [A "+" [ A c [], N x ], N y ]) = A "+" [ A c [], N (x + y) ]
--}

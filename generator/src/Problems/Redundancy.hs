@@ -1,33 +1,35 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Problems.Redundancy where
 
 -- base
-import Control.Applicative
-import Control.Exception (assert)
-import Control.Monad (ap)
-import Control.Monad.Fail
-import Data.Foldable
-import Data.List (intercalate)
 import Data.Maybe
 import Data.Monoid
 import Data.String
-import Data.Void
 
 -- containers
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+
+-- filepath
+import System.FilePath
 
 -- lens
 import Control.Lens
@@ -37,35 +39,54 @@ import Control.Monad.Reader
 
 -- prettyprinter
 import Data.Text.Prettyprint.Doc
-import Data.Text.Prettyprint.Doc.Render.String
-import Data.Text.Prettyprint.Doc.Render.Text (putDoc)
-
--- random
-import System.Random (StdGen)
 
 -- exagen
 import Control.Monad.Choose
+import Logic.FirstOrder
 import Options (Options(..), RedOptions(..))
 import Text.Show.Latex
-
-
-
+import Util
 
 
 main :: Options -> RedOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 
+  infs <-
+    let normalize x = (fst x :: Inference PredSym FnSym Variable)
+    in distinctRandomChoices' optNumExams normalize genExamInference
+       >>= either fail pure
+
+  assertM (length infs == optNumExams)
+
+  forM_ (zip infs [1..]) $ \((inf, theta), i :: Int) -> do
+
+    let content = mconcat
+          [ "% Random number generator seed: ", show optSeed, "\n"
+          , "% Index: ", show i, "\n"
+          , "% Substitution: ", unwords (lines (showPretty theta)), "\n"
+          , showLatex inf, "\n"
+          ]
+
+    case optOutputDir of
+      Nothing -> do
+        putStrLn "\nInference: "
+        printPretty inf
+        putStr "\nusing the substitution "
+        printPretty theta
+
+      Just outputDir -> do
+        examDir <- getExamDir outputDir i
+        let file = examDir </> "red.tex"
+        putStrLn $ "Writing file: " <> file
+        writeFile file content
+
   -- TODO
   -- Criteria:
-  -- * Exactly one variable in each non-ground literal, and they should be different
-  -- * At least one function of arity two should appear
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets more unary functions, they will have more nesting instead.
 
-  inf <- randomExamInference
-  putStrLn "\nInference: "
-  printPretty inf
-  putStrLn $ "\n" ++ showLatex inf
+
+  -- TODO: output signature (e.g. b,c,d are constants, x,y are variables, etc.)
 
 -- TODO:
 --
@@ -87,15 +108,14 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 -- b) Is the inference simplifying?
 
 
-newtype PredSym = PredSym String
-  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
-
-newtype FnSym = FnSym String
-  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
-
-
-randomExamInference :: IO (Inference PredSym FnSym Variable)
-randomExamInference = do
+genExamInference
+  :: MonadChoose m
+  => m ( Inference PredSym FnSym Variable
+       , Substitution FnSym Variable)
+genExamInference = do
+  -- NOTE: to have some symbol *not* appear in the output,
+  --       we should adapt the generator to filter it out before.
+  --       (with this small signature, the probability is very high that all symbols occur.)
   let sigFns = Set.fromList @(Symbol FnSym)
         [ Symbol "f" 1
         , Symbol "g" 2
@@ -112,27 +132,40 @@ randomExamInference = do
                       , sigPredicateSymbols = sigPreds
                       }
       vars = [minBound .. maxBound] :: [Variable]
-      opts = GenOptions{ minDepth = 2
-                       , maxDepth = 3
+      opts = GenOptions{ minDepth = 1
+                       , maxDepth = 2
                        , sig = sig
                        , vars = vars
                        }
+
+  let fnsWithArity2 = Set.map symbol $ Set.filter ((==2) . arity) sigFns
+
+  -- Exactly one variable in each non-ground literal, and they should be different
+  v1 <- choose vars
+  v2 <- choose (filter (/= v1) vars)
+  -- TODO: limit number of occurrences as well? (should be ==1 or >=2 for all exams)
 
   -- Generate literals
   -- l1: non-ground uninterpreted literal
   -- l2: ground uninterpreted literal
   -- l3: non-ground equality literal
-  l1 <- randomGen (filterChoiceFail isNonGroundLiteral $ genUninterpretedLiteral opts)
-  l2 <- randomGen (genUninterpretedLiteral opts{ vars = [] @Variable })
-  l3 <- randomGen (filterChoiceFail isNonGroundLiteral $ genEqualityLiteral opts)
+  l1 <- mfilter isNonGroundLiteral $ genUninterpretedLiteral opts{ vars = [v1] }
+  -- l1 <- genUninterpretedLiteral opts{ vars = [v1] }
+  -- guard (isNonGroundLiteral l1)
+  l2 <- genUninterpretedLiteral opts{ vars = [] }
+  l3 <- mfilter isNonGroundLiteral $ genEqualityLiteral opts{ vars = [v2] }
+
+  -- At least one function of arity two should appear
+  let fns = functionSymbols [l1, l2, l3]
+  guard (not . Set.null $ Set.intersection fns fnsWithArity2)
 
   -- Generate ground substitution
   let thetaOpts = GenOptions{ minDepth = 0
                             , maxDepth = 1
                             , sig = sig
-                            , vars = [] @Variable
+                            , vars = []
                             }
-  theta <- randomGen (genSubstitution thetaOpts vars)
+  theta <- genSubstitution thetaOpts vars
 
   -- Clauses
   -- c1: left premise, ground, redundant after inference, one additional irrelevant literal
@@ -144,36 +177,22 @@ randomExamInference = do
 
   -- TODO
   -- Criteria:
-  -- * Exactly one variable in each non-ground literal, and they should be different
   -- * At least one function of arity two should appear
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets more unary functions, they will have more nesting instead.
   let inf = Inference{ premises = [ c1, c2 ]
                      , conclusion = c3
                      }
-  return inf
+  return (inf, theta)
 
 
 
 
-data Inference p fn v = Inference
-  { premises :: [Clause p fn v]
-  , conclusion :: Clause p fn v
-  }
-  deriving (Eq, Ord, Show)
+newtype PredSym = PredSym String
+  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
 
-instance (Pretty p, Pretty fn, Pretty v) => Pretty (Inference p fn v) where
-  pretty Inference{premises,conclusion} =
-    vsep (pretty <$> premises) <> hardline
-    <> pretty (replicate 50 '-') <> hardline
-    <> pretty conclusion
-
-instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Inference p fn v) where
-  showLatex Inference{premises,conclusion} =
-    "\\prftree" <> concat (wrap . showLatex <$> premises) <> wrap (showLatex conclusion)
-    where
-      wrap s = '{' : s ++ "}"
-
+newtype FnSym = FnSym String
+  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
 
 data Variable = X | Y | Z
   deriving (Eq, Ord, Show, Enum, Bounded)
@@ -189,8 +208,6 @@ instance ShowLatex Variable where
   showLatex Z = "z"
 
 
--- type Substitution fn v = v -> Term fn v
-
 -- use map instead of function so we can print it
 newtype Substitution fn v =
   Substitution { unSubstitution :: Map v (Term fn v) }
@@ -201,6 +218,7 @@ instance (Pretty fn, Pretty v) => Pretty (Substitution fn v) where
     where
       pairs = Map.toList s
       prettyPair (v, t) = pretty v <+> "->" <+> pretty t
+
 
 applySubstitution :: Ord v => Substitution fn v -> Term fn v -> Term fn v
 applySubstitution (Substitution s) t = t >>= (\v -> fromMaybe (Var v) (Map.lookup v s))
@@ -230,112 +248,58 @@ data KBOParams fn = KBOParams
 
 
 
-newtype Clause p fn v = Clause { literals :: [Literal p fn v] }
-  deriving (Eq, Ord, Show, Functor, Foldable)
-
-instance (Pretty p, Pretty fn, Pretty v) => Pretty (Clause p fn v) where
-  pretty (Clause []) = "⚡️"
-  pretty (Clause (l:ls)) = pretty l <+> nest 4 (fillSep (map (\x -> "\\/" <+> pretty x) ls))
-
-instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Clause p fn v) where
-  showLatex (Clause []) = " \\Box "
-  showLatex (Clause ls) = intercalate " \\lor " (map showLatex ls)
 
 
-data Literal p fn v = Literal
-  { isPositive :: Bool
-  , atom :: Atom p fn v
-  }
-  deriving (Eq, Ord, Show, Functor, Foldable)
+class HasTerms fn v a | a -> fn, a -> v where
+  -- | Top-level terms in the structure
+  terms :: a -> [Term fn v]
 
-instance (Pretty p, Pretty fn, Pretty v) => Pretty (Literal p fn v) where
-  pretty (Literal True (Equality t1 t2)) = pretty t1 <+> "=" <+> pretty t2
-  pretty (Literal False (Equality t1 t2)) = pretty t1 <+> "≠" <+> pretty t2
-  pretty (Literal True a) = pretty a
-  pretty (Literal False a) = "¬" <> pretty a
-
-instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Literal p fn v) where
-  showLatex (Literal True (Equality t1 t2)) = showLatex t1 <> " = " <> showLatex t2
-  showLatex (Literal False (Equality t1 t2)) = showLatex t1 <> " \\neq " <> showLatex t2
-  showLatex (Literal True a) = showLatex a
-  showLatex (Literal False a) = " \\lnot " <> showLatex a
+-- | All subterms in the structure
+subterms :: HasTerms fn v a => a -> [Term fn v]
+subterms = concatMap subterms' . terms
 
 
-data Atom p fn v
-  = Equality (Term fn v) (Term fn v)
-  | Uninterpreted p [Term fn v]
-  deriving (Eq, Ord, Show, Functor, Foldable)
+instance HasTerms fn v (Term fn v) where
+  terms t = [t]
 
-instance (Pretty p, Pretty fn, Pretty v) => Pretty (Atom p fn v) where
-  pretty (Equality t1 t2) = pretty t1 <+> "=" <+> pretty t2
-  pretty (Uninterpreted p args) = pretty p <> align (encloseSep lparen rparen comma (map pretty args))
+subterms' :: Term fn v -> [Term fn v]
+subterms' t = t : properSubterms t
 
-instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Atom p fn v) where
-  showLatex (Equality t1 t2) = showLatex t1 <> " = " <> showLatex t2
-  showLatex (Uninterpreted p args) = showLatex p <> " ( " <> intercalate " , " (map showLatex args) <> " )"
+properSubterms :: Term fn v -> [Term fn v]
+properSubterms (Var _) = []
+properSubterms (App _ ts) = concatMap subterms' ts
 
 
-data Term fn v
-  = Var v
-  | App fn [Term fn v]
-  deriving (Eq, Ord, Show, Functor, Foldable)
-
-instance Applicative (Term fn) where
-  pure = Var
-  (<*>) = ap
-
-instance Monad (Term fn) where
-  t >>= f = joinTerm (fmap f t)
+instance HasTerms fn v (Atom p fn v) where
+  terms (Equality t1 t2) = [t1, t2]
+  terms (Uninterpreted _ ts) = ts
 
 
-joinTerm :: Term fn (Term fn v) -> Term fn v
-joinTerm (Var t) = t
-joinTerm (App fn ts) = App fn (joinTerm <$> ts)
+instance HasTerms fn v (Literal p fn v) where
+  terms (Literal _ atom) = terms atom
 
 
-instance (Pretty fn, Pretty v) => Pretty (Term fn v) where
-  pretty (Var v) = pretty v
-  pretty (App c []) = pretty c
-  pretty (App fn args) = pretty fn <> align (encloseSep lparen rparen comma (map pretty args))
-
-instance (ShowLatex fn, ShowLatex v) => ShowLatex (Term fn v) where
-  showLatex (Var v) = showLatex v
-  showLatex (App c []) = showLatex c
-  showLatex (App fn args) = showLatex fn <> " ( " <> intercalate " , " (map showLatex args) <> " )"
+instance HasTerms fn v (Clause p fn v) where
+  terms (Clause ls) = concatMap terms ls
 
 
-data Symbol a = Symbol
-  { symbol :: !a
-  , arity :: !Int
-  }
-  deriving (Eq, Ord, Show, Functor)
+instance HasTerms fn v a => HasTerms fn v [a] where
+  terms xs = concatMap terms xs
 
 
-data Signature p fn = Signature
-  { sigFunctionSymbols :: Set (Symbol fn)
-  , sigPredicateSymbols :: Set (Symbol p)
-  }
-
-
-randomGen :: RandomGen a -> IO a
-randomGen g = do
-  mx <- evalRandomListIO' $ runGen g
-  case mx of
-    Just x -> return x
-    Nothing -> error "empty sample space"
-
-
-genGroundTerm :: MonadChoose m => GenOptions p fn v -> GenT m (Term fn Void)
-genGroundTerm opts = genTerm opts'
-  where opts' = opts{ vars = [] :: [Void] }
-
-
-runGen :: GenT m a -> m a
-runGen g = runReaderT (unGenT g) initialCtx
+functionSymbols :: (HasTerms fn v a, Ord fn) => a -> Set fn
+functionSymbols = Set.fromList . mapMaybe getFn . subterms
   where
-    initialCtx = GenCtx
-      { _depth = 0
-      }
+    getFn (Var _) = Nothing
+    getFn (App fn _) = Just fn
+
+
+variables :: (HasTerms fn v a, Ord v) => a -> Set v
+variables = Set.fromList . mapMaybe getVar . subterms
+  where
+    getVar (Var v) = Just v
+    getVar (App _ _) = Nothing
+
 
 data GenOptions p fn v = GenOptions
   { minDepth :: Int
@@ -344,26 +308,24 @@ data GenOptions p fn v = GenOptions
   , vars :: [v]
   }
 
-newtype GenT m a = GenT { unGenT :: ReaderT GenCtx m a }
-  deriving newtype (Functor, Applicative, Alternative, Monad, MonadFail)
-  deriving newtype (MonadPlus, MonadChoose, MonadReader GenCtx)
-
-type RandomGen = GenT (RandomListT StdGen Identity)
-
-data GenCtx = GenCtx
-  { _depth :: Int   -- starts at 0 for the whole term, +1 each time we go into a term's arguments
+data TermCtx = TermCtx
+  { _depth :: Int   -- starts at 0 for the whole term, add 1 each time we go into a term's arguments
   }
 
-depth :: Lens' GenCtx Int
+depth :: Lens' TermCtx Int
 depth = lens _depth (\x y -> x{ _depth = y })
 
-genTerm :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Term fn v)
-genTerm GenOptions{minDepth,maxDepth,sig,vars} = term
+genTerm :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Term fn v)
+genTerm GenOptions{minDepth,maxDepth,sig,vars} = runReaderT term initialCtx
   where
-    constantSymbols = filter ((==0) . arity) . Set.toList . sigFunctionSymbols $ sig
-    functionSymbols = filter ((>0) . arity) . Set.toList . sigFunctionSymbols $ sig
+    initialCtx = TermCtx
+      { _depth = 0
+      }
 
-    term :: GenT m (Term fn v)
+    constants = filter ((==0) . arity) . Set.toList . sigFunctionSymbols $ sig
+    functions = filter ((>0) . arity) . Set.toList . sigFunctionSymbols $ sig
+
+    term :: ReaderT TermCtx m (Term fn v)
     term = do
       d <- view depth
       assertM (minDepth <= maxDepth)  -- not really necessary, we just don't return any terms in that case
@@ -374,46 +336,43 @@ genTerm GenOptions{minDepth,maxDepth,sig,vars} = term
              ]
       gen
 
-    fnApp :: GenT m (Term fn v)
     fnApp = do
-      f <- choose functionSymbols
+      f <- choose functions
       args <- local (over depth (+1)) $ replicateM (arity f) term
       return (App (symbol f) args)
 
-    constApp :: GenT m (Term fn v)
     constApp = do
-      c <- choose constantSymbols
+      c <- choose constants
       return (App (symbol c) [])
 
-    var :: GenT m (Term fn v)
     var = Var <$> choose vars
 
 
-genLiteral' :: forall m p fn v. MonadChoose m => GenT m (Atom p fn v) -> GenT m (Literal p fn v)
+genLiteral' :: forall m p fn v. MonadChoose m => m (Atom p fn v) -> m (Literal p fn v)
 genLiteral' genAtom = do
   atom <- genAtom
   pos <- choose [True, False]
   return (Literal pos atom)
 
-genUninterpretedLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
+genUninterpretedLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Literal p fn v)
 genUninterpretedLiteral opts = genLiteral' (genUninterpretedAtom opts)
 
-genEqualityLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Literal p fn v)
+genEqualityLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Literal p fn v)
 genEqualityLiteral opts = genLiteral' (genEqualityAtom opts)
 
 
-genUninterpretedAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Atom p fn v)
+genUninterpretedAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Atom p fn v)
 genUninterpretedAtom opts@GenOptions{sig} = do
   let predicateSymbols = Set.toList (sigPredicateSymbols sig)
   p <- choose predicateSymbols
-  args <- local (over depth (+1)) $ replicateM (arity p) (genTerm opts)
+  args <- replicateM (arity p) (genTerm opts)
   return (Uninterpreted (symbol p) args)
 
 
-genEqualityAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> GenT m (Atom p fn v)
+genEqualityAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Atom p fn v)
 genEqualityAtom opts = do
-  t1 <- local (over depth (+1)) (genTerm opts)
-  t2 <- local (over depth (+1)) (genTerm opts)
+  t1 <- genTerm opts
+  t2 <- genTerm opts
   return (Equality t1 t2)
 
 
@@ -421,18 +380,7 @@ genSubstitution
   :: forall m p fn v. (MonadChoose m, Ord v)
   => GenOptions p fn v   -- ^ options control the generation of terms in the range
   -> [v]   -- ^ domain of the generated substitution (will be identity on all other values)
-  -> GenT m (Substitution fn v)
+  -> m (Substitution fn v)
 genSubstitution opts domain = do
   pairs <- traverse (\v -> fmap (v,) (genTerm opts)) domain
   return $ Substitution (Map.fromList pairs)
-
-
-assertM :: Applicative m => Bool -> m ()
-assertM b = assert b (pure ())
-
-
-showPretty :: Pretty a => a -> String
-showPretty = renderString . layoutPretty defaultLayoutOptions . align . pretty
-
-printPretty :: Pretty a => a -> IO ()
-printPretty x = putDoc (pretty x) >> putStrLn ""

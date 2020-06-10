@@ -32,12 +32,15 @@ library
   exposed-modules:  Exagen
                   , Control.Monad.Choose
                   , Data.SExpr
-                  , Logic.Propositional.Formula
+                  , Logic.FirstOrder
+                  , Logic.FirstOrder.Lens
+                  , Logic.Formula
                   , Options
                   , Problems.Redundancy
                   , Problems.SAT
                   , Problems.SMT
                   , Text.Show.Latex
+                  , Util
   build-depends:    base >= 4.12 && < 5
                   , combinat
                   , containers

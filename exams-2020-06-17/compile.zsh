@@ -22,25 +22,28 @@ for file in "$exams_dir"/final/*.pdf(#qN); do
 done
 
 # Generate SAT problems
+echo "Generate SAT problems..."
 ( cd "${root_dir}/generator" &&
     stack run -- -n "$num_exams" -s "$seed" -o "$exams_dir" sat )
 
 # Generate SMT problems
+echo "\nGenerate SMT problems..."
 ( cd "${root_dir}/generator" &&
     stack run -- -n "$num_exams" -s "$seed" -o "$exams_dir" smt -t "${root_dir}/problems/smt/template1.smt2" )
 
 # Generate ground superposition problems
-# TODO
+echo "\nGenerate ground superposition problems..."
+echo "(TODO)"  # TODO
 # ( cd "${root_dir}/generator" &&
 #     stack run -- -n "$num_exams" -s "$seed" -o "$exams_dir" sup )
 
 # Generate redundancy problems
-# TODO
-# ( cd "${root_dir}/generator" &&
-#     stack run -- -n "$num_exams" -s "$seed" -o "$exams_dir" red )
+echo "\nGenerate non-ground superposition / redundancy problems..."
+( cd "${root_dir}/generator" &&
+    stack run -- -n "$num_exams" -s "$seed" -o "$exams_dir" red )
 
 for exam in "$exams_dir"/exam-*; do
-    echo "Compiling $exam"
+    echo "\nCompiling $exam"
     examtex="${exam:t}.tex"
 
     # Produce latex version of smt files

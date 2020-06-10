@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Logic.Propositional.Formula where
+module Logic.Formula where
 
 -- base
 import Control.Monad (ap)
