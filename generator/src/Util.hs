@@ -1,6 +1,7 @@
 module Util
   ( module Util  -- export everything in the current module
   , module Debug.Trace  -- re-export everything in Debug.Trace
+  , putDoc
   ) where
 
 -- base
@@ -32,7 +33,11 @@ showPretty = renderString . layoutPretty defaultLayoutOptions . align . pretty
 
 
 printPretty :: Pretty a => a -> IO ()
-printPretty x = putDoc (pretty x) >> putStrLn ""
+printPretty x = putDocLn (pretty x)
+
+
+putDocLn :: Doc ann -> IO ()
+putDocLn doc = putDoc doc >> putStrLn ""
 
 
 -- | Collect stream into list.

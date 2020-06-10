@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -14,8 +15,6 @@ import Data.Functor.Identity
 import Data.Semigroup
 
 -- containers
-import Data.Map.Strict (Map)
-import qualified Data.Map.Strict as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 
@@ -37,6 +36,7 @@ import Test.QuickCheck (Arbitrary(..), elements)
 
 -- exagen
 import Control.Monad.Choose
+import Logic.DefinitionalNF
 import Logic.Formula hiding (Prop(..))
 import Options (Options(..), SATOptions(..))
 import Util
@@ -110,7 +110,19 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
         -- putStrLn $ "Normalizeds: " <> showPretty (sortFlatFormula (normalize fm))
         -- putStrLn $ "Proper Subformulas:\n" <> showPretty (properSubformulas fm)
         putStrLn $ "Polarities: " <> show (atomPolarity fm)
+        let (p, defs) = definitionalNF' fm
+            allDefs = Atomic p : defs
+        putStrLn $ "Definitional transformation:"
+        putDocLn $ vsep (map (indent 4 . pretty) allDefs)
         putStrLn ""
+
+        -- TODO: Additional criteria:
+        -- * we should have at least one Pos, one Neg, one Both polarity for a non-atomic subformula
+        --   (why? so each case appears in the task for definitional transformation)
+        -- * for the DPLL task, there should be ~2 branches?
+        --   or at least, check that the formula is falsifiable.
+        --   (or: has at most one model. this ensures we don't get something where most branches immediately lead to a model)
+
 
     Just outputDir -> do
       forM_ (zip fms [1..]) $ \(fm, i :: Int) -> do
@@ -179,7 +191,6 @@ suitable fm =
   ]
 
 
-
 data Prop = P | Q | R
   deriving (Eq, Ord)
 
@@ -193,6 +204,40 @@ instance Pretty Prop where
 
 instance Arbitrary Prop where
   arbitrary = elements [P, Q, R]
+
+
+-- | Extend 'Prop' with a supply of new names to allow definitional transformation
+data Prop'
+  = OriginalProp !Prop
+  | NewProp !Word
+  deriving (Eq, Ord)
+
+instance Show Prop' where
+  show (OriginalProp p) = show p
+  show (NewProp i) = 'n' : show i
+
+instance Pretty Prop' where
+  pretty = pretty . show
+
+newProps :: Stream Prop'
+newProps = go 1
+  where go !i = NewProp i ::: go (i+1)
+
+definitionalNF' :: Formula Prop -> (Prop', [Formula Prop'])
+definitionalNF' = reverseNewProps . definitionalNF newProps . fmap OriginalProp
+
+-- reverse the indices of new names (to match what we got in the lecture)
+reverseNewProps :: (Prop', [Formula Prop']) -> (Prop', [Formula Prop'])
+reverseNewProps (p, fs) = (modifyProp p, map (fmap modifyProp) (reverse fs))
+  where
+    ps = p : concatMap toList fs
+    h = 1 + maximum (map newPropIndex ps)
+
+    newPropIndex (NewProp i) = i
+    newPropIndex _ = 0
+
+    modifyProp (NewProp i) = NewProp (h - i)
+    modifyProp x = x
 
 
 -- | Permutation of 'Prop' values
@@ -407,40 +452,3 @@ properSubformulas (Atomic _) = []
 properSubformulas (Const _) = []
 properSubformulas (Not g) = subformulas g
 properSubformulas (Binary _ f g) = subformulas f ++ subformulas g
-
-
-hasAtomPolarity :: Ord a => Polarity -> Formula a -> Bool
-hasAtomPolarity pol = (pol `elem`) . map snd . Map.toList . atomPolarity
-
-
-
-data Polarity
-  = Pos
-  | Neg
-  | Both
-  deriving (Eq, Show)
-
-instance Semigroup Polarity where
-  Pos <> Pos = Pos
-  Neg <> Neg = Neg
-  _ <> _ = Both
-
-flipPolarity :: Polarity -> Polarity
-flipPolarity Pos = Neg
-flipPolarity Neg = Pos
-flipPolarity Both = Both
-
--- Annotate each atom occurrence with its polarity
-polarity :: Formula a -> Formula (a, Polarity)
-polarity = go Pos
-  where
-    go pol (Atomic x) = Atomic (x, pol)
-    go _   (Const x) = Const x
-    go pol (Not f) = Not (go (flipPolarity pol) f)
-    go pol (And f g) = And (go pol f) (go pol g)
-    go pol (Or  f g) = Or  (go pol f) (go pol g)
-    go pol (Imp f g) = Imp (go (flipPolarity pol) f) (go pol g)
-    go _   (Iff f g) = Iff (go Both f) (go Both g)
-
-atomPolarity :: Ord a => Formula a -> Map a Polarity
-atomPolarity = Map.fromListWith (<>) . toList . polarity

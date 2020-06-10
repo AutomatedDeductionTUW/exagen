@@ -32,6 +32,7 @@ library
   exposed-modules:  Exagen
                   , Control.Monad.Choose
                   , Data.SExpr
+                  , Logic.DefinitionalNF
                   , Logic.FirstOrder
                   , Logic.FirstOrder.Lens
                   , Logic.FirstOrder.Types
