@@ -156,7 +156,7 @@ genExamInference = do
   l3 <- mfilter isNonGroundLiteral $ genEqualityLiteral opts{ vars = [v2] }
 
   -- At least one function of arity two should appear
-  let fns = functionSymbols [l1, l2, l3]
+  let fns = functionSymbols (Clause [l1, l2, l3])
   guard (not . Set.null $ Set.intersection fns fnsWithArity2)
 
   -- Generate ground substitution
@@ -208,18 +208,6 @@ instance ShowLatex Variable where
   showLatex Z = "z"
 
 
--- use map instead of function so we can print it
-newtype Substitution fn v =
-  Substitution { unSubstitution :: Map v (Term fn v) }
-  deriving (Eq, Ord, Show)
-
-instance (Pretty fn, Pretty v) => Pretty (Substitution fn v) where
-  pretty (Substitution s) = encloseSep lbrace rbrace comma (map prettyPair pairs)
-    where
-      pairs = Map.toList s
-      prettyPair (v, t) = pretty v <+> "->" <+> pretty t
-
-
 applySubstitution :: Ord v => Substitution fn v -> Term fn v -> Term fn v
 applySubstitution (Substitution s) t = t >>= (\v -> fromMaybe (Var v) (Map.lookup v s))
 
@@ -234,9 +222,6 @@ applySubstitutionL theta (Literal pos atom) = Literal pos (applySubstitutionA th
 isNonGroundLiteral :: Literal p fn v -> Bool
 isNonGroundLiteral = getAny . foldMap (const (Any True))
 
-complementary :: Literal p fn v -> Literal p fn v
-complementary (Literal pos a) = Literal (not pos) a
-
 
 
 -- TODO: We probably don't need this here
@@ -248,57 +233,6 @@ data KBOParams fn = KBOParams
 
 
 
-
-
-class HasTerms fn v a | a -> fn, a -> v where
-  -- | Top-level terms in the structure
-  terms :: a -> [Term fn v]
-
--- | All subterms in the structure
-subterms :: HasTerms fn v a => a -> [Term fn v]
-subterms = concatMap subterms' . terms
-
-
-instance HasTerms fn v (Term fn v) where
-  terms t = [t]
-
-subterms' :: Term fn v -> [Term fn v]
-subterms' t = t : properSubterms t
-
-properSubterms :: Term fn v -> [Term fn v]
-properSubterms (Var _) = []
-properSubterms (App _ ts) = concatMap subterms' ts
-
-
-instance HasTerms fn v (Atom p fn v) where
-  terms (Equality t1 t2) = [t1, t2]
-  terms (Uninterpreted _ ts) = ts
-
-
-instance HasTerms fn v (Literal p fn v) where
-  terms (Literal _ atom) = terms atom
-
-
-instance HasTerms fn v (Clause p fn v) where
-  terms (Clause ls) = concatMap terms ls
-
-
-instance HasTerms fn v a => HasTerms fn v [a] where
-  terms xs = concatMap terms xs
-
-
-functionSymbols :: (HasTerms fn v a, Ord fn) => a -> Set fn
-functionSymbols = Set.fromList . mapMaybe getFn . subterms
-  where
-    getFn (Var _) = Nothing
-    getFn (App fn _) = Just fn
-
-
-variables :: (HasTerms fn v a, Ord v) => a -> Set v
-variables = Set.fromList . mapMaybe getVar . subterms
-  where
-    getVar (Var v) = Just v
-    getVar (App _ _) = Nothing
 
 
 data GenOptions p fn v = GenOptions
@@ -354,8 +288,10 @@ genLiteral' genAtom = do
   pos <- choose [True, False]
   return (Literal pos atom)
 
+
 genUninterpretedLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Literal p fn v)
 genUninterpretedLiteral opts = genLiteral' (genUninterpretedAtom opts)
+
 
 genEqualityLiteral :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Literal p fn v)
 genEqualityLiteral opts = genLiteral' (genEqualityAtom opts)

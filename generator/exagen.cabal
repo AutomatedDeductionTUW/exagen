@@ -34,6 +34,7 @@ library
                   , Data.SExpr
                   , Logic.FirstOrder
                   , Logic.FirstOrder.Lens
+                  , Logic.FirstOrder.Types
                   , Logic.Formula
                   , Options
                   , Problems.Redundancy
