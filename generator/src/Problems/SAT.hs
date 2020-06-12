@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -12,6 +13,7 @@ module Problems.SAT where
 import Control.Monad
 import Data.Foldable
 import Data.Functor.Identity
+import Data.List
 import Data.Semigroup
 
 -- containers
@@ -20,6 +22,9 @@ import qualified Data.Set as Set
 
 -- filepath
 import System.FilePath
+
+-- lens
+import Control.Lens hiding (Const)
 
 -- list-transformer
 import qualified List.Transformer as ListT
@@ -114,6 +119,8 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
             allDefs = Atomic p : defs
         putStrLn $ "Definitional transformation:"
         putDocLn $ vsep (map (indent 4 . pretty) allDefs)
+        putStr $ "Models: "
+        putDocLn $ list (prettyAssignment <$> models fm)
         putStrLn ""
 
         -- TODO: Additional criteria:
@@ -135,9 +142,16 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
               , "% Satisfiable? ", show (satisfiable fm), "\n"
               , "% Valid? ", show (valid fm), "\n"
               , "% Polarities: ", show (atomPolarity fm), "\n"
+              , "% Models: ", showDoc $ list (prettyAssignment <$> models fm)
               , showLatex show fm <> "\n"
               ]
         writeFile file content
+
+
+prettyAssignment :: (Ord a, Pretty a) => Assignment a -> Doc ann
+prettyAssignment xs = encloseSep lbrace rbrace comma (map pretty1 $ sort xs)
+  where pretty1 (x, True) = pretty x
+        pretty1 (x, False) = "¬" <> pretty x
 
 
 -- Results for size = 5:
@@ -174,6 +188,14 @@ suitableFast fm =
     hasAtomPolarity Neg fm || hasAtomPolarity Pos fm
   , not (anySubformula isNestedNot fm)
   , nestedLatexParens fm < 3
+  , length (models fm) <= 6
+  -- , length (models fm) >= 2
+  -- , -- there is exactly one model
+  --   lengthIs 1 (models fm)
+  -- , -- there is at most one model
+  --   -- (rationale: many models -> high probability that no branching is required in solution,
+  --   -- but also not all should be unsat so it's not too predictable.)
+  --   null . tailSafe . models $ fm
   ]
 
 
@@ -203,7 +225,7 @@ instance Pretty Prop where
   pretty = pretty . show
 
 instance Arbitrary Prop where
-  arbitrary = elements [P, Q, R]
+  arbitrary = Test.QuickCheck.elements [P, Q, R]
 
 
 -- | Extend 'Prop' with a supply of new names to allow definitional transformation
@@ -219,6 +241,10 @@ instance Show Prop' where
 instance Pretty Prop' where
   pretty = pretty . show
 
+newPropIndex :: Traversal' Prop' Word
+newPropIndex handler (NewProp i) = NewProp <$> handler i
+newPropIndex _ p = pure p
+
 newProps :: Stream Prop'
 newProps = go 1
   where go !i = NewProp i ::: go (i+1)
@@ -228,16 +254,15 @@ definitionalNF' = reverseNewProps . definitionalNF newProps . fmap OriginalProp
 
 -- reverse the indices of new names (to match what we got in the lecture)
 reverseNewProps :: (Prop', [Formula Prop']) -> (Prop', [Formula Prop'])
-reverseNewProps (p, fs) = (modifyProp p, map (fmap modifyProp) (reverse fs))
+reverseNewProps defs =
+  over (prop . newPropIndex) (\i -> h - i)
+  . over _2 reverse
+  $ defs
   where
-    ps = p : concatMap toList fs
-    h = 1 + maximum (map newPropIndex ps)
+    h = 1 + getMax (defs ^. prop . newPropIndex . to Max)
 
-    newPropIndex (NewProp i) = i
-    newPropIndex _ = 0
-
-    modifyProp (NewProp i) = NewProp (h - i)
-    modifyProp x = x
+    prop :: Traversal (a, [Formula a]) (b, [Formula b]) a b
+    prop = tpair id (traverse . traverse)
 
 
 -- | Permutation of 'Prop' values
@@ -270,7 +295,7 @@ instance Show PropPerm where
   show = permName
 
 instance Arbitrary PropPerm where
-  arbitrary = elements allPropPerms
+  arbitrary = Test.QuickCheck.elements allPropPerms
 
 
 randomDistinctExamFormulas :: Int -> IO [Formula Prop]

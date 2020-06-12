@@ -1,9 +1,14 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Logic.Formula where
 
@@ -12,6 +17,7 @@ import Control.Monad (ap)
 import Data.Foldable
 import Data.List (nub, sort)
 import Data.Maybe (fromJust)
+import GHC.Generics (Generic)
 
 -- containers
 -- import Data.Map.Strict (Map)
@@ -24,14 +30,41 @@ import Data.Text.Prettyprint.Doc
 -- QuickCheck
 import Test.QuickCheck
 
+-- recursion-schemes
+import Data.Functor.Foldable (Base, Recursive, Corecursive)
+
+
+data FormulaF a f
+  = AtomicF !a
+  | ConstF !Bool
+  | NotF f
+  | BinaryF !Conn2 f f
+  deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
+{-# COMPLETE AtomicF, ConstF, NotF, AndF, OrF, IffF, ImpF :: FormulaF #-}
+
+pattern AndF :: f -> f -> FormulaF a f
+pattern AndF f g = BinaryF And' f g
+
+pattern OrF :: f -> f -> FormulaF a f
+pattern OrF f g = BinaryF Or' f g
+
+pattern IffF :: f -> f -> FormulaF a f
+pattern IffF f g = BinaryF Iff' f g
+
+pattern ImpF :: f -> f -> FormulaF a f
+pattern ImpF f g = BinaryF Imp' f g
+
 
 data Formula a
   = Atomic !a
   | Const !Bool
   | Not (Formula a)
   | Binary !Conn2 (Formula a) (Formula a)
-  deriving (Eq, Ord, Show, Functor, Foldable)
+  deriving stock (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
+  deriving anyclass (Recursive, Corecursive)
 {-# COMPLETE Atomic, Const, Not, And, Or, Iff, Imp :: Formula #-}
+
+type instance Base (Formula a) = (FormulaF a)
 
 data Conn2 = And' | Or' | Iff' | Imp'
   deriving (Eq, Ord, Show)
@@ -118,19 +151,26 @@ eval (Iff f g) = eval f == eval g
 eval (Imp f g) = not (eval f) || eval g
 
 
-allAssignments :: [a] -> [[(a, Bool)]]
+type Assignment a = [(a, Bool)]
+
+allAssignments :: [a] -> [Assignment a]
 allAssignments [] = [[]]
 allAssignments (x:xs) =
   [ (x, v) : assignment | assignment <- allAssignments xs, v <- [ True, False ] ]
 
+distinctAtoms :: Eq a => Formula a -> [a]
+distinctAtoms = nub . toList
 
--- | Naive satisfiability test (evaluates the formula under all interpretations)
+eval' :: Eq a => Formula a -> Assignment a -> Bool
+eval' fm a = eval . fmap (\x -> fromJust (lookup x a)) $ fm
+
+-- | Returns the models of the given formula (i.e., assignment under which it evaluates to true)
+models :: Eq a => Formula a -> [[(a, Bool)]]
+models fm = filter (eval' fm) (allAssignments (distinctAtoms fm))
+
+-- | Naive satisfiability test (by evaluating the formula under all interpretations)
 satisfiable :: Eq a => Formula a -> Bool
-satisfiable fm = or [ evalUnderAssignment a fm | a <- allAssignments (distinctAtoms fm) ]
-  where
-    distinctAtoms = nub . toList
-    evalUnderAssignment a = eval . fmap (\x -> fromJust (lookup x a))
-
+satisfiable = not . null . models
 
 -- | Naive validity test (evaluates the formula under all interpretations)
 valid :: Eq a => Formula a -> Bool
@@ -249,16 +289,16 @@ normalizeAtoms :: Ord a => FlatFormula a -> FlatFormula Int
 normalizeAtoms f = fmap (table Map.!) f
   where
     atoms = toList f
-    distinctAtoms = nub atoms
-    table = Map.fromList (zip distinctAtoms [0..])
+    distinctAtoms_ = nub atoms
+    table = Map.fromList (zip distinctAtoms_ [0..])
 
 -- | Replaces atoms by increasing integers (using an order isomorphism)
 normalizeAtomsIso :: Ord a => FlatFormula a -> FlatFormula Int
 normalizeAtomsIso f = fmap (table Map.!) f
   where
     atoms = toList f
-    distinctAtoms = Set.toAscList (Set.fromList atoms)
-    table = Map.fromList (zip distinctAtoms [0..])
+    distinctAtoms_ = Set.toAscList (Set.fromList atoms)
+    table = Map.fromList (zip distinctAtoms_ [0..])
 
 
 data FlatFormula a

@@ -18,8 +18,8 @@
 module Problems.Redundancy where
 
 -- base
+import Data.List
 import Data.Maybe
-import Data.Monoid
 import Data.String
 
 -- containers
@@ -38,7 +38,7 @@ import Control.Lens
 import Control.Monad.Reader
 
 -- prettyprinter
-import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc hiding (plural)
 
 -- exagen
 import Control.Monad.Choose
@@ -67,28 +67,74 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
           , showLatex inf, "\n"
           ]
 
+    let sigcontent = formatSignature inf
+
     case optOutputDir of
       Nothing -> do
         putStrLn "\nInference: "
         printPretty inf
         putStr "\nusing the substitution "
         printPretty theta
+        -- putStrLn $ "Signature: " <> sigcontent
 
       Just outputDir -> do
         examDir <- getExamDir outputDir i
         let file = examDir </> "red.tex"
+        let sigfile = examDir </> "red.signature.tex"
         putStrLn $ "Writing file: " <> file
         writeFile file content
-
-  -- TODO
-  -- Criteria:
-  -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
-  --         So if someone gets more unary functions, they will have more nesting instead.
+        putStrLn $ "Writing file: " <> sigfile
+        writeFile sigfile sigcontent
 
 
-  -- TODO: output signature (e.g. b,c,d are constants, x,y are variables, etc.)
 
--- TODO:
+formatSignature :: (HasSignature p fn v a, Ord v, ShowLatex p, ShowLatex fn, ShowLatex v) => a -> String
+formatSignature x = formatSignature' (actualSignature x) (variablesOf x)
+
+formatSignature' :: (ShowLatex p, ShowLatex fn, ShowLatex v) => Signature p fn -> Set v -> String
+formatSignature' sig varsSet =
+  formatDescription
+  [ Descriptor (map showMath predicates) "predicate symbol"
+  , Descriptor (map showMath functions) "function symbol"
+  , Descriptor (map showMath constants) "constant"
+  , Descriptor (map showMath vars) "variable"
+  ]
+  where
+    showMath :: ShowLatex a => a -> String
+    showMath x = "$" <> showLatex x <> "$"
+
+    predicates = map symbol . Set.toAscList . sigPredicateSymbols $ sig
+    functions = map symbol . filter ((>=1) . arity) . Set.toAscList . sigFunctionSymbols $ sig
+    constants = map symbol . filter ((==0) . arity) . Set.toAscList . sigFunctionSymbols $ sig
+    vars = Set.toAscList varsSet
+
+data Descriptor = Descriptor
+  { things :: [String]
+  , what :: String
+  }
+
+formatDescription :: [Descriptor] -> String
+formatDescription ds =
+  case mapMaybe formatDescriptor ds of
+    [] -> error "oh no"
+    ds' -> oxfordComma ds' <> "."
+
+formatDescriptor :: Descriptor -> Maybe String
+formatDescriptor (Descriptor [] _) = Nothing
+formatDescriptor (Descriptor [x] what) = Just $ x <> " is a " <> what
+formatDescriptor (Descriptor xs what) = Just $ intercalate ", " xs <> " are " <> plural what
+
+plural :: String -> String
+plural what = what <> "s"
+
+oxfordComma :: [String] -> String
+oxfordComma [] = []
+oxfordComma [x] = x
+oxfordComma [x, y] = x <> " and " <> y
+oxfordComma xs = intercalate ", " (init xs) <> ", and " <> last xs
+
+
+-- | Generates an inference to be analysed in the exam problem.
 --
 -- Template: non-ground clause D
 --           1 unit equality
@@ -106,16 +152,16 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 -- Questions:
 -- a) Is the inference sound? prove using Sup+BR
 -- b) Is the inference simplifying?
-
-
 genExamInference
   :: MonadChoose m
   => m ( Inference PredSym FnSym Variable
-       , Substitution FnSym Variable)
+       , Substitution FnSym Variable
+       )
 genExamInference = do
   -- NOTE: to have some symbol *not* appear in the output,
   --       we should adapt the generator to filter it out before.
   --       (with this small signature, the probability is very high that all symbols occur.)
+  --       (easiest way to filter it out: just remove from signature...)
   let sigFns = Set.fromList @(Symbol FnSym)
         [ Symbol "f" 1
         , Symbol "g" 2
@@ -149,14 +195,14 @@ genExamInference = do
   -- l1: non-ground uninterpreted literal
   -- l2: ground uninterpreted literal
   -- l3: non-ground equality literal
-  l1 <- mfilter isNonGroundLiteral $ genUninterpretedLiteral opts{ vars = [v1] }
+  l1 <- mfilter (not . isGround) $ genUninterpretedLiteral opts{ vars = [v1] }
   -- l1 <- genUninterpretedLiteral opts{ vars = [v1] }
   -- guard (isNonGroundLiteral l1)
   l2 <- genUninterpretedLiteral opts{ vars = [] }
-  l3 <- mfilter isNonGroundLiteral $ genEqualityLiteral opts{ vars = [v2] }
+  l3 <- mfilter (not . isGround) $ genEqualityLiteral opts{ vars = [v2] }
 
   -- At least one function of arity two should appear
-  let fns = functionSymbols (Clause [l1, l2, l3])
+  let fns = functionSymbolsOf (Clause [l1, l2, l3])
   guard (not . Set.null $ Set.intersection fns fnsWithArity2)
 
   -- Generate ground substitution
@@ -171,15 +217,15 @@ genExamInference = do
   -- c1: left premise, ground, redundant after inference, one additional irrelevant literal
   -- c2: right premise, non-ground
   -- c3: conclusion after applying subsumption resolution
-  let c1 = Clause [applySubstitutionL theta (complementary l1), l2, applySubstitutionL theta l3]
+  let c1 = Clause [applySubstitution theta (complementary l1), l2, applySubstitution theta l3]
   let c2 = Clause [l1, l3]
-  let c3 = Clause [l2, applySubstitutionL theta l3]
+  let c3 = Clause [l2, applySubstitution theta l3]
 
   -- TODO
-  -- Criteria:
-  -- * At least one function of arity two should appear
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets more unary functions, they will have more nesting instead.
+  -- * Normalize final signature!
+  --   (e.g. if variables are ["y", "z"], replace with some permutation of ["x","y"])
   let inf = Inference{ premises = [ c1, c2 ]
                      , conclusion = c3
                      }
@@ -188,12 +234,15 @@ genExamInference = do
 
 
 
+-- | Concrete type for predicate symbols
 newtype PredSym = PredSym String
   deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
 
+-- | Concrete type for function symbols (including constant symbols)
 newtype FnSym = FnSym String
   deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
 
+-- | Concrete type for variables
 data Variable = X | Y | Z
   deriving (Eq, Ord, Show, Enum, Bounded)
 
@@ -206,21 +255,6 @@ instance ShowLatex Variable where
   showLatex X = "x"
   showLatex Y = "y"
   showLatex Z = "z"
-
-
-applySubstitution :: Ord v => Substitution fn v -> Term fn v -> Term fn v
-applySubstitution (Substitution s) t = t >>= (\v -> fromMaybe (Var v) (Map.lookup v s))
-
-applySubstitutionA :: Ord v => Substitution fn v -> Atom p fn v -> Atom p  fn v
-applySubstitutionA theta (Equality t1 t2) = Equality (applySubstitution theta t1) (applySubstitution theta t2)
-applySubstitutionA theta (Uninterpreted p ts) = Uninterpreted p (applySubstitution theta <$> ts)
-
-applySubstitutionL :: Ord v => Substitution fn v -> Literal p fn v -> Literal p  fn v
-applySubstitutionL theta (Literal pos atom) = Literal pos (applySubstitutionA theta atom)
-
-
-isNonGroundLiteral :: Literal p fn v -> Bool
-isNonGroundLiteral = getAny . foldMap (const (Any True))
 
 
 
@@ -299,8 +333,8 @@ genEqualityLiteral opts = genLiteral' (genEqualityAtom opts)
 
 genUninterpretedAtom :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Atom p fn v)
 genUninterpretedAtom opts@GenOptions{sig} = do
-  let predicateSymbols = Set.toList (sigPredicateSymbols sig)
-  p <- choose predicateSymbols
+  let predicates = Set.toList (sigPredicateSymbols sig)
+  p <- choose predicates
   args <- replicateM (arity p) (genTerm opts)
   return (Uninterpreted (symbol p) args)
 

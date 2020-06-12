@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -27,9 +28,10 @@ import Text.Show.Latex
 --------------------------------------------------------------------------------
 
 data Signature p fn = Signature
-  { sigFunctionSymbols :: Set (Symbol fn)
-  , sigPredicateSymbols :: Set (Symbol p)
+  { sigFunctionSymbols :: Set (Symbol fn)  -- ^ set of function symbols (including constant symbols)
+  , sigPredicateSymbols :: Set (Symbol p)  -- ^ set of predicate symbols
   }
+  deriving (Eq, Show)
 
 data Symbol a = Symbol
   { symbol :: !a
@@ -66,23 +68,23 @@ data Inference p fn v = Inference
 newtype Clause p fn v = Clause
   { literals :: [Literal p fn v]
   }
-  deriving (Eq, Ord, Show, Functor, Foldable)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
 
 data Literal p fn v = Literal
   { isPositive :: Bool
   , atom :: Atom p fn v
   }
-  deriving (Eq, Ord, Show, Functor, Foldable)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
 
 data Atom p fn v
   = Equality (Term fn v) (Term fn v)
   | Uninterpreted p [Term fn v]
-  deriving (Eq, Ord, Show, Functor, Foldable)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
 
 data Term fn v
   = Var v
   | App fn [Term fn v]
-  deriving (Eq, Ord, Show, Functor, Foldable)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
 
 
 --------------------------------------------------------------------------------
@@ -144,7 +146,6 @@ instance (Pretty fn, Pretty v) => Pretty (Substitution fn v) where
 instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Clause p fn v) where
   showLatex (Clause []) = " \\Box "
   showLatex (Clause ls) = intercalate " \\lor " (map showLatex ls)
-
 
 instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Literal p fn v) where
   showLatex (Literal True (Equality t1 t2)) = showLatex t1 <> " = " <> showLatex t2

@@ -1,3 +1,5 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Util
   ( module Util  -- export everything in the current module
   , module Debug.Trace  -- re-export everything in Debug.Trace
@@ -5,6 +7,7 @@ module Util
   ) where
 
 -- base
+import Control.Applicative
 import Control.Exception
 import Debug.Trace
 import Text.Printf (printf)
@@ -14,6 +17,9 @@ import System.Directory
 
 -- filepath
 import System.FilePath
+
+-- lens
+import Control.Lens
 
 -- list-transformer
 import List.Transformer as ListT
@@ -29,7 +35,11 @@ assertM b = assert b (pure ())
 
 
 showPretty :: Pretty a => a -> String
-showPretty = renderString . layoutPretty defaultLayoutOptions . align . pretty
+showPretty = showDoc . pretty
+
+
+showDoc :: Doc ann -> String
+showDoc = renderString . layoutPretty defaultLayoutOptions . align
 
 
 printPretty :: Pretty a => a -> IO ()
@@ -53,3 +63,16 @@ getExamDir outputDir i = do
   let examDir = outputDir </> (printf "exam-%02d" i)
   createDirectoryIfMissing False examDir
   return examDir
+
+
+-- | Combine traversals to a traversal over (possibly inhomogenous) pairs
+tpair :: Traversal s t a b -> Traversal s' t' a b -> Traversal (s, s') (t, t') a b
+tpair tr tr' handler (s, s') = liftA2 (,) (tr handler s) (tr' handler s')
+
+
+-- | 'lengthIs n xs = (length xs == n)'
+lengthIs :: Word -> [a] -> Bool
+lengthIs 0 [] = True
+lengthIs 0 _ = False
+lengthIs _ [] = False
+lengthIs n (_:xs) = lengthIs (n-1) xs
