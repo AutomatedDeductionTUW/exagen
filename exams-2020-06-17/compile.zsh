@@ -45,7 +45,7 @@ for exam in "$exams_dir"/exam-*; do
     examtex="${exam:t}.tex"
 
     # Produce latex version of smt files
-    "$SMT2TEX" < "${exam}/smt.smt2" > "${exam}/smt.smt2.tex"
+    "$SMT2TEX" --conjunction < "${exam}/smt.smt2" > "${exam}/smt.smt2.tex"
     "$SMT2TEX" < "${exam}/sup.smt2" > "${exam}/sup.smt2.tex"
 
     # Link the template from parent directory
