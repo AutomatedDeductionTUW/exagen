@@ -142,7 +142,7 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
               , "% Satisfiable? ", show (satisfiable fm), "\n"
               , "% Valid? ", show (valid fm), "\n"
               , "% Polarities: ", show (atomPolarity fm), "\n"
-              , "% Models: ", showDoc $ list (prettyAssignment <$> models fm)
+              , "% Models: ", showDoc $ list (prettyAssignment <$> models fm), "\n"
               , showLatex show fm <> "\n"
               ]
         writeFile file content

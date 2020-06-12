@@ -2,5 +2,6 @@
 % Index: 3
 % Satisfiable? True
 % Valid? False
-% Polarities: fromList [(p,Both),(q,Neg),(r,Both)]
-\lnot ( \lnot r \land ( p \rightarrow q ) ) \lor ( ( r \leftrightarrow p ) \lor r )
+% Polarities: fromList [(p,Both),(q,Pos),(r,Both)]
+% Models: [{p,q,r}, {p,¬q,r}, {p,q,¬r}, {p,¬q,¬r}, {¬p,q,¬r}]
+\lnot ( ( q \lor p ) \land \lnot r ) \rightarrow ( ( r \leftrightarrow p ) \land r )

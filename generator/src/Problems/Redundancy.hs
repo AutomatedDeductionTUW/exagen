@@ -80,11 +80,11 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
       Just outputDir -> do
         examDir <- getExamDir outputDir i
         let file = examDir </> "red.tex"
-        let sigfile = examDir </> "red.signature.tex"
+        let sigfile = examDir </> "red-signature.tex"
         putStrLn $ "Writing file: " <> file
         writeFile file content
         putStrLn $ "Writing file: " <> sigfile
-        writeFile sigfile sigcontent
+        writeFile sigfile (sigcontent <> "\n")
 
 
 
