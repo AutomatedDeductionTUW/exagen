@@ -33,9 +33,7 @@ echo "\nGenerate SMT problems..."
 
 # Generate ground superposition problems
 echo "\nGenerate ground superposition problems..."
-echo "(TODO)"  # TODO
-# ( cd "${root_dir}/generator" &&
-#     stack run -- -n "$num_exams" -s "$seed" -o "$exams_dir" sup )
+python3 "${root_dir}/problems/sup/ground_sup.py" -n "$num_exams" -o "$exams_dir"
 
 # Generate redundancy problems
 echo "\nGenerate non-ground superposition / redundancy problems..."
@@ -47,9 +45,8 @@ for exam in "$exams_dir"/exam-*; do
     examtex="${exam:t}.tex"
 
     # Produce latex version of smt files
-    for smtfile in "$exam"/*.smt2; do
-        "$SMT2TEX" < "$smtfile" > "${smtfile}.tex"
-    done
+    "$SMT2TEX" < "${exam}/smt.smt2" > "${exam}/smt.smt2.tex"
+    "$SMT2TEX" < "${exam}/sup.smt2" > "${exam}/sup.smt2.tex"
 
     # Link the template from parent directory
     ln -sf "../template.tex" "${exam}/${examtex}"

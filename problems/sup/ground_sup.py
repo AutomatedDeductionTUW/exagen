@@ -102,13 +102,13 @@ for x1, x2, x3, f in itertools.product(composites, composites, composites, fns):
     for j in range(3):
         if i > args.n: break
         w, p = get_weight_and_precedence(x1, x2, f, j)
-        fprefix = os.path.join(args.o, str(i).zfill(2))
+        fprefix = os.path.join(args.o, "exam-"+str(i).zfill(2), "sup")
         # Generate files with weights and precedence
-        wout = open(fprefix + "_weights.tex", "w")
+        wout = open(fprefix + "-weights.tex", "w")
         wstrs = ["w(" + symbol + ") = " + str(key) for key in w for symbol in w[key]]
         wout.write("$" + ", ".join(wstrs) + "$")
         wout.close()
-        pout = open(fprefix + "_precedence.tex", "w")
+        pout = open(fprefix + "-precedence.tex", "w")
         pout.write("$" + r""" \gg """.join(p) + "$")
         pout.close()
         # Create the clauses

@@ -1,0 +1,21 @@
+\begin{gather*}
+%
+% ['or', ['=', ['g', ['f', 'a']], 'a'], ['=', ['g', ['f', 'b']], 'a']]
+(g(f(a)) = a \lor g(f(b)) = a)
+%
+\land
+%
+% ['=', ['f', 'a'], 'a']
+f(a) = a
+%
+\land
+%
+% ['or', ['not', ['=', ['f', 'b'], ['f', 'b']]], ['=', ['f', 'b'], 'a']]
+(f(b)  \neq  f(b) \lor f(b) = a)
+%
+\land
+%
+% ['not', ['=', ['g', 'a'], 'a']]
+g(a)  \neq  a
+%
+\end{gather*}
