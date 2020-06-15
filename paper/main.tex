@@ -112,8 +112,7 @@
 % METADATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Automated Reasoning in Generating Exam Sheets for Automated Deduction
-}
+\title{Automated Reasoning in Generating Exam Sheets for Automated Deduction}
 \author{Petra Hozzov\'a\and
 Laura Kov\'acs \and
 Jakob Rath}
@@ -163,13 +162,13 @@ Jakob Rath}
 
 
 \begin{abstract}
-Amid the COVID-19 pandemic, distance teaching became default in world-wide higher education,
+Amid the COVID-19 pandemic, distance teaching became the default in world-wide higher education,
 urging teachers and researchers to revise course materials into a
 more accessible online content for a diverse audience. Probably one of the hardest challenges in this new form of education
 came with online assessments of course performance, especially organizing and grading online written exams.
-In this short paper we focus on our teaching experience during our ``Automated Deduction'' master course at the TU Wien,
+In this short paper we focus on our teaching experience during our master's level course ``Automated Deduction'' at TU Wien,
 and report on the automated reasoning we developed for generating individual online exam sheets for students enrolled in the course.
-The algorithmic and rigorous logical reasoning developed within our course calls for exam sheets focused on problem solving and deductive proofs; as such exam sheets using tests grids are not a viable solution for written exams within our course. We believe that the toolchain of automated reasoning tools we have developed for holding online written exams could be beneficial not only for other distance learning platforms, but also to researchers in automated reasoning by providing our community with a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
+The algorithmic and rigorous logical reasoning developed within our course calls for exam sheets focused on problem solving and deductive proofs; as such exam sheets using test grids are not a viable solution for written exams within our course. We believe that the toolchain of automated reasoning tools we have developed for holding online written exams could be beneficial not only for other distance learning platforms, but also to researchers in automated reasoning by providing our community with a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
 \end{abstract}
 
 
@@ -184,22 +183,53 @@ so each student gets their own exam sheet.
 etc…
 
 
-\section{todo}
 
+
+
+\section{todo}
 
 Challenge:
 problem instances should be different but of similar difficulty to make sure the exam is fair to students.
 
-easiest method: provide templates, do small random perturbations that don't change the solution
+
+
+
+
+\section{Method 1: Varying Templates and Fixed Patterns}
+
+
+\subsection{SMT problem}
+
+relatively easy: provided template, do small random perturbations that don't change the solution
+
+
+\subsection{Ground superposition problem}
+
+todo
+
+
+
+
+\section{Method 2: Full Random Generation}
 
 more sophisticated: full random generation, filter out "too hard"/"too easy" instances.
 Note that we don't need very efficient implementation of filters since the instances are very small.
 so we can use naive satisfiability tests or model counting.
 
 
+\subsection{SAT problem}
+
+describe filters, and why they were chosen (aim for a challenging problem, but still solvable by hand).
+
 problems:
 when restricting too much, the resulting formulas may end up boring.
 e.g. SAT formula with exactly one model, or no model
+
+
+\subsection{Superposition+Redundancy problem}
+
+todo
+
 
 
 
