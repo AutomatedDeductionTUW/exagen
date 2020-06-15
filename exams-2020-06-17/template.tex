@@ -1,3 +1,15 @@
+\documentclass{article}[8pt]
+
+\usepackage{times,fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{prftree}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{latexsym}
+\usepackage{xcolor}
+
+%\usepackage[top=4pt ,foot=0pt, bottom=0.01in, left=1in, right=.7in]{geometry}
+
 
 \def\Drop{{\sf DROP}}
 
@@ -12,20 +24,17 @@
 \def\ra{\rightarrow}
 \def\sseq{\subseteq}
 
+% input file if it exists, print error message if it doesn't
+% (purpose: be able to more easily work on the template, even if not all parts are present yet)
+\newcommand{\InputIfExists}[1]{%
+    \InputIfFileExists{#1}{}{\red{\mbox{(missing file: \texttt{#1})}}}%
+}
+
 \def\header{{\vspace*{-7em}
 \noindent
 Automated Deduction -- SS 2020\\[2pt]
-{\Large\bf Final Exam {\small -- June 17, 2020}}\\
+{{\Large\bf Final Exam {\small -- June 17, 2020}} \hfill {\small\it Version 2020-06-17 / {\InputIfExists{version.tex}\unskip}}}\\
 \hrule\medskip}}
-
-\documentclass{article}[8pt]
-\usepackage{times,fullpage}
-\usepackage{amsmath,amssymb}
-\usepackage{prftree}
-\usepackage{epic}
-\usepackage{eepic}
-\usepackage{latexsym}
-\usepackage{xcolor}
 
 \newcommand{\red}[1]{{\color{red}#1}}
 
@@ -48,13 +57,6 @@ Automated Deduction -- SS 2020\\[2pt]
 \newcommand{\setof}[1]{\{#1\}}
 
 
-% input file if it exists, print error message if it doesn't
-% (purpose: be able to more easily work on the template, even if not all parts are present yet)
-\newcommand{\InputIfExists}[1]{%
-    \InputIfFileExists{#1}{}{\red{\mbox{(missing file: \texttt{#1})}}}
-}
-
-%\usepackage[top=4pt ,foot=0pt, bottom=0.01in, left=1in, right=.7in]{geometry}
 
 \begin{document}
 \pagestyle{empty}
@@ -125,8 +127,8 @@ If the formula is satisfiable, give an interpretation that satisfies the formula
 \noindent
 {\bf Problem 3.} (25 points)
 Consider the KBO ordering $\succ$ generated
-by the precedence \InputIfExists{sup-precedence.tex}\unskip
-and the weight function $w$ with \InputIfExists{sup-weights.tex}\unskip\unskip.
+by the precedence \InputIfExists{sup-precedence.tex}
+and the weight function $w$ with \InputIfExists{sup-weights.tex}\unskip.
 Let $\sigma$ be a well-behaved selection function wrt $\succ$.
 Consider the set $S$ of ground formulas:
 \InputIfExists{sup.smt2.tex}
@@ -153,7 +155,7 @@ Consider the following inference:
 in the non-ground
 superposition inference system $\textrm{Sup}$ (including the rules of the non-ground
 binary resolution  inference system $\textrm{BR}$),
-where \InputIfExists{red-signature.tex}\unskip
+where \InputIfExists{red-signature.tex}
 %
 \begin{itemize}
     \item[(a)]
