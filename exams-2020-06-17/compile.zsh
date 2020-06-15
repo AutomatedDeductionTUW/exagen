@@ -33,7 +33,7 @@ echo "\nGenerate SMT problems..."
 
 # Generate ground superposition problems
 echo "\nGenerate ground superposition problems..."
-python3 "${root_dir}/problems/sup/ground_sup.py" -n "$num_exams" -o "$exams_dir"
+python3 "${root_dir}/problems/sup/ground_sup.py" -n "$num_exams" -o "$exams_dir" --run_vampire --vampire_bin "$HOME/code/vampire/build/bin/vampire_z3_dbg_custom-kbo_4482" | grep '^% SZS status'
 
 # Generate redundancy problems
 echo "\nGenerate non-ground superposition / redundancy problems..."
