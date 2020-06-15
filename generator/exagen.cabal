@@ -37,6 +37,7 @@ library
                   , Logic.FirstOrder.Lens
                   , Logic.FirstOrder.Types
                   , Logic.Formula
+                  , Logic.SmtLib
                   , Options
                   , Problems.Redundancy
                   , Problems.SAT

@@ -36,9 +36,17 @@ import Control.Monad.Reader
 -- prettyprinter
 import Data.Text.Prettyprint.Doc hiding (plural)
 
+-- process
+import System.Process
+
+-- safe
+import Safe
+
 -- exagen
 import Control.Monad.Choose
+import Data.SExpr (Expr(..))
 import Logic.FirstOrder
+import Logic.SmtLib
 import Options (Options(..), RedOptions(..))
 import Text.Show.Latex
 import Util
@@ -81,6 +89,69 @@ main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
         writeFile file content
         putStrLn $ "Writing file: " <> sigfile
         writeFile sigfile (sigcontent <> "\n")
+
+        case premises inf of
+          [mainPremise, sidePremise] -> do
+            let sig = actualSignature inf
+                objsort = "A"
+
+            let soundness =
+                  declareSignature objsort sig ++
+                  [ assertClause objsort mainPremise
+                  , assertClause objsort sidePremise
+                  , assertNotClause objsort (conclusion inf)
+                  , CheckSat
+                  ]
+            let soundnessFile = examDir </> "red-soundness.smt2"
+            putStrLn $ "Writing file: " <> soundnessFile
+            writeFile soundnessFile (formatSmtLib soundness)
+            putStrLn $ "Checking soundness..."
+            soundnessResult <- runVampire soundnessFile
+            guard (soundnessResult == Unsatisfiable)
+
+            let redundancy =  -- note: this is only the entailment part of the redundancy conditions
+                  declareSignature objsort sig ++
+                  [ assertClause objsort sidePremise
+                  , assertClause objsort (conclusion inf)
+                  , assertNotClause objsort mainPremise
+                  , CheckSat
+                  ]
+            let redundancyFile = examDir </> "red-redundancy.smt2"
+            putStrLn $ "Writing file: " <> redundancyFile
+            writeFile redundancyFile (formatSmtLib redundancy)
+            putStrLn $ "Checking redundancy..."
+            redundancyResult <- runVampire redundancyFile
+            guard (redundancyResult == Unsatisfiable)
+
+          _ -> error "bug"
+
+
+
+-- NOTE: I didn't want to implement a full parser for Vampire's output,
+-- so we just recognize these cases for now
+data SZSResult
+  = Unsatisfiable
+  | Other String
+  deriving (Eq, Show)
+
+runVampire :: FilePath -> IO SZSResult
+runVampire path = do
+  let options =
+        [ "--input_syntax", "smtlib2"
+        , "-t", "1"
+        , "--proof", "off"
+        , "-stat", "none"
+        , path
+        ]
+  output <- readProcess "vampire" options ""
+  let szsPrefix = "% SZS status "
+      szsLines = filter (szsPrefix `isPrefixOf`) (lines output)
+  case szsLines of
+    [szsLine] ->
+      case headDef "" . words . drop (length szsPrefix) $ szsLine of
+        "Unsatisfiable" -> return Unsatisfiable
+        other -> return (Other other)
+    _ -> error "unknown"
 
 
 
@@ -217,15 +288,15 @@ genExamInference = do
   -- c1: left premise, ground, redundant after inference, one additional irrelevant literal
   -- c2: right premise, non-ground
   -- c3: conclusion after applying subsumption resolution
-  let c1 = Clause [applySubstitution theta (complementary l1), l2, applySubstitution theta l3]
-  let c2 = Clause [l1, l3]
-  let c3 = Clause [l2, applySubstitution theta l3]
+  let mainPremise = Clause [applySubstitution theta (complementary l1), l2, applySubstitution theta l3]
+  let sidePremise = Clause [l1, l3]
+  let conclusion = Clause [l2, applySubstitution theta l3]
 
   -- TODO
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
   --         So if someone gets less binary functions, they will have more nesting instead.
-  let inf = Inference{ premises = [ c1, c2 ]
-                     , conclusion = c3
+  let inf = Inference{ premises = [ mainPremise, sidePremise ]
+                     , conclusion = conclusion
                      }
 
   {-
@@ -256,11 +327,11 @@ domain `normalizeTo` values = \x -> fromMaybe x (lookup x table)
 
 -- | Concrete type for predicate symbols
 newtype PredSym = PredSym String
-  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
+  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex, ToSmtLib)
 
 -- | Concrete type for function symbols (including constant symbols)
 newtype FnSym = FnSym String
-  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex)
+  deriving newtype (Eq, Ord, Show, IsString, Pretty, ShowLatex, ToSmtLib)
 
 -- | Concrete type for variables
 data Variable = X | Y | Z
@@ -276,6 +347,10 @@ instance ShowLatex Variable where
   showLatex Y = "y"
   showLatex Z = "z"
 
+instance ToSmtLib Variable where
+  toSmtLib X = Value "x"
+  toSmtLib Y = Value "y"
+  toSmtLib Z = Value "z"
 
 
 -- | Options for generators (mostly for terms).
