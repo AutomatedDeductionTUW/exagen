@@ -1,13 +1,14 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Logic.Formula where
@@ -20,9 +21,11 @@ import Data.Maybe (fromJust)
 import GHC.Generics (Generic)
 
 -- containers
--- import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
+
+-- deriving-compat
+import Text.Show.Deriving
 
 -- prettyprinter
 import Data.Text.Prettyprint.Doc
@@ -337,3 +340,6 @@ prettyFlatFormula prettyAtom = go
 
 instance Pretty a => Pretty (FlatFormula a) where
   pretty = prettyFlatFormula (const pretty) 0
+
+
+$(deriveShow1 ''FormulaF)

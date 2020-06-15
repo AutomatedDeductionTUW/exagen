@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- {-# LANGUAGE TemplateHaskell #-}
 
 module Logic.DefinitionalNF
   ( Polarity(..)
@@ -19,8 +20,14 @@ import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+-- deriving-compat
+-- import Text.Show.Deriving
+
 -- mtl
 import Control.Monad.State.Strict
+
+-- recursion-schemes
+-- import Data.Functor.Foldable (Fix(..))
 
 -- exagen
 import Logic.Formula
@@ -43,8 +50,7 @@ flipPolarity Pos = Neg
 flipPolarity Neg = Pos
 flipPolarity Both = Both
 
--- Annotate each atom occurrence with its polarity
--- TODO: if we define Formula as higher-kinded data type we can probably use recursion-schemes to annotate each subformula with polarity, not just the atoms.
+-- | Annotate each atom occurrence with its polarity
 polarity :: Formula a -> Formula (a, Polarity)
 polarity = go Pos
   where
@@ -62,6 +68,33 @@ atomPolarity = Map.fromListWith (<>) . toList . polarity
 hasAtomPolarity :: Ord a => Polarity -> Formula a -> Bool
 hasAtomPolarity pol = (pol `elem`) . map snd . Map.toList . atomPolarity
 
+
+{-
+data Ann ann f a = Ann !ann (f a)
+  deriving (Eq, Ord, Show, Functor)
+
+-- instance Show1 f => Show1 (Ann ann f) where
+$(deriveShow1 ''Ann)
+
+
+-- | Annotate each subformula with its polarity
+polarity' :: Formula a -> Fix (Ann Polarity (FormulaF a))
+polarity' = go Pos
+  where
+    go pol f = Fix $ Ann pol (go' pol f)
+
+    go' _   (Atomic x) = AtomicF x
+    go' _   (Const x)  = ConstF x
+    go' pol (Not f)    = NotF (go (flipPolarity pol) f)
+    go' pol (And f g)  = AndF (go pol f) (go pol g)
+    go' pol (Or  f g)  = OrF  (go pol f) (go pol g)
+    go' pol (Imp f g)  = ImpF (go (flipPolarity pol) f) (go pol g)
+    go' _   (Iff f g)  = IffF (go Both f) (go Both g)
+
+
+annotations :: Foldable f => Fix (Ann ann f) -> [ann]
+annotations (Fix (Ann x f)) = [x] ++ foldMap annotations f
+-}
 
 
 

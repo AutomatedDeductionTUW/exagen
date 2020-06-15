@@ -1,11 +1,7 @@
-{-# LANGUAGE DeriveFoldable #-}
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
@@ -13,11 +9,12 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 module Problems.Redundancy where
 
 -- base
+import Control.Exception
+import Data.Foldable
 import Data.List
 import Data.Maybe
 import Data.String
@@ -25,7 +22,6 @@ import Data.String
 -- containers
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 
 -- filepath
@@ -158,10 +154,7 @@ genExamInference
        , Substitution FnSym Variable
        )
 genExamInference = do
-  -- NOTE: to have some symbol *not* appear in the output,
-  --       we should adapt the generator to filter it out before.
-  --       (with this small signature, the probability is very high that all symbols occur.)
-  --       (easiest way to filter it out: just remove from signature...)
+
   let sigFns = Set.fromList @(Symbol FnSym)
         [ Symbol "f" 1
         , Symbol "g" 2
@@ -177,7 +170,8 @@ genExamInference = do
       sig = Signature { sigFunctionSymbols = sigFns
                       , sigPredicateSymbols = sigPreds
                       }
-      vars = [minBound .. maxBound] :: [Variable]
+      -- vars = [minBound .. maxBound] :: [Variable]
+      vars = [X, Y]
       opts = GenOptions{ minDepth = 1
                        , maxDepth = 2
                        , sig = sig
@@ -189,29 +183,35 @@ genExamInference = do
   -- Exactly one variable in each non-ground literal, and they should be different
   v1 <- choose vars
   v2 <- choose (filter (/= v1) vars)
-  -- TODO: limit number of occurrences as well? (should be ==1 or >=2 for all exams)
 
   -- Generate literals
   -- l1: non-ground uninterpreted literal
   -- l2: ground uninterpreted literal
   -- l3: non-ground equality literal
-  l1 <- mfilter (not . isGround) $ genUninterpretedLiteral opts{ vars = [v1] }
-  -- l1 <- genUninterpretedLiteral opts{ vars = [v1] }
-  -- guard (isNonGroundLiteral l1)
+  l1 <- mfilter (not . isGround)
+        . mfilter ((==1) . length . toListOf variables)  -- exactly one variable occurrence
+        $ genUninterpretedLiteral opts{ vars = [v1] }
   l2 <- genUninterpretedLiteral opts{ vars = [] }
-  l3 <- mfilter (not . isGround) $ genEqualityLiteral opts{ vars = [v2] }
+  l3 <- mfilter (not . isGround)
+        . mfilter ((>=2) . length . toListOf variables)  -- at least two variable occurrences
+        $ genEqualityLiteral opts{ vars = [v2] }
 
   -- At least one function of arity two should appear
   let fns = functionSymbolsOf (Clause [l1, l2, l3])
   guard (not . Set.null $ Set.intersection fns fnsWithArity2)
 
   -- Generate ground substitution
-  let thetaOpts = GenOptions{ minDepth = 0
-                            , maxDepth = 1
-                            , sig = sig
-                            , vars = []
-                            }
-  theta <- genSubstitution thetaOpts vars
+  t1 <- genTerm GenOptions{ minDepth = 1
+                          , maxDepth = 1
+                          , sig = sig
+                          , vars = []
+                          }
+  t2 <- genTerm GenOptions{ minDepth = 0
+                          , maxDepth = 0
+                          , sig = sig
+                          , vars = []
+                          }
+  let theta = Substitution $ Map.fromList [ (v1, t1), (v2, t2) ]
 
   -- Clauses
   -- c1: left premise, ground, redundant after inference, one additional irrelevant literal
@@ -223,15 +223,35 @@ genExamInference = do
 
   -- TODO
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
-  --         So if someone gets more unary functions, they will have more nesting instead.
-  -- * Normalize final signature!
-  --   (e.g. if variables are ["y", "z"], replace with some permutation of ["x","y"])
+  --         So if someone gets less binary functions, they will have more nesting instead.
   let inf = Inference{ premises = [ c1, c2 ]
                      , conclusion = c3
                      }
+
+  {-
+  let renameVariable = (inf ^.. variables) `normalizeTo` [minBound..maxBound]
+      renameConstantSymbol = (inf ^.. constantSymbols) `normalizeTo` ["a", "b", "c", "d"]
+
+      rename :: HasTerms' FnSym Variable a => a -> a
+      rename = over variables renameVariable
+               . over constantSymbols renameConstantSymbol
+
+      inf' = rename inf
+
+      theta' =
+        Substitution . Map.fromList $
+        [ (renameVariable v, rename (getSubstitution theta Map.! v)) | v <- inf ^.. variables ]
+  -}
+
   return (inf, theta)
 
 
+normalizeTo :: Ord a => [a] -> [a] -> (a -> a)
+domain `normalizeTo` values = \x -> fromMaybe x (lookup x table)
+  where
+    domain' = Set.toList (Set.fromList domain)  -- de-duplicate and sort
+    table = assert (length values >= length domain') $
+            zip domain' values
 
 
 -- | Concrete type for predicate symbols
@@ -258,38 +278,41 @@ instance ShowLatex Variable where
 
 
 
--- TODO: We probably don't need this here
-data KBOParams fn = KBOParams
-  { precedence :: [fn]
-  , weights :: Map fn Int
-  , variableWeight :: Int
-  }
-
-
-
-
-
+-- | Options for generators (mostly for terms).
+--
+-- depth: number of nested function applications in generated terms (predicates aren't counted here).
+-- weight: total number of symbols in generated terms (the predicate isn't counted).
+-- (TODO: weight restrictions not implemented yet)
 data GenOptions p fn v = GenOptions
   { minDepth :: Int
   , maxDepth :: Int
+  -- , minWeight :: Int
+  -- , maxWeight :: Int
   , sig :: Signature p fn
   , vars :: [v]
   }
 
 data TermCtx = TermCtx
   { _depth :: Int   -- starts at 0 for the whole term, add 1 each time we go into a term's arguments
+  -- , _weight :: Int   -- the exact weight we want this subterm to have
   }
 
 depth :: Lens' TermCtx Int
 depth = lens _depth (\x y -> x{ _depth = y })
 
-genTerm :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Term fn v)
-genTerm GenOptions{minDepth,maxDepth,sig,vars} = runReaderT term initialCtx
-  where
-    initialCtx = TermCtx
-      { _depth = 0
-      }
+-- weight :: Lens' TermCtx Int
+-- weight = lens _weight (\x y -> x{ _weight = y })
 
+genTerm :: forall m p fn v. MonadChoose m => GenOptions p fn v -> m (Term fn v)
+genTerm GenOptions{minDepth,maxDepth,{- minWeight,maxWeight,-} sig,vars} = do
+  -- actualWeight <- choose [minWeight .. maxWeight]
+  let initialCtx = TermCtx
+        { _depth = 0
+        -- , _weight = actualWeight
+        }
+  runReaderT term initialCtx
+
+  where
     constants = filter ((==0) . arity) . Set.toList . sigFunctionSymbols $ sig
     functions = filter ((>0) . arity) . Set.toList . sigFunctionSymbols $ sig
 

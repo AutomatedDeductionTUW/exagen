@@ -32,6 +32,20 @@ isGround :: HasTerms' fn v a => a -> Bool
 isGround = nullOf variables
 
 
+isApp :: Term fn v -> Bool
+isApp (App _ _) = True
+isApp _ = False
+
+isConstant :: Term fn v -> Bool
+isConstant (App _ []) = True
+isConstant _ = False
+
+isProperApp :: Term fn v -> Bool
+isProperApp (App _ []) = False
+isProperApp (App _ _) = True
+isProperApp _ = False
+
+
 term_applySubstitution :: Ord v => Substitution fn v -> Term fn v -> Term fn v
 term_applySubstitution (Substitution s) t = t >>= (\v -> fromMaybe (Var v) (Map.lookup v s))
 

@@ -40,12 +40,24 @@ tfunctionSymbols _ (Var v) = pure (Var v)
 tfunctionSymbols handler (App fn ts) = App <$> handler fn <*> (traverse (tfunctionSymbols handler) ts)
 
 
+tconstantSymbols :: Traversal' (Term fn v) fn
+tconstantSymbols _ (Var v) = pure (Var v)
+tconstantSymbols handler (App fn []) = App <$> handler fn <*> pure []
+tconstantSymbols handler (App fn ts) = App <$> pure fn <*> (traverse (tconstantSymbols handler) ts)
+
+
 variables :: HasTerms fn v fn v' a a' => Traversal a a' v v'
 variables = terms . tvariables
 
 
+-- | Focuses all function symbols (including constants)
 functionSymbols :: HasTerms fn v fn' v a a' => Traversal a a' fn fn'
 functionSymbols = terms . tfunctionSymbols
+
+
+-- | Focuses all constant symbols (i.e., function symbols in nullary function applications)
+constantSymbols :: HasTerms' fn v a => Traversal' a fn
+constantSymbols = terms . tconstantSymbols
 
 
 subterms :: HasTerms' fn v a => Fold a (Term fn v)

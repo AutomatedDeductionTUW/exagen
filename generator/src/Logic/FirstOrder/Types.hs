@@ -167,3 +167,14 @@ instance (ShowLatex p, ShowLatex fn, ShowLatex v) => ShowLatex (Inference p fn v
     "\\prftree" <> concat (wrap . showLatex <$> premises) <> wrap (showLatex conclusion)
     where
       wrap s = '{' : s ++ "}"
+
+
+--------------------------------------------------------------------------------
+-- Term ordering
+--------------------------------------------------------------------------------
+
+data KBOParams fn = KBOParams
+  { precedence :: [fn]
+  , weights :: Map fn Int
+  , variableWeight :: Int
+  }
