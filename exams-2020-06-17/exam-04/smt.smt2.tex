@@ -1,0 +1,24 @@
+\begin{align*}
+%
+& %
+% ['=', ['-', 'b', '2'], 'c']
+b - 2 = c
+%
+\land
+%
+% ['not', ['=', ['f', ['-', 'b', '1']], 'b']]
+f(b - 1)  \neq  b
+%
+\land
+%
+% ['=', ['select', 'A', ['f', ['+', 'c', '1']]], 'c']
+\mathit{read}(A,f(c + 1)) = c
+~\\~
+& %
+%
+\land
+%
+% ['or', ['=', ['select', 'A', ['f', ['-', 'b', '1']]], ['+', 'b', '1']], ['=', ['select', ['store', 'A', 'b', ['f', 'c']], ['f', ['+', 'c', '1']]], ['+', 'c', '2']]]
+(\mathit{read}(A,f(b - 1)) = b + 1 \lor \mathit{read}(\mathit{write}(A,b,f(c)),f(c + 1)) = c + 2)
+%
+\end{align*}

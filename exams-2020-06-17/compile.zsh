@@ -12,7 +12,7 @@ exams_dir="${${(%):-%x}:P:h}"
 # Root directory of repository
 root_dir="${exams_dir:h}"
 
-num_exams="3"   # Number of exams to generate
+num_exams="36"  # Number of exams to generate
 seed="123"      # Pseudo-random number generator seed
 
 SMT2TEX="${root_dir}/smt2tex/smt2tex.py"
