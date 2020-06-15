@@ -73,7 +73,6 @@ showLatex atomToLatex = go (0 :: Int)
     bracket False s = s
 
 
--- TODO: same recursion scheme as in 'showLatex'... maybe factor it out
 nestedLatexParens :: forall a. Formula a -> Int
 nestedLatexParens = getMax . go (0 :: Int)
   where
@@ -106,7 +105,6 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
   case optOutputDir of
     Nothing -> do
       forM_ fms $ \fm -> do
-        -- TODO: format as table
         putStrLn $ showPretty fm
         putStrLn $ "Satisfiable? " <> show (satisfiable fm)
         putStrLn $ "Valid? " <> show (valid fm)
@@ -122,14 +120,6 @@ main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
         putStr $ "Models: "
         putDocLn $ list (prettyAssignment <$> models fm)
         putStrLn ""
-
-        -- TODO: Additional criteria:
-        -- * we should have at least one Pos, one Neg, one Both polarity for a non-atomic subformula
-        --   (why? so each case appears in the task for definitional transformation)
-        -- * for the DPLL task, there should be ~2 branches?
-        --   or at least, check that the formula is falsifiable.
-        --   (or: has at most one model. this ensures we don't get something where most branches immediately lead to a model)
-
 
     Just outputDir -> do
       forM_ (zip fms [1..]) $ \(fm, i :: Int) -> do
@@ -189,6 +179,7 @@ suitableFast fm =
   , not (anySubformula isNestedNot fm)
   , nestedLatexParens fm < 3
   , length (models fm) <= 6
+  , hasVarietyInDefinitionalNF fm
   -- , length (models fm) >= 2
   -- , -- there is exactly one model
   --   lengthIs 1 (models fm)
@@ -229,31 +220,31 @@ instance Arbitrary Prop where
 
 
 -- | Extend 'Prop' with a supply of new names to allow definitional transformation
-data Prop'
-  = OriginalProp !Prop
+data Prop' a
+  = OriginalProp !a
   | NewProp !Word
   deriving (Eq, Ord)
 
-instance Show Prop' where
+instance Show a => Show (Prop' a) where
   show (OriginalProp p) = show p
   show (NewProp i) = 'n' : show i
 
-instance Pretty Prop' where
+instance Show a => Pretty (Prop' a) where
   pretty = pretty . show
 
-newPropIndex :: Traversal' Prop' Word
+newPropIndex :: Traversal' (Prop' a) Word
 newPropIndex handler (NewProp i) = NewProp <$> handler i
 newPropIndex _ p = pure p
 
-newProps :: Stream Prop'
+newProps :: Stream (Prop' a)
 newProps = go 1
   where go !i = NewProp i ::: go (i+1)
 
-definitionalNF' :: Formula Prop -> (Prop', [Formula Prop'])
+definitionalNF' :: Ord a => Formula a -> (Prop' a, [Formula (Prop' a)])
 definitionalNF' = reverseNewProps . definitionalNF newProps . fmap OriginalProp
 
 -- reverse the indices of new names (to match what we got in the lecture)
-reverseNewProps :: (Prop', [Formula Prop']) -> (Prop', [Formula Prop'])
+reverseNewProps :: (Prop' a, [Formula (Prop' a)]) -> (Prop' a, [Formula (Prop' a)])
 reverseNewProps defs =
   over (prop . newPropIndex) (\i -> h - i)
   . over _2 reverse
@@ -263,6 +254,17 @@ reverseNewProps defs =
 
     prop :: Traversal (a, [Formula a]) (b, [Formula b]) a b
     prop = tpair id (traverse . traverse)
+
+-- | Check whether the formula has at least two different types of definitions
+-- in its definitional normal form.
+-- (types arise form polarity optimisation and are "n ==> F", "F ==> n", "n <=> F")
+hasVarietyInDefinitionalNF :: Ord a => Formula a -> Bool
+hasVarietyInDefinitionalNF = (>=2) . Set.size . Set.fromList . map defType . snd . definitionalNF'
+  where
+    defType (Imp (Atomic (NewProp _)) _) = 1 :: Int
+    defType (Imp _ (Atomic (NewProp _))) = 2
+    defType (Iff (Atomic (NewProp _)) _) = 3
+    defType _ = error "bug: unexpected definition"
 
 
 -- | Permutation of 'Prop' values
@@ -397,7 +399,7 @@ genFormulaPruned totalSize genProp = formula totalSize
     unaryConnective n f = do
       inner <- formula (n - 1)
       -- let fm = f inner
-      -- -- TODO: generates whole subformula before check
+      -- NOTE: this wouldn't help as it generates the whole subformula before the check
       -- if isNestedNot fm
       --   then mzero
       --   else return fm

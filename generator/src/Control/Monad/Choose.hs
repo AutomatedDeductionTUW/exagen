@@ -65,17 +65,6 @@ splitAtWeight n w (x:xs)
 {-# INLINE splitAtWeight #-}
 
 
-{-
-splitAtWeight' :: Int -> [(Int, a)] -> ([(Int, a)], [(Int, a)])
-splitAtWeight' _ [] = ([], [])
-splitAtWeight' n (wx@(w, _) : wxs)
-  | n <= w = ([], wx:wxs)
-  | otherwise =
-      let (wxs', wxs'') = splitAtWeight' (n - w) wxs
-      in (wx:wxs', wxs'')
--}
-
-
 -- | Monad with an operation to choose an element from a list.
 --
 -- The goal is to support the following use cases:
@@ -90,34 +79,8 @@ class MonadPlus m => MonadChoose m where
   chooseWeighted :: [(Int, a)] -> m a
 
 
-{-
--- TODO:
--- this implementation with limited number of tries
--- is unsuitable for our third use-case of enumerating the sample space.
--- Maybe move filterChoice inside MonadChoose and let the implementation decide?
--- Actually, this function is unnecessary. We can just use 'guard' or 'mfilter' instead.
-filterChoice' :: MonadChoose m => Int -> (a -> Bool) -> m a -> m (Maybe a)
-filterChoice' maxTries p g = go maxTries
-  where
-    go n | n <= 0 = return Nothing
-    go n = do
-      x <- g
-      if p x
-        then return (Just x)
-        else go (n - 1)
-
-
-filterChoice :: MonadChoose m => (a -> Bool) -> m a -> m (Maybe a)
-filterChoice = filterChoice' 1000
-
-
-filterChoiceFail :: (MonadChoose m, MonadFail m) => (a -> Bool) -> m a -> m a
-filterChoiceFail p g = do
-  mx <- filterChoice p g
-  case mx of
-    Nothing -> Control.Monad.Fail.fail "exceeded maximum number of tries"
-    Just x -> return x
--}
+-- chooseAny :: (Bounded a, Enum a, MonadChoose m) => m a
+-- chooseAny = choose [minBound .. maxBound]
 
 
 instance MonadChoose [] where
@@ -282,9 +245,6 @@ distinctRandomChoices' n normalize r = go n Set.empty
       case mx of
         Nothing ->
           return (Left ("empty sample space after generating " <> show (n - k) <> " samples"))
-        -- Just Nothing ->
-        --   return (Left ("unable to find any more distinct samples after generating "
-        --                 <> show (n - k)))
         Just x -> do
           rest <- go (k - 1) (Set.insert (normalize x) seen)
           return (fmap (x:) rest)

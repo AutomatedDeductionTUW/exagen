@@ -177,7 +177,6 @@ valid :: Eq a => Formula a -> Bool
 valid = not . satisfiable . Not
 
 
--- TODO: there should be parentheses separating And/Or
 prettyFormula
   :: forall a ann.
      (Int -> a -> Doc ann)
@@ -196,15 +195,11 @@ prettyFormula prettyAtom = go
     go prec (Imp p q) = bracket (prec > 4) 0 (prettyInfix 4 "==>") p q
     go prec (Iff p q) = bracket (prec > 2) 0 (prettyInfix 2 "<=>") p q
     prettyPrefix :: Int -> Doc ann -> Formula a -> Doc ann
-    prettyPrefix newPrec sym p = sym <> go (newPrec+1) p  -- TODO: Remove +1 here to save parens on nested negations
+    prettyPrefix newPrec sym p = sym <> go newPrec p
     prettyInfix :: Int -> Doc ann -> Formula a -> Formula a -> Doc ann
     prettyInfix newPrec sym p q = go (newPrec+1) p <+> sym <> line <> go newPrec q
     bracket :: forall b c. Bool -> Int -> (b -> c -> Doc ann) -> b -> c -> Doc ann
     bracket br n f x y = (if br then parens else id) (nest n (align $ group $ f x y))
-
--- instance Pretty a => Show (Formula a) where
---   showsPrec _ = renderShowS . layoutPretty layoutOptions . enclose "[p| " " |]" . align . pretty
---     where layoutOptions = LayoutOptions { layoutPageWidth = AvailablePerLine 80 1 }
 
 instance Pretty a => Pretty (Formula a) where
   pretty = prettyFormula (const pretty) 0
@@ -334,7 +329,7 @@ prettyFlatFormula prettyAtom = go
     go prec (FlatImp p q) = bracket (prec > 4) 0 (prettyInfix 4 "==>") p q
     go prec (FlatIff p q) = bracket (prec > 2) 0 (prettyInfix 2 "<=>") p q
     prettyPrefix :: Int -> Doc ann -> FlatFormula a -> Doc ann
-    prettyPrefix newPrec sym p = sym <> go (newPrec+1) p  -- TODO: Remove +1 here to save parens on nested negations
+    prettyPrefix newPrec sym p = sym <> go newPrec p
     prettyInfix :: Int -> Doc ann -> FlatFormula a -> FlatFormula a -> Doc ann
     prettyInfix newPrec sym p q = go (newPrec+1) p <+> sym <> line <> go newPrec q
     bracket :: forall b c. Bool -> Int -> (b -> c -> Doc ann) -> b -> c -> Doc ann
