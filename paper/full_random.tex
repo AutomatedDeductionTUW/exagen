@@ -1,3 +1,48 @@
 more sophisticated: full random generation, filter out "too hard"/"too easy" instances.
 Note that we don't need very efficient implementation of filters since the instances are very small.
 so we can use naive satisfiability tests or model counting.
+
+\subsection{Boolean Satisfiability (SAT)}
+
+% \fbox{\parbox{\textwidth-10pt}{%
+\begin{mdframed}
+\begin{example}[SAT]
+    Hello
+Consider the formula:
+\[
+% Random number generator seed: Just 123
+% Index: 36
+% Satisfiable? True
+% Valid? False
+% Polarities: fromList [(p,Both),(q,Both),(r,Pos)]
+% Models: [{¬p,q,r}, {¬p,¬q,r}, {¬p,¬q,¬r}]
+( r \land \lnot ( q \rightarrow p ) ) \lor ( q \leftrightarrow \lnot ( p \rightarrow q ) )
+\]
+\begin{itemize}
+\item[(a)]
+Which atoms are pure in the above formula?
+\item[(b)] Compute a clausal normal form $C$ of the above formula by
+  applying the CNF transformation algorithm with naming and
+  optimization based on polarities of subformulas;
+\item[(c)] Decide the satisfiability of the computed CNF formula $C$
+  by applying  the DPLL method to $C$. If $C$ is
+satisfiable,  give an interpretation which
+satisfies it.
+    \qed
+\end{itemize}
+\end{example}
+\end{mdframed}
+% }}
+
+describe filters, and why they were chosen (aim for a challenging problem, but still solvable by hand).
+
+problems:
+when restricting too much, the resulting formulas may end up boring.
+e.g. SAT formula with exactly one model, or no model
+
+
+\subsection{Non-Ground Superposition and Redundancy}
+
+todo
+
+
