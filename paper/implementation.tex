@@ -1,22 +1,29 @@
-Various programs/scripts tied together by a control script.
-Running the control script generates all problems and puts them together, resulting in $n$ different exams in PDF format.
+Our implementation consists of various programs that are tried together by a control script.
+The control script calls all problem generators, groups them together,
+and compiles the exam sheets, resulting in $n$ different exams in PDF format.
 
+Exam sheet template:
+we prepared the exam sheet as a \LaTeX{} file,
+leaving holes for formulas and signatures that
+will be filled using the command ``\textbackslash{}input''.
 
-Latex template:
-leave holes for formulas/signatures that will be inserted using the command ``\textbackslash{}input''.
 
 
 Problem templates: (todo: describe impl of smt and groundsup)
 
 
-For the full random generation of the SAT and redundancy problems,
-we were initially inspired by Haskell's QuickCheck library.
-\todo{cite?
-Claessen, Koen and Hughes, John (2000). "QuickCheck: A Lightweight Tool for Random Testing of Haskell Programs" (PDF). Proceedings of the International Conference on Functional Programming (ICFP), ACM SIGPLAN.
-}
-We used QuickCheck for the first prototype, but realized that we need backtracking in the generator.
 
-Added mtl-style typeclass 'MonadChoose' with a primitive operation 'choose' for choosing an element from a list of choices.
+For the full random generation of the SAT and redundancy problems,
+we were inspired by Haskell's QuickCheck library,
+\todo{cite?
+Claessen, Koen and Hughes, John (2000).
+"QuickCheck: A Lightweight Tool for Random Testing of Haskell Programs" (PDF).
+Proceedings of the International Conference on Functional Programming (ICFP), ACM SIGPLAN.
+}
+which we used for the first prototype.
+
+However, because of our many filtering criteria we wanted to have backtracking in the generator.
+To this end, we created an mtl-style typeclass \texttt{MonadChoose} with a primitive operation \texttt{choose} for choosing an element from a list of choices.
 Our generator implementations are generic over the monad, constrained by this typeclass.
 
 We used two concrete implementations to evaluate generators:
@@ -32,5 +39,3 @@ We used two concrete implementations to evaluate generators:
 % 1. get a random element (by evaluating in a 
 % 2. list all possible elements (by evaluating in the built-in list monad, or a similar one)
 % The second evaluation method lets us ensure that the sample space is sufficiently large.
-
-
