@@ -1,0 +1,94 @@
+Another problem for our exam was to refute a set of ground formulas
+(containing uninterpreted functions and equality),
+using superposition with KBO ordering $\prec$ based on
+a given weight function and symbol precedence.
+%
+For generating the set of ground formulas, we designed a simple
+template consisting of four clauses:
+\begin{align}
+  &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
+  &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:2} \\
+  &G(Y) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:3} \\
+  &E(a) \not= a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:4},
+\end{align}
+where $E, F, G, H \in \{f, g\}$ and $X, Y \in \{a, b\}$.
+%
+Then we created
+instances of this template with the following properties:
+\begin{itemize}
+  \item $E \not = H$,
+  \item $F(X) \not = G(Y)$,
+  \item either $X$ or $Y$ is not $a$,
+  \item either $F$ or $G$ is not $E$,
+  \item the $H(b) \not = H(b)$ literal is in exactly one of the
+    clauses~\eqref{gs:2},~\eqref{gs:3},~\eqref{gs:4}.
+\end{itemize}
+These properties ensure that no clause subsumes another clause,
+and that different instances of the set look sufficiently different.
+There are 12 instances satisfying the above properties.
+%
+%An example of such instance of the clause set is:
+%\begin{align}
+%  &f(g(a)) = a \,\lor\, f(f(b)) = a \label{gs:1} \\
+%  &g(a) = a  \label{gs:2} \\
+%  &f(b) = a \, \lor\, g(b) \not= g(b) \label{gs:3} \\
+%  &f(a) \not= a  \label{gs:4},
+%\end{align}
+
+Generating the weight function and symbol precedence was slightly more
+complicated. The reason was that we wanted the ordering of the terms used
+in the refutation to depend not only on the weights, but also on the ordering,
+and at the same time we wanted it to be either
+the case that $F(X) \prec a \prec G(Y)$, or $G(Y) \prec a \prec F(X)$. With such an ordering,
+the refutation of the set is always of the same length, and in
+at least one application of superposition, $a$ will be replaced by either $F(X)$ or $G(Y)$
+in the resulting clause (this is desirable because it contradicts
+an incorrect intuition that a constant should always be smaller than a term
+containing a unary function).
+To fulfill these conditions, we designed four templates of weights and precedences,
+denoted as $w_{i, I}, p_{i, I}$ for $i \in \{1, 2, 3, 4\}$
+and $I \in \{f, g\}$. We display them in the upper part of Table~\ref{tab:ground-sup}
+(for convenience, the table shows both $w_{i, f}$ and $w_{i, g}$, as well as
+$p_{i, f}$ and $p_{i, g}$ for all values of $i$).
+
+Then, for each instance of the clause set, we generated three instances of the exam problem
+using three combinations of weight and precedence: $w_{i_1, I_1}, p_{i_1,I_1}$;\,
+$w_{i_2, I_2}, p_{i_2, I_2}$; and $w_{i_3, I_3}, p_{i_3, I_3}$, where
+the values of $i_1, i_2, i_3,$ $I_1, I_2$ and $I_3$ depend on the values of $E, F, G, H, X$ and $Y$,
+as displayed in the lower part of the Table~\ref{tab:ground-sup}.
+Thus, in total we obtained 36 different instances of the ground superposition problem.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{r@{\hskip 0.5em}c c c c@{\hskip 0.5em} |@{\hskip 0.5em} l@{\hskip 1em} ||@{\hskip 0.5em} r@{\hskip 0.5em} c c c c@{\hskip 0.5em} |@{\hskip 0.5em} l}
+  weight of: & $f$ & $g$ & $a$ & $b$ & precedence
+  & weight of: & $f$ & $g$ & $a$ & $b$ & precedence \\ \hline
+  $w_{1,f}:$  & 1   & 3   & 2   & 1   & $p_{1,f}: a \gg b \gg f \gg g$ &
+  $w_{1,g}:$  & 3   & 1   & 2   & 1   & $p_{1,g}: a \gg b \gg g \gg f$ \\ \hline
+  $w_{2,f}:$  & 0   & 3   & 2   & 1   & $p_{2,f}: f \gg a \gg g \gg b$ &
+  $w_{2,g}:$  & 3   & 0   & 2   & 1   & $p_{2,g}: g \gg a \gg f \gg b$ \\ \hline
+  $w_{3,f}:$  & 0   & 1   & 3   & 1   & $p_{3,f}: f \gg a \gg b \gg g$ &
+  $w_{3,g}:$  & 1   & 0   & 3   & 1   & $p_{3,g}: g \gg a \gg b \gg f$ \\ \hline
+  $w_{4,f}:$  & 1   & 2   & 3   & 1   & $p_{4,f}: g \gg f \gg a \gg b$ &
+  $w_{4,g}:$  & 2   & 1   & 3   & 1   & $p_{4,g}: f \gg g \gg a \gg b$ \\ \hline
+  % original table:
+  %$w_1(h_1) = w_1(b) = 1, w_1(a) = 2, w_1(h_2) = 3$ & \quad $p_1: a \gg b \gg h_1 \gg h_2$ \\
+  %$w_2(h_1) = 0, w_2(b) = 1, w_2(a) = 2, w_2(h_2) = 3$ & \quad $p_2: h_1 \gg a \gg h_2 \gg b$ \\
+  %$w_3(h_1) = 0, w_3(b) = w_3(h_2) = 1, w_3(a) = 3$ & \quad $p_3: h_1 \gg a \gg b \gg h_2$ \\
+  %$w_4(b) = w_4(h_1) = 1, w_4(h_2) = 2, w_4(a) = 3$ & \quad $p_4: h_2 \gg h_1 \gg a \gg b$ \\
+\end{tabular}
+
+\hspace*{0.5em}
+
+\begin{tabular}{l@{\hskip 1.05em} || c | c | c}
+\hline
+condition & $i_1, I_1$ & $i_2, I_2$ & $i_3, I_3$ \\ \hline
+$F \not = G$ and $X \not= Y$ & $1,E$ & $2, E$ & $3, E$ \\
+$F \not = G$ and $X = Y$ & $1, H$ & $2, E$ & $4, H$ \\
+$F = G$ and $X \not= Y$ & $1, H$ & $2, H$ & $3, E$
+\end{tabular}
+\hspace*{0.5em}
+\caption{Weights and precedences for the ground superposition problem.}
+\end{center}
+\label{tab:ground-sup}
+\end{table}
