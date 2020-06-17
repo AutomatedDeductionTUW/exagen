@@ -171,12 +171,7 @@ We believe that the toolchain of automated reasoning tools we have developed for
 
 \section{Motivation}
 
-online exams due to pandemic.
-we want to avoid collaboration between students during exam (or make it at least a bit harder),
-so each student gets their own exam sheet.
-etc…
-
-
+\input{motivation.tex}
 
 
 
@@ -191,26 +186,22 @@ problem instances should be different but of similar difficulty to make sure the
 
 \section{Method 1: Varying Templates and Fixed Patterns}
 
-
 \subsection{Satisfiability Modulo Theories (SMT)}
 
-relatively easy: provided template, do small random perturbations that don't change the solution
+\input{SMT_template.tex}
+
 
 
 \subsection{Ground Superposition}
 
-todo
+\input{ground_sup_template.tex}
 
 
 
 
 \section{Method 2: Full Random Generation}
 
-more sophisticated: full random generation, filter out "too hard"/"too easy" instances.
-Note that we don't need very efficient implementation of filters since the instances are very small.
-so we can use naive satisfiability tests or model counting.
-
-
+\input{full_random.tex}
 
 \subsection{Boolean Satisfiability (SAT)}
 
@@ -258,6 +249,8 @@ todo
 
 \section{Implementation}
 
+\input{implementation.tex}
+
 Various programs/scripts tied together by a control script.
 Running the control script generates all problems and puts them together, resulting in $n$ different exams in PDF format.
 
@@ -295,6 +288,8 @@ We used two concrete implementations to evaluate generators:
 
 
 \section{Conclusion}
+
+\input{conclusion.tex}
 
 
 
