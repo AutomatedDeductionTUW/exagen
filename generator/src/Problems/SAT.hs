@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -12,7 +13,6 @@ module Problems.SAT where
 -- base
 import Control.Monad
 import Data.Foldable
-import Data.Functor.Identity
 import Data.List
 import Data.Semigroup
 
@@ -100,6 +100,8 @@ nestedLatexParens = getMax . go (0 :: Int)
 main :: Options -> SATOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} SATOptions = do
 
+  -- enumerateSampleSpace 7
+
   fms <- randomDistinctExamFormulas optNumExams
 
   case optOutputDir of
@@ -145,22 +147,29 @@ prettyAssignment xs = encloseSep lbrace rbrace comma (map pretty1 $ sort xs)
 
 
 -- Results for size = 5:
--- Size of suitable sample space: 450240
+-- Size of suitable sample space: 111060
 -- Size of sample space: 1767744
 --
 -- Results for size = 6:
--- Size of suitable sample space: 22999440
+-- Size of suitable sample space: 2050524
 -- Size of sample space: 96837120
 --
 -- Results for size = 7:
 -- (aborted because it takes too long)
-enumerateSampleSpace :: IO ()
-enumerateSampleSpace = do
+enumerateSampleSpace :: Int -> IO ()
+enumerateSampleSpace size = do
+  putStrLn $ "Enumerating sample space for formulas of size " <> show size <> "..."
   -- putStrLn $ "Size of sample space: " <> show (length @[] genExamFormula)
-  let Pair numFormulas numSuitableFormulas :: Pair Int Int =
-        runIdentity $
-        ListT.fold (\(Pair n k) fm -> Pair (n+1) (if suitableFast fm then k+1 else k)) (Pair 0 0) id $
-        genExamFormula
+  -- let Pair numFormulas numSuitableFormulas :: Pair Int Int =
+  --       runIdentity $
+  --       ListT.fold (\(Pair n k) fm -> Pair (n+1) (if suitableFast fm then k+1 else k)) (Pair 0 0) id $
+  --       (genExamFormula size)
+  Pair (numFormulas :: Int) (numSuitableFormulas :: Int) <-
+    ListT.foldM (\(Pair n k) fm -> do
+                    when (n `mod` 100_000 == 0) $ do
+                      putStrLn ("Still working, results so far: " <> show k <> " / " <> show n)
+                    return $ Pair (n+1) (if suitableFast fm then k+1 else k)) (pure $ Pair 0 0) pure $
+    (genExamFormula size)
   putStrLn $ "Size of suitable sample space: " <> show numSuitableFormulas
   putStrLn $ "Size of sample space: " <> show numFormulas
 
@@ -324,7 +333,7 @@ randomExamFormula = go 1000
     go :: Int -> IO (Formula Prop)
     go 0 = error "maximum number of tries exceeded"
     go n = do
-      maybeFm <- evalRandomChoiceIO genExamFormula
+      maybeFm <- evalRandomChoiceIO (genExamFormula 7)
       case maybeFm of
         Nothing -> error "empty sample space"
         Just fm | suitable fm -> return fm
@@ -335,10 +344,9 @@ genExamProp :: MonadChoose m => m Prop
 genExamProp = choose [P, Q, R]
 
 
-genExamFormula :: MonadChoose m => m (Formula Prop)
-genExamFormula = evalStateT (genFormulaPruned size genExamProp) initialState
+genExamFormula :: MonadChoose m => Int -> m (Formula Prop)
+genExamFormula size = evalStateT (genFormulaPruned size genExamProp) initialState
   where
-    size = 7
     initialState = GenState
       { requiredConnectives = [[CImp], [CIff], [CNot], [CAnd, COr]]
       , remainingConnectives = size
