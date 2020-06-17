@@ -291,6 +291,7 @@ genExamInference = do
   let mainPremise = Clause [applySubstitution theta (complementary l1), l2, applySubstitution theta l3]
   let sidePremise = Clause [l1, l3]
   let conclusion = Clause [l2, applySubstitution theta l3]
+  -- TODO: might also permute the order of literals
 
   -- TODO
   -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]

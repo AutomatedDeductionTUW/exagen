@@ -5,7 +5,7 @@ so we can use naive satisfiability tests or model counting.
 \subsection{Boolean Satisfiability (SAT)}
 
 \begin{mdframed}
-    \begin{example}[SAT]
+    \begin{example}
         Consider the formula:
         \[
             % Random number generator seed: Just 123
@@ -152,12 +152,78 @@ with six connectives there are already $2\,050\,524$ such formulas,
 while for seven connectives our computation did not finish in time.
 (our implementation was very little optimized for speed)
 
+Finally, we convert the generated formula into \LaTeX format and write it to a separate *.tex-file.
+
 
 
 
 
 \subsection{Non-Ground Superposition and Redundancy}
 
-todo
+\begin{mdframed}
+    \begin{example}
+        Consider the following inference:
+        \begin{center}
+            \begin{tabular}{c}
+                $P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
+                $\lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )$ \\
+                \hline
+                $\lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
+            \end{tabular}
+        \end{center}
+        % \[
+        %     % Random number generator seed: Just 123
+        %     % Index: 36
+        %     % Substitution: {x -> g(d,d),y -> a}
+        %     \prftree{P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}{ \lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )}{ \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}
+        % \]
+        in the non-ground superposition inference system $\textrm{Sup}$
+        (including the rules of the non-ground binary resolution inference system $\textrm{BR}$),
+        where $P$ is a predicate symbol, $f$, $g$, $h$ are function symbols, $a$, $b$, $d$ are constants, and $x$, $y$ are variables.
+        %
+        \begin{enumerate}[(a)]
+            \item
+                Prove that the above inference is a sound inference of $\textrm{Sup}$.
+            \item
+                Is the above inference a simplifying inference of $\textrm{Sup}$?
+                Justify your answer based on conditions of clauses being redundant.
+                \qed
+        \end{enumerate}
+    \end{example}
+\end{mdframed}
 
+Here, we fixed the pattern of the inference
+to be an instance of \emph{subsumption resolution} (also known as \emph{contextual literal cutting}).
 
+To randomly generate first-order terms and literals,
+we first specify a signature of symbols from which the random generator may choose.
+Our signature consists of three sets:
+the predicate symbols (with arity),
+function symbols (with arity),
+and variables.
+We further control the shape of generated terms
+by specifying bounds on the \emph{depth} of the term,
+i.e., the maximal nesting level of function calls
+(e.g., a constant symbol $b$ has depth 0, while the term $g(f(x),d)$ has depth 2).
+
+We first generate the second premise, which should always be non-ground.
+To this end, we generate a random uninterpreted literal $L_1$ containing exactly one variable occurrence,
+and a random equality literal $L_2$ containing at least two occurrences of a different variable.
+The second premise is then $L_1 \lor L_2$.
+The restrictions on variable occurrences are there to 1. ensure the clause is non-ground
+and 2. to make discovery of the mgu be of similar difficulty for all examinees.
+
+Following this, we generate another uninterpreted literal $L_3$.
+Here, we also check that at least one function symbol of arity 2 appears in at least one of the literals.
+
+Following this, we generate a ground substitution $\theta$ by randomly generating two ground terms.
+Note that is very easy to restrict the term generation to ground terms:
+we simply fix the set of variables in the desired signature to the empty set before calling the generator.
+The first premise is then $\overline{L_1\theta} \lor L_3 \lor L_2\theta$,
+where $\overline{L}$ is the complementary%
+\footnote{i.e., $\overline{A} = \lnot A$ and $\overline{\lnot A} = A$.}
+literal to $L$.
+
+Finally, the conclusion is $L_3 \lor L_2\theta$ and we now write the inference to a *.tex-file.
+As the last step,
+we extract the actual signature from the generated inference and output it into a separate *.tex-file.
