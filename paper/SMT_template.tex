@@ -1,1 +1,21 @@
-relatively easy: provided template, do small random perturbations that don't change the solution
+We did not opt for full random generation of this problem
+for pragmatic reasons:
+we want the Nelson-Oppen-style reasoning to be roughly the same for all instances,
+i.e., we want a correct solution to require combined reasoning
+in the theories of arrays, equality, and integers.
+With naive random generation it might well happen that e.g. array operations appear in the formula,
+but no array reasoning is required to prove unsatisfiability.
+
+For this reason, we prepared a suitable formula to be used as template
+and randomly introduce slight perturbations.
+Concretely, we replace each integer-sorted constant symbol $c$ by $c+i$,
+where $i \in \{-3,-2,\dots,3\}$ is chosen randomly.
+
+Finally, we flatten nested arithmetic terms such as $(c+i)+j$ to $c+k$,
+where $i,j,k$ are integers and $k = i+j$.
+Since our template contains two constants of integer sort,
+this method gives us at most 49 different problems.
+
+These changes may slightly alter the reasoning required inside the
+theories, but do not change the fact that reasoning in \emph{all} theories
+is necessary.
