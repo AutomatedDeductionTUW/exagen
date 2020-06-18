@@ -11,8 +11,11 @@ have been replaced by ``\textbackslash{}input'' commands.
 Problem templates: (todo: describe impl of smt and groundsup)
 
 
+The SAT, SMT and redundancy problem generators have been implemented in Haskell.
+The implementation of formulas and terms as inductive data types
+in combination with pattern matching has been very convenient to work with.
 
-For the full random generation of the SAT and redundancy problems,
+For the random generation of the SAT and redundancy problems,
 we were inspired by Haskell's QuickCheck library,
 \todo{cite?
 Claessen, Koen and Hughes, John (2000).
@@ -21,20 +24,22 @@ Proceedings of the International Conference on Functional Programming (ICFP), AC
 }
 which we used for the first prototype.
 
-However, because of our many filtering criteria we wanted to have backtracking in the generator.
-To this end, we created an mtl-style typeclass \texttt{MonadChoose} with a primitive operation \texttt{choose} for choosing an element from a list of choices.
+However, because of our many filtering criteria we wanted the generator to support backtracking.
+To this end,
+we created a simple mtl-style typeclass \texttt{MonadChoose}
+with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices.
+
 Our generator implementations are generic over the monad, constrained by this typeclass.
-
 We used two concrete implementations to evaluate generators:
-1. 'RandomChoiceT', a monad transformer that implements 'choose' as uniform random choice with backtracking support
-    (can be thought of as 'ListT' where 'choose' is like the normal monadic bind but shuffles the list with a random permutation first).
-    This is what we actually use to generate random exams.
-2. a standard list monad (or similar) to enumerate the sample space.
-    This second evaluation method lets us ensure that the sample space is sufficiently large.
-
-% Thus, re-implemented nondeterministic monad with an additional primitive operation for uniform random choice of an element from a list.
-% We used mtl-style typeclass for the generator implementations;
-% this allows us to use the same generator in two ways.
-% 1. get a random element (by evaluating in a 
-% 2. list all possible elements (by evaluating in the built-in list monad, or a similar one)
-% The second evaluation method lets us ensure that the sample space is sufficiently large.
+\begin{enumerate}
+    \item
+        \texttt{RandomChoice}, a monad that implements \texttt{choose}
+        as uniform random choice with backtracking support.
+        Conceptually, this is like the standard list monad
+        where \texttt{choose} works like the regular monadic bind for lists
+        except that it shuffles the list with a random permutation first.
+        This evaluation method is used to generate random exams.
+    \item
+        The standard list monad to enumerate the sample space.
+        This second evaluation method lets us ensure that the sample space is sufficiently large.
+\end{enumerate}
