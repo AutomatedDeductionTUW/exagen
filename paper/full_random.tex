@@ -1,6 +1,6 @@
-more sophisticated: full random generation, filter out "too hard"/"too easy" instances.
-Note that we don't need very efficient implementation of filters since the instances are very small.
-so we can use naive satisfiability tests or model counting.
+In this section, we discuss the two remaining problems of our exam sheet.
+For these problems, we generate instances randomly,
+taking care to filter out instances that are either too hard or too easy.
 
 \subsection{Boolean Satisfiability (SAT)}
 
@@ -32,7 +32,6 @@ so we can use naive satisfiability tests or model counting.
         \end{enumerate}
     \end{example}
 \end{mdframed}
-\todo{we could also give some more examples (5?) if we have space (just the formula)}
 
 
 Simply generating propositional formulas fully randomly would lead
@@ -112,6 +111,15 @@ The criteria are the following:
         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.
 \end{enumerate}
 
+Note that we
+did not require very efficient algorithms of the above filters since
+the instances under consideration are very small.
+For example, for the restriction on the number of models we used a naive satisfiability test
+based on evaluating the formula under each possible interpretation.
+Because of this, the addition of new filters is relatively easy.
+\todo{maybe this should go into the implementation section}
+
+% If the restrictions on the resulting formulas are too strict
 Issues that we encountered with too strict restrictions:
 \begin{itemize}
     \item
@@ -135,24 +143,12 @@ Issues that we encountered with too strict restrictions:
         using only 7 connectives.
 \end{itemize}
 
+We also enumerated the sample space to see how much variety our criteria allow:
+as it turns out, there are $20\,390\,076$ formulas satisfying the above criteria.
+If we do not want to distinguish formulas that differ only by a permutation of atoms,
+$3\,398\,346$ formulas remain.
 
-% The random generator works recursively.
-% The procedure is as follows:
-% \begin{enumerate}
-%     \item
-%         Randomly choose a connective.
-%     \item
-%         Generate subformulas recursively.
-% \end{enumerate}
-
-
-We also tried enumerating the sample space to see how much variety we can expect.
-With five connectives there are $111\,060$ formulas satisfying the above criteria,
-with six connectives there are already $2\,050\,524$ such formulas,
-while for seven connectives our computation did not finish in time.
-(our implementation was very little optimized for speed)
-
-Finally, we convert the generated formula into \LaTeX{} format and write it to a separate *.tex-file.
+% Finally, we convert the generated formula into \LaTeX{} format and write it to a separate *.tex-file.
 
 
 
@@ -192,8 +188,9 @@ Finally, we convert the generated formula into \LaTeX{} format and write it to a
     \end{example}
 \end{mdframed}
 
-Here, we fixed the pattern of the inference
-to be an instance of \emph{subsumption resolution} (also known as \emph{contextual literal cutting}).
+Here, we first fixed that the inference
+should be an instance of \emph{subsumption resolution}~\cite{Vampire13}
+(also known as \emph{contextual literal cutting}).
 
 To randomly generate first-order terms and literals,
 we first specify a signature of symbols from which the random generator may choose.
@@ -231,6 +228,7 @@ we extract the actual signature from the generated inference and output it into 
 
 After generating, we also output SMT-LIB problem files for
 soundness ($C_1, C_2 \models C_3$)
-and part of the redundancy condition ($C_3, C_2 \models C_1$, in our case, actually $C_3 \models C_1$ already holds).
+and part of the redundancy condition
+($C_3, C_2 \models C_1$, in our case, actually $C_3 \models C_1$ already holds).
 To double-check our generated inference, we then run Vampire on these files,
 expecting it to prove the entailment.

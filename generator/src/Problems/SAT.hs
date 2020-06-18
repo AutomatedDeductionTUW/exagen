@@ -147,15 +147,16 @@ prettyAssignment xs = encloseSep lbrace rbrace comma (map pretty1 $ sort xs)
 
 
 -- Results for size = 5:
--- Size of suitable sample space: 111060
--- Size of sample space: 1767744
+-- Size of suitable sample space: 111,060
+-- Size of sample space: 1,767,744
 --
 -- Results for size = 6:
--- Size of suitable sample space: 2050524
--- Size of sample space: 96837120
+-- Size of suitable sample space: 2,050,524
+-- Size of sample space: 96,837,120
 --
 -- Results for size = 7:
--- (aborted because it takes too long)
+-- Size of suitable sample space: 20,390,076
+-- Size of sample space: 4,538,218,320
 enumerateSampleSpace :: Int -> IO ()
 enumerateSampleSpace size = do
   putStrLn $ "Enumerating sample space for formulas of size " <> show size <> "..."
