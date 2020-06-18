@@ -2,8 +2,9 @@ Another problem for our exam was to refute a set of ground formulas
 (containing uninterpreted functions and equality),
 using superposition with KBO ordering $\prec$ based on
 a given weight function and symbol precedence.
-%
-For generating the set of ground formulas, we designed a simple
+We wanted the refutations of all instances of the problem to be
+of similar length and complexity (w.r.t. verifying the conditions
+of rules used in the refutation). To this end, we designed a simple
 template consisting of four clauses:
 \begin{align}
   &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
@@ -46,17 +47,24 @@ in the resulting clause (this is desirable because it contradicts
 an incorrect intuition that a constant should always be smaller than a term
 containing a unary function).
 To fulfill these conditions, we designed four templates of weights and precedences,
-denoted as $w_{i, I}, p_{i, I}$ for $i \in \{1, 2, 3, 4\}$
-and $I \in \{f, g\}$. We display them in the upper part of Table~\ref{tab:ground-sup}
-(for convenience, the table shows both $w_{i, f}$ and $w_{i, g}$, as well as
-$p_{i, f}$ and $p_{i, g}$ for all values of $i$).
-
+parametrized by a function symbol $I \in \{f, g\}$, yielding a total of eight
+different orderings.
 Then, for each instance of the clause set, we generated three instances of the exam problem
-using three combinations of weight and precedence: $w_{i_1, I_1}, p_{i_1,I_1}$;\,
-$w_{i_2, I_2}, p_{i_2, I_2}$; and $w_{i_3, I_3}, p_{i_3, I_3}$, where
-the values of $i_1, i_2, i_3,$ $I_1, I_2$ and $I_3$ depend on the values of $E, F, G, H, X$ and $Y$,
-as displayed in the lower part of the Table~\ref{tab:ground-sup}.
+using three combinations of weight and precedence selected from the eight possible combinations
+depending on the values of $E, F, G, H, X$ and $Y$.
 Thus, in total we obtained 36 different instances of the ground superposition problem.
+The weight and precedence combinations as well as the conditions used to pick
+three of them for each clause set are displayed in Table~\ref{tab:ground-sup}.
+
+\todo{Move the table and the following paragraph to appendix?}
+
+The upper part of the table shows all weight and precedence combinations,
+denoted as $w_{i, I}, p_{i, I}$ for $i \in \{1, 2, 3, 4\}$
+and $I \in \{f, g\}$ (for convenience, the table contains both $w_{i, f}$ and $w_{i, g}$, as well as
+$p_{i, f}$ and $p_{i, g}$ for all values of $i$).
+The lower part of the table displays the values of $i_1, I_1; i_2, I_2$; and $i_3, I_3$,
+corresponding to the three weight and precedence combinations selected for
+each instance of the clause set.
 
 \begin{table}
 \begin{center}
