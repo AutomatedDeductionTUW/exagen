@@ -3,11 +3,11 @@ teaching. While online lecturing was relatively fast to implement via
 webinars, recording,  streaming and online communication channels,
 coming up with best practices to assess course performance was far
 from trivial. Even with very sophisticated technical infrastructure,
-which on the other hand is unethical to expect from course
+which on the other hand would be unethical to expect from course
 participants,  avoiding collaborative course work in a virtual
 environment is very hard to achieve, if possible at all.
 In addition, course assessment is very diverse and depends on the
-available resources institutions have to implement individual oral
+available resources the  institutions have to implement individual oral
 exams or large-scale written exams.
 
 In this short paper we report on our solution for organizing online
@@ -16,44 +16,46 @@ logical reasoning and proofs rather than using mechanized test grids.
 In particular, we were faced with the challenge of organizing online
 written exams for our master's level course ``Automated
 Deduction'' in logic and computation at TU
-Wien\footnote{https://tiss.tuwien.ac.at/course/courseDetails.xhtml?dswid=2002\&dsrid=601\&courseNr=184774\&semester=2020S}.
+Wien\footnote{\url{https://tiss.tuwien.ac.at/course/courseDetails.xhtml?dswid=2002\&dsrid=601\&courseNr=184774\&semester=2020S}}.
 This course introduces algorithmic techniques and fundamental results
 in automated reasoning, by focusing on specialised algorithms for
 reasoning in various fragments of first-order logics, such as
 propositional logic, combination of ground theories, and full
 first-order logic with equality.
 As such, topics of the course cover theoretical and practical
-aspects of SAT/SMT solving~\cite{DPLLTinelli,NelsonOppen} and first-order theorem proving using
-superposition reasoning~\cite{Ganzinger02,Rubio02,Vampire13}
+aspects of SAT/SMT solving~\cite{DPLL,Tinelli02,DPLLT} and first-order theorem proving using
+superposition reasoning~\cite{Ganzinger01,Rubio01,Vampire13}
 
 We claim by no means that the framework we developed for online
 examination is optimal.
-is actually very specific to the logo\todo{?}
 Given the time constraints of examination periods, we aimed for an
 online exam setting that (i) reduces collaborative work but (ii)
 requires the same workload on each participant.
 The algorithmic and rigorous reasoning developed within our
 course called for exam sheets focused on problem solving and deductive
-proofs; as such exam sheets using test grids are not a viable solution
+proofs; as such exam sheets using test grids were not a viable solution
 for written exams within our course.
 We have therefore used and adapted the automated reasoning approaches introduced in our
 course to automate the generation of individual exam sheets for
 students enrolled in our course, by making sure that the exam tasks
-remain the same in each exam sheet. As such
-
+remain the same in each exam sheet. As such, we have randomly generated
+individual exam problems on 
 \begin{itemize}
-\item SAT
-\item SMT
-\item FO
+\item SAT solving, by imposing syntactical constraints on generated
+  SAT problems and use SAT solver to generate SAT instances (Section~\ref{sec:sat}); 
+\item SMT resoning, by exploiting reasoning in combination of theories
+  and vary patterns of SMT problem templates (Section~\ref{sec:smtqf}); 
+\item First-order theorem proving, by adjusting simplification
+  orderings in superposition reasoning and using redundany elimination
+  in first-order proving (Section~\ref{sec:fo}). 
 \end{itemize}
-While our proposal is very specific to the formal aspects of automated
-reasonig, we believe our framework can be extended with further
-constraints to scale it to other courses in formal methods. 
-
-
-We believe the toolchain of automated reasoning tools we have developed for
+For each SAT/SMT/first-order problem we generated, we used respective
+SAT/SMT/first-order solver for sanity check (Section~\ref{sec:implementation}).
+We thus believe the toolchain of automated reasoning tools we have developed for
 holding online written exams could be beneficial not only for other
 distance learning platforms, but also to researchers in automated
 reasoning, by providing our community with a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
-
+Finally, while our proposal is very specific to the formal aspects of automated
+reasonig, we believe our framework can be extended with further
+constraints to scale it to other courses in formal methods. 
 
