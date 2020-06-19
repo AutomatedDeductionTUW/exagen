@@ -24,7 +24,7 @@ instances of this template with the following properties:
   \item the $H(b) \not = H(b)$ literal is in exactly one of the
     clauses~\eqref{gs:2},~\eqref{gs:3},~\eqref{gs:4}.
 \end{itemize}
-These properties ensure that no clause subsumes another clause,
+These properties ensure that no clause in the set is redundant,
 and that different instances of the set look sufficiently different.
 There are 12 instances satisfying the above properties.
 %
@@ -36,13 +36,15 @@ There are 12 instances satisfying the above properties.
 %  &f(a) \not= a  \label{gs:4},
 %\end{align}
 
-Generating the weight function and symbol precedence was slightly more
-complicated. The reason was that we wanted the ordering of the terms used
-in the refutation to depend not only on the weights, but also on the ordering,
-and at the same time we wanted it to be either
-the case that $F(X) \prec a \prec G(Y)$, or $G(Y) \prec a \prec F(X)$. With such an ordering,
+%Generating the weight function and symbol precedence was slightly more
+%complicated. The reason was that we wanted 
+To make the exam problem fair and sufficiently challenging, we wanted to find
+weight and precedence such that the resulting ordering of the terms used
+in the refutation would depend not only on the weights, but also on the precedence,
+and at the same time we wanted it to be either $F(X) \prec a \prec G(Y)$,
+or $G(Y) \prec a \prec F(X)$. With such an ordering,
 the refutation of the set is always of the same length, and in
-at least one application of superposition, $a$ will be replaced by either $F(X)$ or $G(Y)$
+at least one application of superposition, $a$ is replaced by either $F(X)$ or $G(Y)$
 in the resulting clause (this is desirable because it contradicts
 an incorrect intuition that a constant should always be smaller than a term
 containing a unary function).
@@ -50,8 +52,8 @@ To fulfill these conditions, we designed four templates of weights and precedenc
 parametrized by a function symbol $I \in \{f, g\}$, yielding a total of eight
 different orderings.
 Then, for each instance of the clause set, we generated three instances of the exam problem
-using three combinations of weight and precedence selected from the eight possible combinations
-depending on the values of $E, F, G, H, X$ and $Y$.
+using three out of the eight possible orderings, selected depending on the values
+of $E, F, G, H, X$ and $Y$.
 Thus, in total we obtained 36 different instances of the ground superposition problem.
 The weight and precedence combinations as well as the conditions used to pick
 three of them for each clause set are displayed in Table~\ref{tab:ground-sup}.
