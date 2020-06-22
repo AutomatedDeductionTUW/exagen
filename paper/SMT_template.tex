@@ -1,21 +1,37 @@
-We did not opt for full random generation of this problem
-for pragmatic reasons:
-we want the Nelson-Oppen-style reasoning to be roughly the same for all instances,
-i.e., we want a correct solution to require combined reasoning
-in the theories of arrays, equality, and integers.
-With naive random generation it might well happen that e.g. array operations appear in the formula,
-but no array reasoning is required to prove unsatisfiability.
+In this problem, a formula in the SMT-LIB logic AUFLIA was given,
+and the task was to apply DPLL(T) with the Nelson-Oppen method
+to decide the given formula.
 
-For this reason, we prepared a suitable formula to be used as template
-and randomly introduce slight perturbations.
+One of our goals for this problem was to ensure that a correct solution
+requires combined reasoning in the theories of arrays, equality, and integers.
+With naive random generation it might well happen that,
+e.g., array operations appear in the formula,
+but no actual array reasoning is required to prove unsatisfiability.
+
+% We did not opt for full random generation of this problem
+% for pragmatic reasons:
+% we want the Nelson-Oppen-style reasoning to be roughly the same for all instances,
+% i.e., we want a correct solution to require combined reasoning
+% in the theories of arrays, equality, and integers.
+% With naive random generation it might well happen that e.g. array operations appear in the formula,
+% but no array reasoning is required to prove unsatisfiability.
+
+% For this reason, we prepared a suitable formula to be used as template
+For this reason,
+we did not opt for full random generation of this problem
+but instead prepared a suitable formula to be used as template.
+To obtain different problems,
+we randomly introduce small perturbations.
+These variations may slightly alter the reasoning required inside the theories,
+but should not change the fact that reasoning in \emph{all} theories is necessary.
+
 Concretely, we replace each integer-sorted constant symbol $c$ by $c+i$,
 where $i \in \{-3,-2,\dots,3\}$ is chosen randomly.
-
-Finally, we flatten nested arithmetic terms such as $(c+i)+j$ to $c+k$,
+Next, we flatten nested arithmetic terms such as $(c+i)+j$ to $c+k$,
 where $i,j,k$ are integers and $k = i+j$.
 Since our template contains two constants of integer sort,
 this method gives us at most 49 different problems.
 
-These changes may slightly alter the reasoning required inside the
-theories, but do not change the fact that reasoning in \emph{all} theories
-is necessary.
+% These changes may slightly alter the reasoning required inside the
+% theories, but do not change the fact that reasoning in \emph{all} theories
+% is necessary.
