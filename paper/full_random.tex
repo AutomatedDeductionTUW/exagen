@@ -22,7 +22,7 @@ taking care to filter out instances that are either too hard or too easy.
             \item\label{subtask:sat-cnf}
                 Compute a clausal normal form $C$ of the above formula by
                 applying the CNF transformation algorithm with naming and
-                optimization based on polarities of subformulas;
+                optimization based on polarities of subformulas.
             \item
                 Decide the satisfiability of the computed CNF formula $C$
                 by applying the DPLL method to $C$. If $C$ is
@@ -46,9 +46,9 @@ to make the setting as fair to the examinees as possible.
 
 To this end,
 we identified several characteristics that the exam formulas should exhibit,
-and filtered the generated formulas by these.
-
-The criteria are the following:
+and filtered the generated formulas by these:
+%
+% The criteria are the following:
 % Size: 7 connectives
 % [ numAtoms fm == 3
 % , -- there is at least one atom with pure polarity
@@ -67,58 +67,73 @@ The criteria are the following:
 % ]
 \begin{enumerate}
     \item
-        The formula contains exactly seven connectives.
-    \item
-        The formula contains exactly three different atomic propositions
-        (but each of these may appear multiple times).
+        The formula contains exactly seven connectives,
+        and exactly three different atomic propositions.
+        % (but each of these may appear multiple times).
+    % \item
+    %     The formula contains exactly seven connectives.
+    % \item
+    %     The formula contains exactly three different atomic propositions
+    %     (but each of these may appear multiple times).
     \item\label{item:polarity}
-        There exists at least one atom that appears with pure polarity
-        (i.e., either only in positive position or only in negative position).
+        There is at least one atom that appears with pure polarity.
+        % (i.e., either only in positive position or only in negative position).
+    \item
+        The connectives ``$\leftrightarrow$'', ``$\rightarrow$'', and ``$\lnot$'' appear at least once,
+        with ``$\leftrightarrow$'' at most twice.
+        At least one of ``$\land$'' and ``$\lor$'' appears.
+    % \item
+    %     The connective ``$\leftrightarrow$'' appears at least once but at most twice.
+    % \item
+    %     The connectives ``$\rightarrow$'' and ``$\lnot$'' appear at least once.
+    % \item
+    %     At least one of the connectives ``$\land$'' or ``$\lor$'' appears in the formula.
     \item
         There is no subformula for the form $\lnot \lnot \varphi$ for any formula $\varphi$.
     \item
-        The connective ``$\leftrightarrow$'' appears at least once but at most twice.
-    \item
-        The connectives ``$\rightarrow$'' and ``$\lnot$'' appear at least once.
-    \item
-        At least one of the connectives ``$\land$'' or ``$\lor$'' appears in the formula.
-    \item
-        If a binary connective has a literal as argument,
-        the other argument cannot also be a literal containing the same atomic proposition.
-        % No binary connective has two literals that contain the same atomic proposition.
-        % There is no binary connective that 
-        For example, this excludes subformulas such as $p \land \lnot p$ and $p \lor p$,
-        but not $p \rightarrow q$.
+        There are no trivial binary subformulas such as $p \land \lnot p$ or $p \lor p$.
+    % \item
+    %     If a binary connective has a literal as argument,
+    %     the other argument cannot also be a literal containing the same atomic proposition.
+    %     % No binary connective has two literals that contain the same atomic proposition.
+    %     % There is no binary connective that
+    %     For example, this excludes subformulas such as $p \land \lnot p$ and $p \lor p$,
+    %     but not $p \rightarrow q$.
     \item
         The polarity-optimized clausal normal form
-        (also known as Tseitin transformation\todo{cite tseitin paper?})
-        to be found in subtask~\ref{subtask:sat-cnf} results in a set of definitionsm
+        % (also known as Tseitin transformation\todo{cite tseitin paper?})
+        to be found in subtask~\ref{subtask:sat-cnf} results in a set of definitions,
         each of which is of the form
-        $n \rightarrow \varphi$,
-        $n \leftarrow \varphi$, or
-        $n \leftrightarrow \varphi$,
-        where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
-        To ensure this CNF is non-trivial,
-        we force the formula such that at least two of these definition types appear in the CNF.
-        (this basically means there must be two non-atomic subformulas of different polarity.)
+        $n \circ \varphi$ with $\circ \in \{ \rightarrow, \leftarrow, \leftrightarrow \}$,
+        a fresh atomic proposition~$n$, and a formula~$\varphi$.
+        % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
+        % To ensure this CNF is non-trivial,
+        % $n \rightarrow \varphi$,
+        % $n \leftarrow \varphi$, or
+        % $n \leftrightarrow \varphi$,
+        % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
+        % To ensure this CNF is non-trivial,
+        We force the formula such that at least two of the choices for $\circ$ appear in the CNF.
+        % (this basically means there must be two non-atomic subformulas of different polarity.)
     \item
         The formula has at most $6$ models.
-        Note that there are $2^3 = 8$ different interpretations of our formula,
-        so this means the formula is not valid.
-        \todo{the value of this is restriction isn't clear to me anymore… I wanted to control DPLL branching somewhat but now I don't think it does anything for that.}
+        Since there are $2^3 = 8$ different interpretations,
+        this means the formula is not valid.
+        % Note that there are $2^3 = 8$ different interpretations of our formula,
+        % so this means the formula is not valid.
+        % \todo{the value of this is restriction isn't clear to me anymore… I wanted to control DPLL branching somewhat but now I don't think it does anything for that.}
     \item
-        To reduce difficulty introduced by visual complexity,
+        To avoid accidental difficulty introduced by visual complexity,
         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.
 \end{enumerate}
 
-Note that we
-did not require very efficient algorithms of the above filters since
-the instances under consideration are very small.
-For example, for the restriction on the number of models we used a naive satisfiability test
-based on evaluating the formula under each possible interpretation.
-Because of this, the addition of new filters is relatively easy.
-\todo{maybe this should go into the implementation section}
+These conditions might seem very restrictive in combination.
+Thur, we enumerated the sample space to see how much variety is possible:
+as it turns out, there are $20\,390\,076$ formulas satisfying the above criteria.
+If we do not want to distinguish formulas that differ only by a permutation of atoms,
+$3\,398\,346$ formulas remain.
 
+\todo{move this to appendix}
 % If the restrictions on the resulting formulas are too strict
 Issues that we encountered with too strict restrictions:
 \begin{itemize}
@@ -143,12 +158,6 @@ Issues that we encountered with too strict restrictions:
         using only 7 connectives.
 \end{itemize}
 
-We also enumerated the sample space to see how much variety our criteria allow:
-as it turns out, there are $20\,390\,076$ formulas satisfying the above criteria.
-If we do not want to distinguish formulas that differ only by a permutation of atoms,
-$3\,398\,346$ formulas remain.
-
-% Finally, we convert the generated formula into \LaTeX{} format and write it to a separate *.tex-file.
 
 
 
