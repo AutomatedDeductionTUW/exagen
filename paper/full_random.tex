@@ -2,7 +2,7 @@ In this section, we discuss the two remaining problems of our exam sheet.
 For these problems, we generate instances randomly,
 taking care to filter out instances that are either too hard or too easy.
 
-\subsection{Boolean Satisfiability (SAT)}
+\subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
 
 \begin{mdframed}
     \begin{example}
@@ -133,37 +133,11 @@ as it turns out, there are $20\,390\,076$ formulas satisfying the above criteria
 If we do not want to distinguish formulas that differ only by a permutation of atoms,
 $3\,398\,346$ formulas remain.
 
-\todo{move this to appendix}
-% If the restrictions on the resulting formulas are too strict
-Issues that we encountered with too strict restrictions:
-\begin{itemize}
-    \item
-        the sample space might be empty.
-        may lead to the generator getting ``stuck'' for a minute until the user kills it.
-
-        For example, a note about restriction~\ref{item:polarity}:
-        with all the other restrictions,
-        it is impossible to get a formula that contains atomic proposition
-        of purely positive and purely negative polarity at the same time.
-
-    \item
-        Less drastic but perhaps more problematic:
-        the sample space may be restricted too much,
-        leading to the generation of boring and similar formulas.
-
-        happens, for example, if we restrict the number of models to exactly one,
-        or to no model.
-
-        there simply aren't that many ways to rule out 8 interpretations
-        using only 7 connectives.
-\end{itemize}
 
 
 
 
-
-
-\subsection{Non-Ground Superposition and Redundancy}
+\subsection{Non-Ground Superposition and Redundancy}\label{sec:fo}
 
 \begin{mdframed}
     \begin{example}

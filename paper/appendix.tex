@@ -1,0 +1,23 @@
+Some issues we encountered with too strict restrictions
+while working on Sect.~\ref{sec:sat}:
+\begin{itemize}
+    \item
+        the sample space might be empty.
+        may lead to the generator getting ``stuck'' for a minute until the user kills it.
+
+        For example, a note about restriction~\ref{item:polarity}:
+        with all the other restrictions,
+        it is impossible to get a formula that contains atomic proposition
+        of purely positive and purely negative polarity at the same time.
+
+    \item
+        Less drastic but perhaps more problematic:
+        the sample space may be restricted too much,
+        leading to the generation of boring and similar formulas.
+
+        happens, for example, if we restrict the number of models to exactly one,
+        or to no model.
+
+        there simply aren't that many ways to rule out 8 interpretations
+        using only 7 connectives.
+\end{itemize}
