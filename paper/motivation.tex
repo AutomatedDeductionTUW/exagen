@@ -1,6 +1,6 @@
 Amid the COVID-19 pandemic, higher education has moved to distance
 teaching. While online lecturing was relatively fast to implement via
-webinars, recording,  streaming and online communication channels,
+webinars, recordings,  streaming and online communication channels,
 coming up with best practices to assess course performance was far
 from trivial. Even with very sophisticated technical infrastructure,
 which on the other hand would be unethical to expect from course
@@ -24,38 +24,38 @@ propositional logic, combination of ground theories, and full
 first-order logic with equality.
 As such, topics of the course cover theoretical and practical
 aspects of SAT/SMT solving~\cite{DPLL,Tinelli02,DPLLT} and first-order theorem proving using
-superposition reasoning~\cite{Ganzinger01,Rubio01,Vampire13}
+superposition reasoning~\cite{Ganzinger01,Rubio01,Vampire13}.
 
 We claim by no means that the framework we developed for online
 examination is optimal.
 Given the time constraints of examination periods, we aimed for an
-online exam setting that (i) reduces collaborative work but (ii)
+online exam setting that (i) reduces collaborative work and  (ii)
 requires the same workload on each participant.
-The algorithmic and rigorous reasoning developed within our
+The algorithmic reasoning developed within our
 course called for exam sheets focused on problem solving and deductive
-proofs; as such exam sheets using test grids were not a viable solution
+proofs;  exam sheets using test grids were thereore not a viable solution
 for written exams within our course.
 We have therefore used and adapted the automated reasoning approaches introduced in our
 course to automate the generation of individual exam sheets for
 students enrolled in our course, by making sure that the exam tasks
-remain the same in each exam sheet. As such, we have randomly generated
+remain essentially the same in each generated exam sheet. As such, we have randomly generated
 individual exam problems on 
 \begin{itemize}
 \item SAT solving, by imposing syntactical constraints on generated
   SAT problems and use SAT solver to generate SAT instances (Section~\ref{sec:sat}); 
-\item SMT resoning, by exploiting reasoning in combination of theories
+\item Satisfiability modulo theory (SMT) resoning, by exploiting reasoning in combination of theories
   and vary patterns of SMT problem templates (Section~\ref{sec:smtqf}); 
 \item First-order theorem proving, by adjusting simplification
   orderings in superposition reasoning and using redundany elimination
   in first-order proving (Section~\ref{sec:fo}). 
 \end{itemize}
 For each SAT/SMT/first-order problem we generated, we used respective
-SAT/SMT/first-order solver for sanity check (Section~\ref{sec:implementation}).
-We thus believe the toolchain of automated reasoning tools we have developed for
+SAT/SMT/first-order solvers for sanity check (Section~\ref{sec:implementation}).
+We believe the toolchain of automated reasoning tools we have developed for
 holding online written exams could be beneficial not only for other
 distance learning platforms, but also to researchers in automated
 reasoning, by providing our community with a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
-Finally, while our proposal is very specific to the formal aspects of automated
-reasonig, we believe our framework can be extended with further
+While our proposal is specific to the formal aspects of automated
+reasonig, we note that  our framework can be extended with further
 constraints to scale it to other courses in formal methods. 
 
