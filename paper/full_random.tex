@@ -1,11 +1,18 @@
-In this section, we discuss the two remaining problems of our exam sheet.
-For these problems, we generate instances randomly,
-taking care to filter out instances that are either too hard or too easy.
+We first describe our solution for generating automated reasoning
+benchmakrs in a fully automated and random manner. We used this
+setting for generating exam problems on SAT solving and first-order
+theorem proving, by 
+% we discuss the two remaining problems of our exam sheet.
+%For these problems, we generate instances randomly,
+ filtering out exam problem instances that are either too hard/easy. 
 
-\subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
+ \subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
+We describe our random generation of exam problems on SAT solving by
+illustrating our work on a concrete SAT instance of our exam, given
+below.
 
 \begin{mdframed}
-    \begin{example}
+    \begin{example}\label{ex:sat}
         Consider the formula:
         \[
             % Random number generator seed: Just 123
@@ -33,20 +40,23 @@ taking care to filter out instances that are either too hard or too easy.
     \end{example}
 \end{mdframed}
 
-
-Simply generating propositional formulas fully randomly would lead
+ 
+Randomly generating propositional formulas in a naive setting would lead
 to a huge variety of formulas,
-spanning both formulas for which the above questions are trivial to answer
-and others where much more work is required.
-This is obviously undesirable in an exam setting,
-where the tasks should ultimately be challenging, but still solvable by hand.
+spanning both formulas for which the above questions on SAT solving
+are trivial (e.g. clauses as propositional tautologies) to answer
+and others where much more workload  (e.g. arbitrary formulas with
+only using only $\leftrightarrow$). More work was thus needed to
+ensure comperable workload for solving exam sheets. 
+%This is obviously undesirable in an exam setting,
+%where the tasks should ultimately be challenging, but still solvable by hand.
 Furthermore,
 the variation in difficulty between different exams should be kept as small as possible,
 to make the setting as fair to the examinees as possible.
 
 To this end,
-we identified several characteristics that the exam formulas should exhibit,
-and filtered the generated formulas by these:
+we identified several  syntactical characteristics that the exam problems on SAT solving should exhibit,
+and filtered the generated formulas by these, as summarized  below. 
 %
 % The criteria are the following:
 % Size: 7 connectives
@@ -67,8 +77,8 @@ and filtered the generated formulas by these:
 % ]
 \begin{enumerate}
     \item
-        The formula contains exactly seven connectives,
-        and exactly three different atomic propositions.
+        The SAT formula contains exactly seven logical connectives 
+        and exactly three different propositonal variables. 
         % (but each of these may appear multiple times).
     % \item
     %     The formula contains exactly seven connectives.
@@ -76,7 +86,7 @@ and filtered the generated formulas by these:
     %     The formula contains exactly three different atomic propositions
     %     (but each of these may appear multiple times).
     \item\label{item:polarity}
-        There is at least one atom that appears with pure polarity.
+        There is at least one atom that appears with a pure polarity.
         % (i.e., either only in positive position or only in negative position).
     \item
         The connectives ``$\leftrightarrow$'', ``$\rightarrow$'', and ``$\lnot$'' appear at least once,
@@ -100,12 +110,12 @@ and filtered the generated formulas by these:
     %     For example, this excludes subformulas such as $p \land \lnot p$ and $p \lor p$,
     %     but not $p \rightarrow q$.
     \item
-        The polarity-optimized clausal normal form
+        The polarity-optimized clausal normal form~\cite{Tseytin70} 
         % (also known as Tseitin transformation\todo{cite tseitin paper?})
-        to be found in subtask~\ref{subtask:sat-cnf} results in a set of definitions,
+        to be found in Example~\ref{ex:sat}\ref{subtask:sat-cnf} results in a set of definitions,
         each of which is of the form
         $n \circ \varphi$ with $\circ \in \{ \rightarrow, \leftarrow, \leftrightarrow \}$,
-        a fresh atomic proposition~$n$, and a formula~$\varphi$.
+        a fresh propositional variable~$n$, and a formula~$\varphi$.
         % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
         % To ensure this CNF is non-trivial,
         % $n \rightarrow \varphi$,
@@ -113,10 +123,11 @@ and filtered the generated formulas by these:
         % $n \leftrightarrow \varphi$,
         % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
         % To ensure this CNF is non-trivial,
-        We force the formula such that at least two of the choices for $\circ$ appear in the CNF.
+        We restrict the SAT formula such that at least two of the choices for
+        $\circ$ appear in the clausal normal form (CNF).
         % (this basically means there must be two non-atomic subformulas of different polarity.)
     \item
-        The formula has at most $6$ models.
+        The SAT formula has at most $6$ models.
         Since there are $2^3 = 8$ different interpretations,
         this means the formula is not valid.
         % Note that there are $2^3 = 8$ different interpretations of our formula,
@@ -127,13 +138,16 @@ and filtered the generated formulas by these:
         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.
 \end{enumerate}
 
-These conditions might seem very restrictive in combination.
-Thus, we enumerated the sample space to see how much variety is possible:
-as it turns out, there are $20\,390\,076$ formulas satisfying the above criteria.
-If we do not want to distinguish formulas that differ only by a permutation of atoms,
-$3\,398\,346$ formulas remain.
-
-
+While the above conditions might seem very restrictive in combination,
+we note that 
+%Thus, we enumerated the sample space to see how much variety is possible:
+%as it turns out,
+there are $20\,390\,076$ different SAT formulas satisfying the above
+criteria. Further, 
+if we do not want to distinguish formulas that differ only by a permutation of atoms,
+$3\,398\,346$ formulas remain. Thus, we are able to generate a huge
+numbe of unique SAT formulas to be used in online examinations and
+beyond.
 
 
 
