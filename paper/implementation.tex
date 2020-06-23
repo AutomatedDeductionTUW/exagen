@@ -6,11 +6,6 @@ The exam sheet template is a \LaTeX{} file
 where the concrete formulas and signatures
 have been replaced by ``\textbackslash{}input'' commands.
 
-
-
-Problem templates: (todo: describe impl of smt and groundsup)
-
-
 The ground superposition problem generator was implemented in Python,
 and utilizes a simple iteration over cartesian product of symbols
 with filtering.
@@ -18,39 +13,7 @@ with filtering.
 The SAT, SMT and redundancy problem generators have been implemented in Haskell.
 The implementation of formulas and terms as inductive data types
 in combination with pattern matching has been very convenient to work with.
-
-For the random generation of the SAT and redundancy problems,
-we were inspired by Haskell's QuickCheck library,
-\todo{cite?
-Claessen, Koen and Hughes, John (2000).
-"QuickCheck: A Lightweight Tool for Random Testing of Haskell Programs" (PDF).
-Proceedings of the International Conference on Functional Programming (ICFP), ACM SIGPLAN.
-}
-which we used for the first prototype.
-
-However, because of our many filtering criteria we wanted the generator to support backtracking.
-To this end,
-we created a simple mtl-style typeclass \texttt{MonadChoose}
-with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices.
-
-Our generator implementations are generic over the monad, constrained by this typeclass.
-We used two concrete implementations to evaluate generators:
-\begin{enumerate}
-    \item
-        \texttt{RandomChoice}, a monad that implements \texttt{choose}
-        as uniform random choice with backtracking support.
-        Conceptually, this is like the standard list monad
-        where \texttt{choose} works like the regular monadic bind for lists
-        except that it shuffles the list with a random permutation first.
-        This evaluation method is used to generate random exams.
-    \item
-        The standard list monad to enumerate the sample space.
-        This second evaluation method lets us ensure that the sample space is sufficiently large.
-\end{enumerate}
-
-Regarding the filtering discussed in Sect.~\ref{sec:satfo},
-note that we did not require very efficient algorithms since
-the formulas under consideration are very small.
-For example, for the restriction on the number of models we used a naive satisfiability test
-based on evaluating the formula under each possible interpretation.
-An advantage of this is that the addition of new filters is relatively easy.
+An interesting aspect of our implementation is that
+our generators are generic over the evaluation method of choice points.
+This allowed us to use the same code both for random sampling (to generate exams)
+and for enumerating the sample space (to check whether it is sufficiently large).
