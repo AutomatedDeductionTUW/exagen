@@ -8,7 +8,10 @@ participants,  avoiding collaborative course work in a virtual
 environment is very hard to achieve, if possible at all.
 In addition, course assessment is very diverse and depends on the
 available resources the  institutions have to implement individual oral
-exams or large-scale written exams.
+exams or large-scale written exams. While work on
+online feedback generation has already been initiated, see
+e.g.~\cite{Zuleger18,Wang18}, 
+not much work on online examinations has so far emerged. 
 
 In this short paper we report on our solution for organizing online
 written exams, where solutions to written exams require rigorous
@@ -33,7 +36,7 @@ online exam setting that (i) reduces collaborative work and  (ii)
 requires the same workload on each participant.
 The algorithmic reasoning developed within our
 course called for exam sheets focused on problem solving and deductive
-proofs;  exam sheets using test grids were thereore not a viable solution
+proofs;  exam sheets using test grids were therefore not a viable solution
 for written exams within our course.
 We have therefore used and adapted the automated reasoning approaches introduced in our
 course to automate the generation of individual exam sheets for
@@ -43,10 +46,10 @@ individual exam problems on
 \begin{itemize}
 \item SAT solving, by imposing syntactical constraints on generated
   SAT problems and use SAT solver to generate SAT instances (Section~\ref{sec:sat}); 
-\item Satisfiability modulo theory (SMT) resoning, by exploiting reasoning in combination of theories
+\item Satisfiability modulo theory (SMT) reasoning, by exploiting reasoning in combination of theories
   and vary patterns of SMT problem templates (Section~\ref{sec:smtqf}); 
 \item First-order theorem proving, by adjusting simplification
-  orderings in superposition reasoning and using redundany elimination
+  orderings in superposition reasoning and using redundancy elimination
   in first-order proving (Section~\ref{sec:fo}). 
 \end{itemize}
 For each SAT/SMT/first-order problem we generated, we used respective
@@ -56,6 +59,6 @@ holding online written exams could be beneficial not only for other
 distance learning platforms, but also to researchers in automated
 reasoning, by providing our community with a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
 While our proposal is specific to the formal aspects of automated
-reasonig, we note that  our framework can be extended with further
+reasoning, we note that  our framework can be extended with further
 constraints to scale it to other courses in formal methods. 
 
