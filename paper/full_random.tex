@@ -4,7 +4,9 @@ setting for generating exam problems on SAT solving and first-order
 theorem proving, by 
 % we discuss the two remaining problems of our exam sheet.
 %For these problems, we generate instances randomly,
- filtering out exam problem instances that are either too hard/easy. 
+ filtering out exam problem instances that are either too
+ hard/easy. We assume basic familiarity with standard first-order
+ logic - and refer to~\cite{SAT09,Vampire13} to further details.
 
  \subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
 We describe our random generation of exam problems on SAT solving, by
@@ -58,7 +60,7 @@ to make the setting as fair to the examinees as possible.
 To this end,
 we identified several  syntactical characteristics that the exam problems on SAT solving should exhibit,
 and filtered the generated formulas by these, as summarized  partially
-below. 
+below. \smallskip
 %
 % The criteria are the following:
 % Size: 7 connectives
@@ -77,23 +79,28 @@ below.
 % , length (models fm) <= 6
 % , nestedLatexParens fm < 3
 % ]
-\begin{enumerate}
-    \item
+
+%\begin{compactenum}
+\noindent(1) %    \item
         The SAT formula contains exactly seven logical connectives 
-        and exactly three different propositonal variables. 
+        and exactly three different propositonal variables. \smallskip
         % (but each of these may appear multiple times).
     % \item
     %     The formula contains exactly seven connectives.
     % \item
     %     The formula contains exactly three different atomic propositions
     %     (but each of these may appear multiple times).
-    \item\label{item:polarity}
-        There is at least one atom that appears with a pure polarity.
-        % (i.e., either only in positive position or only in negative position).
-    \item
+
+\noindent(2)        
+%    \item\label{item:polarity}
+        There is at least one atom that appears with a pure polarity.\smallskip
+        % (i.e., either only in positive position or only in negative
+        % position).
+        
+\noindent(3) %   \item
         The connectives ``$\leftrightarrow$'', ``$\rightarrow$'', and ``$\lnot$'' appear at least once,
         with ``$\leftrightarrow$'' appearing at most twice.
-        At least one of ``$\land$'' and ``$\lor$'' appears.
+        At least one of ``$\land$'' and ``$\lor$'' appears. \smallskip
     % \item
     %     The connective ``$\leftrightarrow$'' appears at least once but at most twice.
     % \item
@@ -117,7 +124,8 @@ below.
     %     % There is no binary connective that
     %     For example, this excludes subformulas such as $p \land \lnot p$ and $p \lor p$,
     %     but not $p \rightarrow q$.
-    \item
+
+        \noindent(4) % \item
         The polarity-optimized clausal normal form~\cite{Tseytin70} 
         % (also known as Tseitin transformation\todo{cite tseitin paper?})
         to be found in Example~\ref{ex:sat}\ref{subtask:sat-cnf} results in a set of definitions,
@@ -132,19 +140,22 @@ below.
         % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
         % To ensure this CNF is non-trivial,
         We restrict the SAT formula such that at least two of the choices for
-        $\circ$ appear in the clausal normal form (CNF).
+        $\circ$ appear in the clausal normal form (CNF). \smallskip
+        
         % (this basically means there must be two non-atomic subformulas of different polarity.)
-    \item
+\noindent(5) %   \item
         The SAT formula has at most $6$ models.
         Since there are $2^3 = 8$ different interpretations,
-        this means the formula is not valid.
+        this means the formula is not valid.\smallskip
+        
         % Note that there are $2^3 = 8$ different interpretations of our formula,
         % so this means the formula is not valid.
         % \todo{the value of this is restriction isn't clear to me anymore… I wanted to control DPLL branching somewhat but now I don't think it does anything for that.}
-    \item
+
+      \noindent(6) %\item
         To avoid accidental difficulty introduced by visual complexity,
-        the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.
-\end{enumerate}
+        the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
+%\end{compactenum}
 
 While the combination of the above conditions might seem very restrictive,
 we note that 
@@ -165,8 +176,7 @@ Moving beyond boolean satisfiability, we developed a random problem
 generator for first-order formulas with equality, by exploiting
 superposition-based first-order theorem proving with redundancy elimination~\cite{Rubio01,Vampire13}.
 We illustrate the first-order reasoning task of our
-exam in the randomly generated Example~\ref{ex:fo} and then describe our
-setting for generating such and similar problems.
+exam in our randomly generated Example~\ref{ex:fo}. 
 
 \begin{mdframed}
     \begin{example}\label{ex:fo}
@@ -200,49 +210,95 @@ setting for generating such and similar problems.
     \end{example}
 \end{mdframed}
 
-When designing this problem,
-we first fixed that the inference
-should be an instance of \emph{subsumption resolution}~\cite{Vampire13}
-(also known as \emph{contextual literal cutting}).
-ADD: can be extended to any other simplication rule, even to a
-generating rule.
+For generating first-order reasoning problems similar to
+Example~\ref{ex:fo}, we randomized problem generation in the setting
+of simplification inferences within saturation-based theorem
+proving. We recall that a simplification inference is an inference
+that removes clauses from the proof search space, whereas a generating
+inference add new clauses to the search space~\cite{Vampire13}. In our work, we
+considered the simplification inference of 
+\emph{subsumption resolution} 
+\begin{equation}\label{eq:sr}
+    \infer[]{
+      D
+      }{
+      A\vee C
+      &
+      {\neg B \vee D}
+    }
+    \qquad \text{or}\qquad
+  %
+    \infer[]{
+      D
+      }{
+      \neg A\vee C
+      &
+      {B \vee D}
+    }
+      \end{equation}
+      where $A,B,C,D$ are clauses
+      such that for some substitution (or mgu) $\theta$ we have $A\theta\vee
+C\theta\subseteq B\vee D$, and hence the second premise $\neg B \vee
+D$ (or $B \vee
+D$) of~\eqref{eq:sr} is redundant and can  be deleted from the search
+space after applying~\eqref{eq:sr} within proof search.
+%
+%also known as \emph{contextual literal cutting}~\cite{Vampire13} and
+We randomly generated first-order instance of the inference rule~\eqref{eq:sr}, as next
+discussed. Our setting could however be extended with other
+simplification, and even generating, inferences, such as demodulation,
+subsumption demodulation or binary resolution~\cite{Ganzinger01,Rath20}.\smallskip
 
-To randomly generate first-order terms and literals,
-we first specify a signature of symbols from which the random generator may choose.
-The signature consists of three sets specifying the allowed
-predicate symbols, % (with arity),
-function symbols, % (with arity),
-and variables.
-We further control the shape of the generated terms
+\noindent (1) To randomly generate first-order terms and literals,
+we fix  a first-order signature consisting of % three sets specifying the allowed
+predicate and function symbols and specify a set of logical
+variables. 
+%variables.  % (with arity),
+%function symbols, % (with arity),
+%and variables.
+We control the shape of the generated terms
 by giving bounds on the \emph{depth} of the term,
-i.e., the maximal nesting level of function calls
-(e.g., a constant symbol $b$ has depth 0, while the term $g(f(x),d)$ has depth 2).
+that is the maximal nesting level of function calls
+(e.g., a constant symbol $b$ has depth 0, while the term $g(f(x),d)$ has depth 2).\smallskip
 
 % The extension to generate random inferences is now straightforward.
 % First, we generate the second premise, which should always be non-ground.
 % To this end, we invoke our literal generator twice, filtering out any ground literals.
 
-The extension to generate random inferences is now straightforward.
-We first generate the second premise $C_2 \coloneqq L_1 \lor L_2$, which should always be non-ground.
+\noindent (2)  To generate random instances of~\eqref{eq:sr}, 
+we first generate non-ground clauses $C_2 \coloneqq L_1 \lor L_2$
+corresponding to an instance of the second premise of~\eqref{eq:sr}. 
 To this end, we generate a random uninterpreted literal $L_1$ containing exactly one variable occurrence,
-and a random equality literal $L_2$ containing at least two occurrences of a different variable.
-The restrictions on variable occurrences are implemented as post-filters.
-Their purpose is to 1. ensure the clause is non-ground
-and 2. to make discovery of the mgu be of similar difficulty for all examinees.
+and a random equality literal $L_2$ containing at least two occurrences of a different variable.\smallskip
+%The restrictions on variable occurrences are implemented as
+%post-filters, ensuring that the (i) the clause $C_2$ is non-ground
+%and (ii) finding the mgu $\theta$ is of similar difficulty for all examinees.\medskip
 
 % Following this, we generate another uninterpreted literal $L_3$.
 % Here, we also check that at least one function symbol of arity 2 appears in at least one of the literals.
 
-Following this, we generate the first premise $C_1 \coloneqq \overline{L_1\theta} \lor L_3 \lor L_2\theta$,
-where $\theta$ is a randomly generated ground substitution,
-$L3$ is a randomly generated ground literal,
+\noindent (3)  We next generate the clause $C_1 \coloneqq \overline{L_1\theta}
+  \lor L_3 \lor L_2\theta$ as an instance of the first premise of~\eqref{eq:sr}
+where $\theta$ is a randomly generated grounding substitution,
+$L_3$ is a randomly generated ground literal,
 and
 $\overline{L}$ is the complementary%
-\footnote{i.e., $\overline{A} = \lnot A$ and $\overline{\lnot A} = A$.}
-literal to $L$.
-Note that is very easy to restrict the term generation to ground terms:
-we simply fix the set of variables in the desired signature to the empty set before calling the generator.
-Finally, the conclusion is $C_3 \coloneqq L_3 \lor L_2\theta$.
+\footnote{i.e., $\overline{L} = \lnot L$ and $\overline{\lnot L} = L$.}
+literal to $L$.\smallskip
+%Note that is very easy to restrict the term generation to ground terms:
+%we simply fix the set of variables in the desired signature to the
+%empty set before calling the generator.
+
+\noindent (4)
+We set $C_3 \coloneqq L_3 \lor L_2\theta$ as an instance of the
+conclusion of of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
+      C_3
+      }{
+      C_1
+      &
+      {C_2}}$ as an instance of~\eqref{eq:sr}.\smallskip
+
+ 
 
 % Following this, we generate a ground substitution $\theta$ by randomly generating two ground terms.
 % Note that is very easy to restrict the term generation to ground terms:
@@ -255,10 +311,16 @@ Finally, the conclusion is $C_3 \coloneqq L_3 \lor L_2\theta$.
 %At this point, we write the inference to a *.tex-file.
 %We also extract the actual signature from the generated inference and output it to a separate *.tex-file.
 
-After writing the inference and the signature to separate *.tex files,
-we also output SMT-LIB problem files for
+\noindent (4) We encode the randomly generated instance of~\eqref{eq:sr} 
+%After writing the inference and the signature to separate *.tex files,
+in the SMT-LIB syntax~\cite{barrett2017smtlib} in order to perform
+sanity checks of 
 soundness ($C_1, C_2 \models C_3$)
-and part of the redundancy condition
-($C_3, C_2 \models C_1$). %, in our case, actually $C_3 \models C_1$ already holds).
-To (partially) double-check our generated problem, we then run Vampire on these files,
-expecting it to prove the entailment.
+and redundancy 
+($C_3, C_2 \models C_1$), ensuring that the randomly
+generated instance of~\eqref{eq:sr} is indeed a simplification
+inference. For these sanity checks, we used the Vampire theorem
+prover~\cite{Vampire13}.  %, in our case, actually $C_3 \models C_1$ already holds).
+%To (partially) double-check our generated problem, we then run Vampire on these files,
+%expecting it to prove the entailment.
+%\end{compactenum}
