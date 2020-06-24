@@ -1,12 +1,13 @@
 We implemented our approach  to randomly generating
 SAT/SMT and non-ground first-order problems within Haskell, whereas
-our ground superposition problem generator was implemented in Python. % The implementation of formulas and terms as inductive data types
+our ground superposition problem generator was implemented in
+Python. All together, our toolchain involved ADD lines of code,
+including additional scripts for putting parts together.  % The implementation of formulas and terms as inductive data types
 %in combination with pattern matching has been very convenient to work with.
 %An interesting aspect of
-%Oour implementation is that
-Our random generators are generic over the evaluation method of choice points.
-This allowed us to use the same code both for random sampling (to generate exams)
-and for enumerating the sample space (to check whether it is sufficiently large).
+%Our random generators are generic over the evaluation method of choice points.
+%This allowed us to use the same code both for random sampling (to generate exams)
+%and for enumerating the sample space (to check whether it is sufficiently large).
 We encoded each randomly generated SAT/SMT/first-order formula within
 the SMT-LIB input format~\cite{barrett2017smtlib} and, for sanity checks, run the SMT
 solver Z3~\cite{Z3}  and the first-order theorem prover
