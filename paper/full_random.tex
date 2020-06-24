@@ -45,10 +45,10 @@ below.
 Randomly generating propositional formulas in a naive setting would lead
 to a huge variety of formulas,
 spanning both formulas for which the above questions on SAT solving
-are trivial (e.g. clauses as propositional tautologies) to answer
-and others where much more workload  (e.g. arbitrary formulas with
+are trivial to answer (e.g. clauses as propositional tautologies)
+and others requiring much more effort  (e.g. arbitrary formulas with
 only using only $\leftrightarrow$). More work was thus needed to
-ensure comperable workload for solving exam sheets. 
+ensure comparable workload for solving exam sheets. 
 %This is obviously undesirable in an exam setting,
 %where the tasks should ultimately be challenging, but still solvable by hand.
 Furthermore,
@@ -146,7 +146,7 @@ below.
         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.
 \end{enumerate}
 
-While the above conditions might seem very restrictive in combination,
+While the combination of the above conditions might seem very restrictive,
 we note that 
 %Thus, we enumerated the sample space to see how much variety is possible:
 %as it turns out,
@@ -242,6 +242,7 @@ $\overline{L}$ is the complementary%
 literal to $L$.
 Note that is very easy to restrict the term generation to ground terms:
 we simply fix the set of variables in the desired signature to the empty set before calling the generator.
+Finally, the conclusion is $C_3 \coloneqq L_3 \lor L_2\theta$.
 
 % Following this, we generate a ground substitution $\theta$ by randomly generating two ground terms.
 % Note that is very easy to restrict the term generation to ground terms:
@@ -251,12 +252,11 @@ we simply fix the set of variables in the desired signature to the empty set bef
 % \footnote{i.e., $\overline{A} = \lnot A$ and $\overline{\lnot A} = A$.}
 % literal to $L$.
 
-Finally, the conclusion is $C_3 \coloneqq L_3 \lor L_2\theta$.
-At this point, we write the inference to a *.tex-file.
-% As the last step,
-We also extract the actual signature from the generated inference and output it to a separate *.tex-file.
+%At this point, we write the inference to a *.tex-file.
+%We also extract the actual signature from the generated inference and output it to a separate *.tex-file.
 
-After generating, we also output SMT-LIB problem files for
+After writing the inference and the signature to separate *.tex files,
+we also output SMT-LIB problem files for
 soundness ($C_1, C_2 \models C_3$)
 and part of the redundancy condition
 ($C_3, C_2 \models C_1$). %, in our case, actually $C_3 \models C_1$ already holds).
