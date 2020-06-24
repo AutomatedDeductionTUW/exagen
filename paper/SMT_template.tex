@@ -1,13 +1,20 @@
-In this problem, a formula in the SMT-LIB logic AUFLIA was given,
-and the task was to apply DPLL(T) with the Nelson-Oppen method
-to decide the given formula.
+We considered first-order formula templates in the combined,
+quantifier-free 
+theories of equality, arrays and linear integer arithmetic,
+corresponding to the AUFLIA logic of
+SMT-LIB~\cite{barrett2017smtlib}. We aimed at generating SMT formulas
+over which reasoning in all three theories was needed, by exploiting
+the DPLL(T) framework~\cite{Tinelli02} in combination with the
+Nelson-Oppen decision procedure~\cite{Nelson79}.
+%
+%One of our goals for this problem was to ensure that a correct solution
+%requires combined reasoning in the theories of arrays, equality, and integers.
 
-One of our goals for this problem was to ensure that a correct solution
-requires combined reasoning in the theories of arrays, equality, and integers.
-With naive random generation it might well happen that,
-e.g., array operations appear in the formula,
-but no actual array reasoning is required to prove unsatisfiability.
-
+With a  naive random generation,  it might however happen
+that, for example, array reasoning is actually not needed to derive
+(un)satisfi\-ability of the generated SMT formula. We therefore set an
+SMT formula template and 
+%
 % We did not opt for full random generation of this problem
 % for pragmatic reasons:
 % we want the Nelson-Oppen-style reasoning to be roughly the same for all instances,
@@ -15,22 +22,25 @@ but no actual array reasoning is required to prove unsatisfiability.
 % in the theories of arrays, equality, and integers.
 % With naive random generation it might well happen that e.g. array operations appear in the formula,
 % but no array reasoning is required to prove unsatisfiability.
-
+%
 % For this reason, we prepared a suitable formula to be used as template
-For this reason,
-we did not opt for full random generation of this problem
-but instead prepared a suitable formula to be used as template.
-To obtain different problems,
-we randomly introduce small perturbations.
-These variations may slightly alter the reasoning required inside the theories,
-but should not change the fact that reasoning in \emph{all} theories is necessary.
-
-Concretely, we replace each integer-sorted constant symbol $c$ by $c+i$,
-where $i \in \{-3,-2,\dots,3\}$ is chosen randomly.
-Next, we flatten nested arithmetic terms such as $(c+i)+j$ to $c+k$,
-where $i,j,k$ are integers and $k = i+j$.
-Since our template contains two constants of integer sort,
-this method gives us at most 49 different problems.
+%For this reason,
+%we did not opt for full random generation of this problem
+%but instead prepared a suitable formula to be used as template.
+%To obtain different problems,
+%we
+randomly introduced small perturbations in this template,  so that the
+theory-specific reasoning in all generated SMT instances are
+different while reasoning in all theories is necessary. 
+%that the resulting SMT instances .
+%These variations may slightly alter the reasoning required inside the theories,
+%but should not change the fact that reasoning in \emph{all} theories is necessary.
+For doing so, we considered an SMT template with two constants of
+integer sorts and replaced an integer-sorted constant symbol $c$ by  integer-sorted terms $c+i$,
+where $i \in \{-3,-2,\dots,3\}$ is chosen randomly. We flattened nested arithmetic terms such as $(c+i)+j$ to $c+k$,
+where $i,j,k$ are integers and $k = i+j$. As a result, we
+generated 49 different SMT problems; we illustrate one such formula, together
+with its reasoning tasks, in Problem~2 of Appendix~\ref{appendixA}.
 
 % These changes may slightly alter the reasoning required inside the
 % theories, but do not change the fact that reasoning in \emph{all} theories
