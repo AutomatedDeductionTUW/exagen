@@ -1,32 +1,38 @@
-The last problem assignment in our exam was to refute a set of ground formulas
-(containing uninterpreted functions and equality),
-using superposition with KBO ordering $\prec$ based on
-a given weight function and symbol precedence.
-We wanted the refutations of all instances of the problem to be
-of similar length and complexity (w.r.t. verifying the conditions
-of rules used in the refutation). To this end, we designed a simple
-template consisting of four clauses:
+For generating quantifier-free first-order formulas with equalities,
+over which ground and ordered superposition reasoning had to be employed, we
+aimed at (i)  generating  unsatisfiable sets $S$ of ground formulas with
+uninterpreted functions symbols, such that (ii)  refutation proofs
+of $S$ had similar lengths and complexities. Similarly to
+Section~\ref{sec:smt}, we fixed a template for $S$  and only varied
+the KBO simplification ordering $\prec$ to be used for refuting  $S$
+within the superposition calculus. To this end, we considered
+variations of weight functions $w$ and symbol precedence $\gg$ over $S$,
+yielding thus different KBO $\succ$ to be used for refuting $S$.
+The main steps of our approach are summarized below.\smallskip
+
+\noindent(1) We fixed the template for $S$ to be the following set of four clauses
 \begin{align}
   &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
   &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:2} \\
   &G(Y) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:3} \\
   &E(a) \not= a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:4},
 \end{align}
-where $E, F, G, H \in \{f, g\}$ and $X, Y \in \{a, b\}$.
-%
-Then we created
-instances of this template with the following properties:
+where $E, F, G, H \in \{f, g\}$ and $X, Y \in \{a, b\}$.\smallskip
+
+
+\noindent(2)
+We created
+instances of $S$ of this template ensuring that no clause in $S$ is
+redundant, by considering the following constraints.
 \begin{itemize}
-  \item $E \not = H$,
-  \item $F(X) \not = G(Y)$,
-  \item either $X$ or $Y$ is not $a$,
-  \item either $F$ or $G$ is not $E$,
-  \item the $H(b) \not = H(b)$ literal is in exactly one of the
+  \item $E \not = H$ and $F(X) \not = G(Y)$;
+  \item Either $X$ or $Y$ is not $a$. Similarly, either $F$ or $G$ is not $E$;
+  \item The literal $H(b) \not = H(b)$ is in exactly one of the
     clauses~\eqref{gs:2},~\eqref{gs:3},~\eqref{gs:4}.
 \end{itemize}
-These properties ensure that no clause in the set is redundant,
-and that different instances of the set look sufficiently different.
-There are 12 instances satisfying the above properties.
+%These properties ensure that no clause in the set is redundant,
+%and that different instances of the set look sufficiently different.
+As a result, we derive 12 instances of $S$ satisfying the above properties.\smallskip
 %
 %An example of such instance of the clause set is:
 %\begin{align}
@@ -37,25 +43,31 @@ There are 12 instances satisfying the above properties.
 %\end{align}
 
 %Generating the weight function and symbol precedence was slightly more
-%complicated. The reason was that we wanted 
-To make the exam problem fair and sufficiently challenging, we wanted to find
-weight and precedence such that the resulting ordering of the terms used
-in the refutation would depend not only on the weights, but also on the precedence,
-and at the same time we wanted it to be either $F(X) \prec a \prec G(Y)$,
-or $G(Y) \prec a \prec F(X)$. With such an ordering,
-the shortest refutation of the set is always of the same length, and in
+%complicated. The reason was that we wanted
+
+\noindent(3) We considered the term algebras induced by the generated
+instances of $S$ and  generated KBO orderings $\prec$ such that
+refuting the respective instances of $S$ using $\prec$ requires
+ordering terms both using weight $w$ and precedence $\gg$. %To make the exam problem fair and sufficiently challenging, we wanted to find
+%weight and precedence such that the resulting ordering of the terms used
+%in the refutation would depend not only on the weights, but also on the precedence,
+%and
+In addition, we imposed that  either $F(X) \prec a \prec G(Y)$ 
+or $G(Y) \prec a \prec F(X)$ hold. With such orderings $\prec$,
+the shortest refutations of instances of $S$ are of the same length, and in
 at least one application of superposition, $a$ is replaced by either $F(X)$ or $G(Y)$
-in the resulting clause (this is desirable because it contradicts
-an incorrect intuition that a constant should always be smaller than a term
-containing a unary function).
-To fulfill these conditions, we designed four templates of weights and precedences,
-parametrized by a function symbol $I \in \{f, g\}$, yielding a total of eight
-different orderings.
-Then, for each instance of the clause set, we generated three instances of the exam problem
-using three out of the eight possible orderings, selected depending on the values
-of $E, F, G, H, X$ and $Y$.
-Thus, in total we obtained 36 different instances of the ground superposition problem.
-The weight and precedence combinations as well as the conditions used to pick
-three of them for each clause set are displayed in Table~\ref{tab:ground-sup}
-in the appendix.
+in the resulting clause. % (this is desirable because it contradicts
+%an incorrect intuition that a constant should always be smaller than a term
+%containing a unary function).
+By fulfilling these conditions, we generated eight
+different KBOs $\prec$ to be used with instances of $S$, as
+illustrated in Table~\ref{tab:ground-sup} of Appendix~\ref{appendixB}. \smallskip
+
+%Then, for each instance of the clause set, we generated three instances of the exam problem
+%using three out of the eight possible orderings, selected depending on the values
+%of $E, F, G, H, X$ and $Y$.
+\noindent(3) As a result, we obtained 36 different problems (combinations of
+instances of $S$ and $\prec$) for  the ground
+superposition reasoning task of our exam; Problem~3 of
+Appendix~\ref{appendixA} shows such an instance.
 

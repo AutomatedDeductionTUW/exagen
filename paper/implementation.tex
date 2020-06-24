@@ -1,19 +1,38 @@
-Our implementation consists of various programs that are tied together by a control script.
-The control script calls all problem generators
-and compiles the exam sheets, resulting in $n$ different exams in PDF format.
-
-The exam sheet template is a \LaTeX{} file
-where the concrete formulas and signatures
-have been replaced by ``\textbackslash{}input'' commands.
-
-The ground superposition problem generator was implemented in Python,
-and utilizes a simple iteration over cartesian product of symbols
-with filtering.
-
-The SAT, SMT and redundancy problem generators have been implemented in Haskell.
-The implementation of formulas and terms as inductive data types
-in combination with pattern matching has been very convenient to work with.
-An interesting aspect of our implementation is that
-our generators are generic over the evaluation method of choice points.
+We implemented our approach  to randomly generating
+SAT/SMT and non-ground first-order problems within Haskell, whereas
+our ground superposition problem generator was implemented in Python. % The implementation of formulas and terms as inductive data types
+%in combination with pattern matching has been very convenient to work with.
+%An interesting aspect of
+%Oour implementation is that
+Our random generators are generic over the evaluation method of choice points.
 This allowed us to use the same code both for random sampling (to generate exams)
 and for enumerating the sample space (to check whether it is sufficiently large).
+We encoded each randomly generated SAT/SMT/first-order formula within
+the SMT-LIB input format~\cite{barrett2017smtlib} and, for sanity checks, run the SMT
+solver Z3~\cite{Z3}  and the first-order theorem prover
+Vampire~\cite{Vampire13} for proving the respective formulas.
+In addition, each formula has been converted  to \LaTeX{}, yielding
+randomly generated exam sheets - one such exam sheet is given in
+Appendix~\ref{appendixA}. 
+
+%
+%problem generation Our implementation consists of various programs that are tied together by a control script.
+%The control script calls all problem generators
+%and compiles the exam sheets, resulting in $n$ different exams in PDF format.
+%
+%The exam sheet template is a \LaTeX{} file
+%where the concrete formulas and signatures
+%have been replaced by the problem instances generated as described
+%in Sections~\ref{sec:satfo}-\ref{sec: smtqf}.%``\textbackslash{}input'' commands.
+%
+%The ground superposition problem generator was implemented in Python,
+%and utilizes a simple iteration over cartesian product of symbols
+%with filtering.
+%
+%The SAT, SMT and redundancy problem generators have been implemented in Haskell.
+%The implementation of formulas and terms as inductive data types
+%in combination with pattern matching has been very convenient to work with.
+%An interesting aspect of our implementation is that
+%our generators are generic over the evaluation method of choice points.
+%This allowed us to use the same code both for random sampling (to generate exams)
+%and for enumerating the sample space (to check whether it is sufficiently large).

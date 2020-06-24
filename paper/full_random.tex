@@ -1,11 +1,11 @@
 We first describe our solution for generating automated reasoning
-benchmakrs in a fully automated and random manner. We used this
+benchmarks in a fully automated and random manner. We used this
 setting for generating exam problems on SAT solving and first-order
 theorem proving, by 
 % we discuss the two remaining problems of our exam sheet.
 %For these problems, we generate instances randomly,
  filtering out exam problem instances that are either too
- hard/easy. We assume basic familiarity with standard first-order
+ hard/easy. Throughout this paper, we assume basic familiarity with standard first-order
  logic - and refer to~\cite{SAT09,Vampire13} to further details.
 
  \subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
@@ -83,7 +83,7 @@ below. \smallskip
 %\begin{compactenum}
 \noindent(1) %    \item
         The SAT formula contains exactly seven logical connectives 
-        and exactly three different propositonal variables. \smallskip
+        and exactly three different propositional variables. \smallskip
         % (but each of these may appear multiple times).
     % \item
     %     The formula contains exactly seven connectives.
@@ -152,9 +152,9 @@ below. \smallskip
         % so this means the formula is not valid.
         % \todo{the value of this is restriction isn't clear to me anymore… I wanted to control DPLL branching somewhat but now I don't think it does anything for that.}
 
-      \noindent(6) %\item
-        To avoid accidental difficulty introduced by visual complexity,
-        the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
+  %    \noindent(6) %\item
+   %     To avoid accidental difficulty introduced by visual complexity,
+   %     the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
 %\end{compactenum}
 
 While the combination of the above conditions might seem very restrictive,
@@ -164,8 +164,8 @@ we note that
 there are $20\,390\,076$ different SAT formulas satisfying the above
 criteria. Further, 
 if we do not want to distinguish formulas that differ only by a permutation of atoms,
-$3\,398\,346$ formulas remain. Thus, we are able to generate a huge
-numbe of unique SAT formulas to be used in online examinations and
+$3\,398\,346$ formulas remain. Thus, we are able to generate a large 
+number of unique SAT formulas to be used in online examinations and
 beyond.
 
 
@@ -246,8 +246,8 @@ space after applying~\eqref{eq:sr} within proof search.
 %also known as \emph{contextual literal cutting}~\cite{Vampire13} and
 We randomly generated first-order instance of the inference rule~\eqref{eq:sr}, as next
 discussed. Our setting could however be extended with other
-simplification, and even generating, inferences, such as demodulation,
-subsumption demodulation or binary resolution~\cite{Ganzinger01,Rath20}.\smallskip
+simplification, and even generating, inferences, such as 
+subsumption demodulation~\cite{Rath20}.\smallskip
 
 \noindent (1) To randomly generate first-order terms and literals,
 we fix  a first-order signature consisting of % three sets specifying the allowed
@@ -311,16 +311,15 @@ conclusion of of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
 %At this point, we write the inference to a *.tex-file.
 %We also extract the actual signature from the generated inference and output it to a separate *.tex-file.
 
-\noindent (4) We encode the randomly generated instance of~\eqref{eq:sr} 
-%After writing the inference and the signature to separate *.tex files,
-in the SMT-LIB syntax~\cite{barrett2017smtlib} in order to perform
-sanity checks of 
-soundness ($C_1, C_2 \models C_3$)
-and redundancy 
-($C_3, C_2 \models C_1$), ensuring that the randomly
-generated instance of~\eqref{eq:sr} is indeed a simplification
-inference. For these sanity checks, we used the Vampire theorem
-prover~\cite{Vampire13}.  %, in our case, actually $C_3 \models C_1$ already holds).
-%To (partially) double-check our generated problem, we then run Vampire on these files,
-%expecting it to prove the entailment.
-%\end{compactenum}
+%\noindent (5) We encode the randomly generated instance of~\eqref{eq:sr} 
+%in the SMT-LIB syntax~\cite{barrett2017smtlib} in order to perform
+%sanity checks of 
+%soundness ($C_1, C_2 \models C_3$)
+%and redundancy 
+%($C_3, C_2 \models C_1$), ensuring that the randomly
+%generated instance of~\eqref{eq:sr} is indeed a simplification
+%inference. For these sanity checks, we used the Vampire theorem
+%prover~\cite{Vampire13}.\smallskip  
+
+
+TODO ADD: How many problems are there?
