@@ -46,10 +46,49 @@ QuickCheck~\cite{ClaessenHughes:2000:QuickCheck}.
 However, because of our many filtering criteria, we wanted the generator to support backtracking.
 To this end,
 we created a simple mtl-style typeclass \texttt{MonadChoose}
-with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices.
-\todo{since it's the appendix we could give some source code listings? maybe the typeclass and a snippet of the inference generator}
+with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices:
+\lstset{
+    language=Haskell,
+    basicstyle=\small\ttfamily,
+    deletekeywords={MonadPlus,filter,length},
+    columns=fixed,
+}
+\begin{lstlisting}
+class MonadPlus m => MonadChoose m where
+  -- Choose element with uniform probability
+  choose :: [a] -> m a
+\end{lstlisting}
 
 Our generator implementations are generic over the monad, constrained by \texttt{MonadChoose}.
+The following listing shows (a slightly simplified) part of the inference generator
+discussed in Section~\ref{sec:fo}.
+\begin{lstlisting}
+genExamInference :: MonadChoose m => m Inference
+genExamInference = do
+  -- Define signature (partially omitted)
+  let vars = ["x", "y", "z"]
+  let opts = GenOptions{ vars = vars, ... }
+
+  -- Choose variables to appear in l1 and l2
+  v1 <- choose vars
+  v2 <- choose (filter (/= v1) vars)
+
+  -- Generate literals
+  -- l1: exactly one occurrence of v1
+  l1 <- mfilter ((==1) . length . toListOf variables)
+        $ genUninterpretedLiteral opts{ vars = [v1] }
+  -- l2: at least two occurrences of v2
+  l2 <- mfilter ((>=2) . length . toListOf variables)
+        $ genEqualityLiteral opts{ vars = [v2] }
+  -- l3: ground literal
+  l3 <- genUninterpretedLiteral opts{ vars = [] }
+
+  -- [rest omitted]
+  return inference
+\end{lstlisting}
+
+
+
 We used two concrete implementations to evaluate generators:
 \begin{enumerate}
     \item
@@ -61,7 +100,7 @@ We used two concrete implementations to evaluate generators:
         This evaluation method is used to generate random exams.
     \item
         The standard list monad to enumerate the sample space.
-        This second evaluation method ensures that the sample space is sufficiently large.
+        This second evaluation method helps verifying that the sample space is sufficiently large.
 \end{enumerate}
 
 \subsection{Weights and Precedences for Ground Superposition}\label{appB:FO}

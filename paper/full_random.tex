@@ -112,14 +112,10 @@ below. \smallskip
         $\circ$ appear in the clausal normal form (CNF). \smallskip
 
 \noindent(5)
-\todo{leave out this point if we need space? (if yes, also change sentence in appendix/impl about implementation efficiency where we refer to this)}
         The SAT formula has at most $6$ models.
-        Since there are $2^3 = 8$ different interpretations,
-        this means the formula is not valid.\smallskip
-
-        % Note that there are $2^3 = 8$ different interpretations of our formula,
-        % so this means the formula is not valid.
-        % \todo{the value of this is restriction isn't clear to me anymore… I wanted to control DPLL branching somewhat but now I don't think it does anything for that.}
+        % Since there are $2^3 = 8$ different interpretations,
+        % this means the formula is not valid.
+        \smallskip
 
 % \noindent(6)
 %         To avoid accidental difficulty introduced by visual complexity,
@@ -266,4 +262,6 @@ conclusion of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
 %inference. For these sanity checks, we used the Vampire theorem
 %prover~\cite{Vampire13}.\smallskip
 
-\todo{ADD: How many problems are there?}
+We found that with the concrete signature used for our exam,
+the discussed method can generate over $6.5 \cdot 10^9$ different instances
+of this inference.\todo{add final number once it has completed}
