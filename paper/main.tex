@@ -41,7 +41,7 @@
 \usepackage{booktabs}   % Improves the typesettings of tables.
 \usepackage{tabularx}
 \usepackage{multirow}   % Allows table elements to span several rows.
-% \usepackage{pdfpages}  % to include pages from existing pdf files with \includepdf[pages={1,2}]{./path/to/file.pdf}
+\usepackage{pdfpages}  % to include pages from existing pdf files with \includepdf[pages={1,2}]{./path/to/file.pdf}
 \usepackage{xcolor}
 \usepackage{todonotes}  % Add optional argument [disable] to hide TODOs, or [obeyFinal] to hide only in final mode
 \usepackage{mdframed}
@@ -234,7 +234,8 @@ simplification orderings.
 
 \appendix
 \section{Randomly Generated Exam Sheet of Automated Deduction}\label{appendixA}
-\input{examsheet.tex}
+\includepdf{./exam-36.pdf}
+% \input{examsheet.tex}
 
 
 \newpage
