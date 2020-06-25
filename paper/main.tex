@@ -22,6 +22,7 @@
 % PACKAGES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\usepackage[strict]{changepage}
 \usepackage{amsmath}
 \usepackage{amssymb}
 % \usepackage{thmtools}
@@ -231,16 +232,14 @@ simplification orderings.
 \bibliography{bib}
 
 \newpage
-
 \appendix
+%\section{Randomly Generated Exam Sheet}\label{appendixA}
 \section{Randomly Generated Exam Sheet of Automated Deduction}\label{appendixA}
-\makebox[\textwidth][c]{
+\makebox[1\textwidth][c]{
 \includegraphics[page=1,width=1.5\textwidth]{./exam-36.pdf}
 }
 %\includepdf{./exam-36.pdf}
 
-
-\newpage
 \section{Appendix B}\label{appendixB}
 \input{appendix.tex}
 

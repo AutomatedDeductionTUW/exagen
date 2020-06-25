@@ -4,7 +4,7 @@ setting for generating exam problems on SAT solving and first-order
 theorem proving, by 
 % we discuss the two remaining problems of our exam sheet.
 %For these problems, we generate instances randomly,
-filtering out exam problem instances that are either too
+filtering out problem instances that are either too
 hard or too easy. Throughout this paper, we assume basic familiarity with standard first-order
 logic and refer to the literature~\cite{SAT09,Vampire13} for further details.
 
@@ -23,7 +23,7 @@ and (c) decide satisfiability of the computed CNF formula by applying the DPLL a
 
 Randomly generating propositional formulas in a naive setting would lead
 to a huge variety of formulas,
-spanning both formulas for which the above questions on SAT solving
+spanning both formulas for which the above questions %on SAT solving
 are trivial to answer (e.g. clauses as propositional tautologies)
 and others requiring much more effort
 (e.g. arbitrary formulas using only $\leftrightarrow$).
@@ -31,7 +31,7 @@ More work was thus needed to
 ensure comparable workload for solving exam sheets.
 %This is obviously undesirable in an exam setting,
 %where the tasks should ultimately be challenging, but still solvable by hand.
-Furthermore,
+Further,
 the variation in difficulty between different exams should be kept as small as possible,
 to make the setting as fair to the examinees as possible.
 
@@ -128,9 +128,9 @@ we note that
 %as it turns out,
 there are 20\,390\,076 different SAT formulas satisfying the above
 criteria.
-% Further,
-% if we do not want to distinguish formulas that differ only by a permutation of atoms,
-% 3\,398\,346 formulas remain.
+Further,
+if we do not want to distinguish formulas that differ only by a permutation of atoms,
+3\,398\,346 formulas remain.
 % Thus, we are able to generate a large
 % number of unique SAT formulas to be used in online examinations and
 % beyond.
@@ -191,13 +191,13 @@ simplification inferences such as subsumption demodulation~\cite{Rath20},
 and even generating inferences.
 
 \noindent (1) To randomly generate first-order terms and literals,
-we fix  a first-order signature consisting of % three sets specifying the allowed
-predicate and function symbols and specify a set of logical
+we fixed a first-order signature consisting of % three sets specifying the allowed
+predicate and function symbols and specified a set of logical
 variables. 
 %variables.  % (with arity),
 %function symbols, % (with arity),
 %and variables.
-We control the shape of the generated terms
+We controlled the shape of the generated terms
 by giving bounds on the \emph{depth} of the term,
 that is the maximal nesting level of function calls
 (e.g., a constant symbol $b$ has depth 0, while the term $g(f(x),d)$ has depth 2).\smallskip
@@ -206,11 +206,11 @@ that is the maximal nesting level of function calls
 % First, we generate the second premise, which should always be non-ground.
 % To this end, we invoke our literal generator twice, filtering out any ground literals.
 
-\noindent (2)  To generate random instances of~\eqref{eq:sr}, 
-we first generate non-ground clauses $C_2 \coloneqq L_1 \lor L_2$
+\noindent (2)  To obtain random instances of~\eqref{eq:sr}, 
+we first generated non-ground clauses $C_2 \coloneqq L_1 \lor L_2$
 % corresponding to an instance of the second premise of~\eqref{eq:sr}.
 corresponding to an instance of the first premise of~\eqref{eq:sr}.
-To this end, we generate a random uninterpreted literal $L_1$ containing exactly one variable occurrence,
+To this end, we generated a random uninterpreted literal $L_1$ containing exactly one variable occurrence,
 and a random equality literal $L_2$ containing at least two occurrences of a different variable.\smallskip
 %The restrictions on variable occurrences are implemented as
 %post-filters, ensuring that the (i) the clause $C_2$ is non-ground
@@ -219,14 +219,15 @@ and a random equality literal $L_2$ containing at least two occurrences of a dif
 % Following this, we generate another uninterpreted literal $L_3$.
 % Here, we also check that at least one function symbol of arity 2 appears in at least one of the literals.
 
-\noindent (3)  We next generate the clause
+\noindent (3)  We next generated the clause
 $C_1 \coloneqq \overline{L_1\theta} \lor L_2\theta \lor L_3$
 as an instance of the second premise of~\eqref{eq:sr}
 where $\theta$ is a randomly generated grounding substitution,
 $L_3$ is a randomly generated ground literal,
 and
-$\overline{L}$ is the complementary literal to $L$.\smallskip
-% \footnote{i.e., $\overline{L} = \lnot L$ and $\overline{\lnot L} = L$.}
+$\overline{L}$ is the complementary
+\footnote{i.e., $\overline{L} = \lnot L$ and $\overline{\lnot L} = L$.}
+literal to $L$.\smallskip
 %Note that is very easy to restrict the term generation to ground terms:
 %we simply fix the set of variables in the desired signature to the
 %empty set before calling the generator.
