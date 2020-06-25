@@ -22,7 +22,7 @@
 % PACKAGES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage[strict]{changepage}
+\usepackage[pages=some]{background}
 \usepackage{amsmath}
 \usepackage{amssymb}
 % \usepackage{thmtools}
@@ -147,6 +147,18 @@ Jakob Rath}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\backgroundsetup{
+scale=1,
+color=black,
+opacity=1,
+angle=0,
+placement=bottom,
+vshift=-1cm,
+contents={%
+  \includegraphics[page=1,width=1.5\textwidth]{./exam-36.pdf}
+  }%
+}
+
 \begin{document}
 \maketitle
 
@@ -233,12 +245,15 @@ simplification orderings.
 
 \newpage
 \appendix
+
 %\section{Randomly Generated Exam Sheet}\label{appendixA}
 \section{Randomly Generated Exam Sheet of Automated Deduction}\label{appendixA}
-\makebox[1\textwidth][c]{
-\includegraphics[page=1,width=1.5\textwidth]{./exam-36.pdf}
-}
-%\includepdf{./exam-36.pdf}
+\BgThispage
+%\makebox[1\textwidth][c]{
+%\includegraphics[page=1,width=1.5\textwidth]{./exam-36.pdf}
+%}
+\newpage
+\clearpage
 
 \section{Appendix B}\label{appendixB}
 \input{appendix.tex}
