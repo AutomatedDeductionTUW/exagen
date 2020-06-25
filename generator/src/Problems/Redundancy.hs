@@ -32,6 +32,7 @@ import System.FilePath
 import Control.Lens
 
 -- list-transformer
+import List.Transformer (ListT)
 import qualified List.Transformer as ListT
 
 -- mtl
@@ -59,7 +60,7 @@ import Util
 main :: Options -> RedOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
 
-  -- enumerateSampleSpace
+  -- countStreamIO countingHelper
 
   infs <-
     let normalize x = (fst x :: Inference PredSym FnSym Variable)
@@ -461,13 +462,61 @@ genSubstitution opts domain = do
   return $ Substitution (Map.fromList pairs)
 
 
-enumerateSampleSpace :: IO ()
-enumerateSampleSpace = do
-  putStrLn $ "Enumerating sample space..."
-  total :: Int <-
-    ListT.foldM (\n _ -> do
-                    when (n `mod` 100_000 == 0) $ do
-                      putStrLn ("Still working, results so far: " <> show n)
-                    return $! n+1) (pure 0) pure $
-    genExamInference
-  putStrLn $ "Size of sample space: " <> show total
+countStreamIO :: ListT IO a -> IO ()
+countStreamIO stream = do
+  putStrLn $ "Counting..."
+  let statusInterval = 1_000_000
+  let step n _ = do
+        when (n `mod` statusInterval == 0) $ do
+          putStr ("\rStill working, results so far: " <> show n)
+        return $! n + 1
+  total :: Int <- ListT.foldM step (pure 0) pure stream
+  putStrLn $ "\nResult: " <> show total
+
+
+countingHelper :: MonadChoose m => m ()
+countingHelper = do
+  let sigFns = Set.fromList @(Symbol FnSym)
+        [ Symbol "f" 1
+        , Symbol "g" 2
+        , Symbol "h" 1
+        , Symbol "a" 0
+        , Symbol "b" 0
+        , Symbol "c" 0
+        , Symbol "d" 0
+        ]
+      sigPreds = Set.fromList @(Symbol PredSym)
+        [ Symbol "P" 1
+        ]
+      sig = Signature { sigFunctionSymbols = sigFns
+                      , sigPredicateSymbols = sigPreds
+                      }
+      -- vars = [minBound .. maxBound] :: [Variable]
+      vars = [X, Y]
+      opts = GenOptions{ minDepth = 1
+                       , maxDepth = 2
+                       , sig = sig
+                       , vars = vars
+                       }
+
+  -- 2 choices
+  v1 <- choose vars
+
+  -- 1 choice
+  v2 <- choose (filter (/= v1) vars)
+
+  -- 1276 choices
+  _l1 <- mfilter (not . isGround)
+        . mfilter ((==1) . length . toListOf variables)  -- exactly one variable occurrence
+        $ genUninterpretedLiteral opts{ vars = [v1] }
+
+  -- 1680 choices
+  _l2 <- genUninterpretedLiteral opts{ vars = [] }
+
+  -- 2089920 choices
+  _l3 <- mfilter (not . isGround)
+        . mfilter ((>=2) . length . toListOf variables)  -- at least two variable occurrences
+        $ genEqualityLiteral opts{ vars = [v2] }
+
+  -- So far: 2*1276*1680*2089920 = 8.960.239.411.200
+  return ()
