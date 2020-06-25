@@ -4,6 +4,7 @@ module Exagen where
 
 -- base
 import Control.Monad
+import System.IO
 
 -- directory
 import System.Directory
@@ -20,6 +21,10 @@ import qualified Problems.SMT
 
 main :: IO ()
 main = do
+  hSetEncoding stdin utf8
+  hSetEncoding stdout utf8
+  hSetEncoding stderr utf8
+
   opts@Options{optOutputDir,optSeed} <- parseOptions
 
   case optOutputDir of
