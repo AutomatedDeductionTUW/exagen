@@ -1,60 +1,133 @@
-\begin{mdframed}
-    \begin{example}\label{ex:sat}
-        Consider the formula:
-        \[
-            % Random number generator seed: Just 123
-            % Index: 36
-            % Satisfiable? True
-            % Valid? False
-            % Polarities: fromList [(p,Both),(q,Both),(r,Pos)]
-            % Models: [{¬p,q,r}, {¬p,¬q,r}, {¬p,¬q,¬r}]
-            ( r \land \lnot ( q \rightarrow p ) ) \lor ( q \leftrightarrow \lnot ( p \rightarrow q ) )
-        \]
-        \begin{enumerate}[(a)]
-            \item
-                Which atoms are pure in the above formula?
-            \item\label{subtask:sat-cnf}
-                Compute a clausal normal form $C$ of the above formula by
-                applying the CNF transformation algorithm with naming and
-                optimization based on polarities of subformulas.
-            \item
-                Decide the satisfiability of the computed CNF formula $C$
-                by applying the DPLL method to $C$. If $C$ is
-                satisfiable, give an interpretation which
-                satisfies it.
+% \begin{example}\label{ex:sat}
+\paragraph{Problem 1 (SAT)}
+    Consider the formula:
+    \[
+        % Random number generator seed: Just 123
+        % Index: 36
+        % Satisfiable? True
+        % Valid? False
+        % Polarities: fromList [(p,Both),(q,Both),(r,Pos)]
+        % Models: [{¬p,q,r}, {¬p,¬q,r}, {¬p,¬q,¬r}]
+        ( r \land \lnot ( q \rightarrow p ) ) \lor ( q \leftrightarrow \lnot ( p \rightarrow q ) )
+    \]
+    \begin{enumerate}[(a)]
+        \item
+            Which atoms are pure in the above formula?
+        \item\label{subtask:sat-cnf}
+            Compute a clausal normal form $C$ of the above formula by
+            applying the CNF transformation algorithm with naming and
+            optimization based on polarities of subformulas.
+        \item
+            Decide the satisfiability of the computed CNF formula $C$
+            by applying the DPLL method to $C$. If $C$ is
+            satisfiable, give an interpretation which
+            satisfies it.
             %    \qed
-        \end{enumerate}
-    \end{example}
-\end{mdframed}
+    \end{enumerate}
+% \end{example}
 
-\begin{mdframed}
-    \begin{example}\label{ex:fo}
-        Consider the following inference:
-        \begin{center}
-            \begin{tabular}{c}
-                $P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
-                $\lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )$ \\
-                \hline
-                $\lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
-            \end{tabular}
-        \end{center}
-        % \[
-        %     % Random number generator seed: Just 123
-        %     % Index: 36
-        %     % Substitution: {x -> g(d,d),y -> a}
-        %     \prftree{P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}{ \lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )}{ \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}
-        % \]
-        in the non-ground superposition inference system $\textrm{Sup}$
-        (including the rules of the non-ground binary resolution inference system $\textrm{BR}$),
-        where $P$ is a predicate symbol, $f$, $g$, $h$ are function symbols, $a$, $b$, $d$ are constants, and $x$, $y$ are variables.
-        %
-        \begin{enumerate}[(a)]
-            \item
-                Prove that the above inference is a sound inference of $\textrm{Sup}$.
-            \item
-                Is the above inference a simplifying inference of $\textrm{Sup}$?
-                % Justify your answer based on conditions of clauses being redundant.
-               % \qed
-        \end{enumerate}
-    \end{example}
-\end{mdframed}
+% \begin{example}\label{ex:fo}
+\paragraph{Problem 2 (Non-Ground Superposition and Redundancy)}
+    Consider the following inference:
+    \begin{center}
+        \begin{tabular}{c}
+            $P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
+            $\lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )$ \\
+            \hline
+            $\lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
+        \end{tabular}
+    \end{center}
+    % \[
+    %     % Random number generator seed: Just 123
+    %     % Index: 36
+    %     % Substitution: {x -> g(d,d),y -> a}
+    %     \prftree{P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}{ \lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )}{ \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}
+    % \]
+    in the non-ground superposition inference system $\textrm{Sup}$
+    (including the rules of the non-ground binary resolution inference system $\textrm{BR}$),
+    where $P$ is a predicate symbol, $f$, $g$, $h$ are function symbols, $a$, $b$, $d$ are constants, and $x$, $y$ are variables.
+    %
+    \begin{enumerate}[(a)]
+        \item
+            Prove that the above inference is a sound inference of $\textrm{Sup}$.
+        \item
+            Is the above inference a simplifying inference of $\textrm{Sup}$?
+            Justify your answer based on conditions of clauses being redundant.
+    \end{enumerate}
+% \end{example}
+
+% \begin{example}
+\paragraph{Problem 3 (SMT)}
+    Consider the formula:
+\begin{align*}
+%
+& %
+% ['=', 'b', 'c']
+b = c
+%
+\land
+%
+% ['not', ['=', ['f', ['+', 'b', '1']], ['+', 'b', '2']]]
+f(b + 1)  \neq  b + 2
+%
+\land
+%
+% ['=', ['select', 'A', ['f', ['+', 'c', '1']]], 'c']
+\mathit{read}(A,f(c + 1)) = c
+~\\~
+& %
+%
+\land
+%
+% ['or', ['=', ['select', 'A', ['f', ['+', 'b', '1']]], ['+', 'b', '3']], ['=', ['select', ['store', 'A', ['+', 'b', '2'], ['f', 'c']], ['f', ['+', 'c', '1']]], ['+', 'c', '2']]]
+(\mathit{read}(A,f(b + 1)) = b + 3 \lor \mathit{read}(\mathit{write}(A,b + 2,f(c)),f(c + 1)) = c + 2)
+%
+\end{align*}
+    where
+    $b$, $c$ are constants,
+    $f$ is a unary function symbol,
+    $A$ is an array constant,
+    $\mathit{read}$, $\mathit{write}$ are interpreted in the array theory,
+    and
+    $+$, $-$, $1$, $2$, $3$, $\ldots$ are interpreted in the standard way over the integers.
+    \medskip
+
+    \noindent
+    Use the Nelson-Oppen decision procedure in conjunction with DPLL-based
+    reasoning in the combination of the theories of arrays,
+    uninterpreted functions, and linear integer arithmetic.
+    Use the decision procedures for the theory of arrays and the theory of uninterpreted functions and use
+    simple mathematical reasoning for deriving new equalities among the
+    constants in the theory of linear integer arithmetic.
+    If the formula is satisfiable, give an interpretation that satisfies the formula.\bigskip
+% \end{example}
+
+% \begin{example}
+\paragraph{Problem 4 (Ground Superposition)}
+Consider the KBO ordering $\succ$ generated
+by the precedence $f \gg a \gg b \gg g$
+and the weight function $w$ with $w(f) = 0, w(b) = 1, w(g) = 1, w(a) = 3$.
+Let $\sigma$ be a well-behaved selection function wrt $\succ$.
+Consider the set $S$ of ground formulas:
+\begin{align*}
+%
+% ['or', ['=', ['f', ['g', 'b']], 'a'], ['=', ['f', ['g', 'a']], 'a']]
+& f(g(b)) = a \lor f(g(a)) = a
+~\\~
+% ['=', ['g', 'b'], 'a']
+& g(b) = a
+~\\~
+% ['=', ['g', 'a'], 'a']
+& g(a) = a
+~\\~
+% ['or', ['not', ['=', ['g', 'b'], ['g', 'b']]], ['not', ['=', ['f', 'a'], 'a']]]
+& g(b)  \neq  g(b) \lor f(a)  \neq  a
+%
+\end{align*}
+\noindent Show that $S$ is unsatisfiable by applying saturation on $S$ using an
+inference process based on the ground superposition
+calculus $\textrm{Sup}_{\succ,\sigma}$ (with the inference rules of
+binary  resolution $\textrm{BR}_{\sigma}$ included).
+ Give details on what literals
+ are selected and which terms are maximal. \bigskip
+% \end{example}
