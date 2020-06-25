@@ -1,19 +1,32 @@
-We implemented our approach  to randomly generating
-SAT/SMT and non-ground first-order problems within Haskell, whereas
+We implemented our approach to randomly generating
+SAT, SMT, and non-ground first-order problems within Haskell, whereas
 our ground superposition problem generator was implemented in
-Python. All together, our toolchain involved ADD lines of code,
-including additional scripts for putting parts together.  % The implementation of formulas and terms as inductive data types
+Python. All together, our toolchain involved about 2\,300 lines of code,
+including additional scripts for putting parts together.
+% -------------------------------------------------------------------------------
+% Language                     files          blank        comment           code
+% -------------------------------------------------------------------------------
+% Haskell                         18            700            407           1988
+% TeX                            215             42           1011           1024
+% Python                           4             41             29            251
+% zsh                              2             22             14             43
+% -------------------------------------------------------------------------------
+% SUM:                           239            805           1461           3306
+% RELEVANT FOR US: 1988 + 251 + 43 = 2282
+% -------------------------------------------------------------------------------
+% The implementation of formulas and terms as inductive data types
 %in combination with pattern matching has been very convenient to work with.
 %An interesting aspect of
 %Our random generators are generic over the evaluation method of choice points.
 %This allowed us to use the same code both for random sampling (to generate exams)
 %and for enumerating the sample space (to check whether it is sufficiently large).
-We encoded each randomly generated SAT/SMT/first-order formula within
+We encoded each randomly generated SMT and first-order formula within
+%%% (NOTE: didn't use any external solvers for the SAT part)
 the SMT-LIB input format~\cite{barrett2017smtlib} and, for sanity checks, run the SMT
 solver Z3~\cite{Z3}  and the first-order theorem prover
 Vampire~\cite{Vampire13} for proving the respective formulas.
 In addition, each formula has been converted  to \LaTeX{}, yielding
-randomly generated exam sheets - one such exam sheet is given in
+randomly generated exam sheets -- one such exam sheet is given in
 Appendix~\ref{appendixA}. 
 
 %

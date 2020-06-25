@@ -2,12 +2,12 @@ For generating quantifier-free first-order formulas with equalities,
 over which ground and ordered superposition reasoning had to be employed, we
 aimed at (i)  generating  unsatisfiable sets $S$ of ground formulas with
 uninterpreted functions symbols, such that (ii)  refutation proofs
-of $S$ had similar lengths and complexities. Similarly to
+of $S$ had similar lengths and complexities. Similar to
 Section~\ref{sec:smt}, we fixed a template for $S$  and only varied
 the KBO simplification ordering $\prec$ to be used for refuting  $S$
 within the superposition calculus. To this end, we considered
 variations of weight functions $w$ and symbol precedence $\gg$ over $S$,
-yielding thus different KBO $\succ$ to be used for refuting $S$.
+yielding thus different KBOs $\prec$ to be used for refuting $S$.
 The main steps of our approach are summarized below.\smallskip
 
 \noindent(1) We fixed the template for $S$ to be the following set of four clauses
@@ -67,7 +67,7 @@ illustrated in Table~\ref{tab:ground-sup} of Appendix~\ref{appB:FO}. \smallskip
 %Then, for each instance of the clause set, we generated three instances of the exam problem
 %using three out of the eight possible orderings, selected depending on the values
 %of $E, F, G, H, X$ and $Y$.
-\noindent(3) As a result, we obtained 36 different problems (combinations of
+\noindent(4) As a result, we obtained 36 different problems (combinations of
 instances of $S$ and $\prec$) for  the ground
 superposition reasoning task of our exam; Problem~3 of
 Appendix~\ref{appendixA} shows such an instance.

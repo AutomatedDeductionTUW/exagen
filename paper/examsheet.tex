@@ -1,5 +1,5 @@
 % \begin{example}\label{ex:sat}
-\paragraph{Problem 1 (SAT)}
+\subsubsection*{Problem 1 (SAT).}
     Consider the formula:
     \[
         % Random number generator seed: Just 123
@@ -27,7 +27,7 @@
 % \end{example}
 
 % \begin{example}\label{ex:fo}
-\paragraph{Problem 2 (Non-Ground Superposition and Redundancy)}
+\subsubsection*{Problem 2 (Non-Ground Superposition and Redundancy).}
     Consider the following inference:
     \begin{center}
         \begin{tabular}{c}
@@ -57,7 +57,7 @@
 % \end{example}
 
 % \begin{example}
-\paragraph{Problem 3 (SMT)}
+\subsubsection*{Problem 3 (SMT).}
     Consider the formula:
 \begin{align*}
 %
@@ -80,7 +80,8 @@ f(b + 1)  \neq  b + 2
 \land
 %
 % ['or', ['=', ['select', 'A', ['f', ['+', 'b', '1']]], ['+', 'b', '3']], ['=', ['select', ['store', 'A', ['+', 'b', '2'], ['f', 'c']], ['f', ['+', 'c', '1']]], ['+', 'c', '2']]]
-(\mathit{read}(A,f(b + 1)) = b + 3 \lor \mathit{read}(\mathit{write}(A,b + 2,f(c)),f(c + 1)) = c + 2)
+(\mathit{read}(A,f(b + 1)) = b + 3
+\\ & \hphantom{~\land (} \lor \mathit{read}(\mathit{write}(A,b + 2,f(c)),f(c + 1)) = c + 2)
 %
 \end{align*}
     where
@@ -89,7 +90,7 @@ f(b + 1)  \neq  b + 2
     $A$ is an array constant,
     $\mathit{read}$, $\mathit{write}$ are interpreted in the array theory,
     and
-    $+$, $-$, $1$, $2$, $3$, $\ldots$ are interpreted in the standard way over the integers.
+    $+$, $1$, $2$, $3$, $\ldots$ are interpreted in the standard way over the integers.
     \medskip
 
     \noindent
@@ -103,7 +104,7 @@ f(b + 1)  \neq  b + 2
 % \end{example}
 
 % \begin{example}
-\paragraph{Problem 4 (Ground Superposition)}
+\subsubsection*{Problem 4 (Ground Superposition).}
 Consider the KBO ordering $\succ$ generated
 by the precedence $f \gg a \gg b \gg g$
 and the weight function $w$ with $w(f) = 0, w(b) = 1, w(g) = 1, w(a) = 3$.
