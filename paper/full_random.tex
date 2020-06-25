@@ -4,53 +4,31 @@ setting for generating exam problems on SAT solving and first-order
 theorem proving, by 
 % we discuss the two remaining problems of our exam sheet.
 %For these problems, we generate instances randomly,
- filtering out exam problem instances that are either too
- hard/easy. Throughout this paper, we assume basic familiarity with standard first-order
- logic - and refer to~\cite{SAT09,Vampire13} to further details.
+filtering out exam problem instances that are either too
+hard or too easy. Throughout this paper, we assume basic familiarity with standard first-order
+logic and refer to the literature~\cite{SAT09,Vampire13} for further details.
 
- \subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
-We describe our random generation of exam problems on SAT solving, by
-first 
-showing  one generated SAT exam problem, as 
-below.
 
-\begin{mdframed}
-    \begin{example}\label{ex:sat}
-        Consider the formula:
-        \[
-            % Random number generator seed: Just 123
-            % Index: 36
-            % Satisfiable? True
-            % Valid? False
-            % Polarities: fromList [(p,Both),(q,Both),(r,Pos)]
-            % Models: [{¬p,q,r}, {¬p,¬q,r}, {¬p,¬q,¬r}]
-            ( r \land \lnot ( q \rightarrow p ) ) \lor ( q \leftrightarrow \lnot ( p \rightarrow q ) )
-        \]
-        \begin{enumerate}[(a)]
-            \item
-                Which atoms are pure in the above formula?
-            \item\label{subtask:sat-cnf}
-                Compute a clausal normal form $C$ of the above formula by
-                applying the CNF transformation algorithm with naming and
-                optimization based on polarities of subformulas.
-            \item
-                Decide the satisfiability of the computed CNF formula $C$
-                by applying the DPLL method to $C$. If $C$ is
-                satisfiable, give an interpretation which
-                satisfies it.
-            %    \qed
-        \end{enumerate}
-    \end{example}
-\end{mdframed}
+\subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
 
- 
+% We describe our random generation of exam problems on SAT solving by
+% first
+% showing  one generated SAT exam problem, as
+% below.
+In our exam problem on SAT solving, students were asked to
+(a) determine which atoms are of pure polarity in the formula,
+(b) compute a polarity-optimized clausal normal form~\cite{Tseytin70},
+and (c) decide satisfiability of the computed CNF formula by applying the DPLL algorithm.
+% Thus, our task for this problem was to generate suitable propositional formulas.
+
 Randomly generating propositional formulas in a naive setting would lead
 to a huge variety of formulas,
 spanning both formulas for which the above questions on SAT solving
 are trivial to answer (e.g. clauses as propositional tautologies)
-and others requiring much more effort  (e.g. arbitrary formulas with
-only using only $\leftrightarrow$). More work was thus needed to
-ensure comparable workload for solving exam sheets. 
+and others requiring much more effort
+(e.g. arbitrary formulas using only $\leftrightarrow$).
+More work was thus needed to
+ensure comparable workload for solving exam sheets.
 %This is obviously undesirable in an exam setting,
 %where the tasks should ultimately be challenging, but still solvable by hand.
 Furthermore,
@@ -125,36 +103,27 @@ below. \smallskip
     %     For example, this excludes subformulas such as $p \land \lnot p$ and $p \lor p$,
     %     but not $p \rightarrow q$.
 
-        \noindent(4) % \item
-        The polarity-optimized clausal normal form~\cite{Tseytin70} 
-        % (also known as Tseitin transformation\todo{cite tseitin paper?})
-        to be found in Example~\ref{ex:sat}\ref{subtask:sat-cnf} results in a set of definitions,
+\noindent(4)
+        The polarity-optimized clausal normal form results in a set of definitions,
         each of which is of the form
         $n \circ \varphi$ with $\circ \in \{ \rightarrow, \leftarrow, \leftrightarrow \}$,
         a fresh propositional variable~$n$, and a formula~$\varphi$.
-        % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
-        % To ensure this CNF is non-trivial,
-        % $n \rightarrow \varphi$,
-        % $n \leftarrow \varphi$, or
-        % $n \leftrightarrow \varphi$,
-        % where $n$ is a fresh atomic proposition and $\varphi$ is a formula.
-        % To ensure this CNF is non-trivial,
         We restrict the SAT formula such that at least two of the choices for
         $\circ$ appear in the clausal normal form (CNF). \smallskip
-        
-        % (this basically means there must be two non-atomic subformulas of different polarity.)
-\noindent(5) %   \item
+
+\noindent(5)
+\todo{leave out this point if we need space? (if yes, also change sentence in appendix/impl about implementation efficiency where we refer to this)}
         The SAT formula has at most $6$ models.
         Since there are $2^3 = 8$ different interpretations,
         this means the formula is not valid.\smallskip
-        
+
         % Note that there are $2^3 = 8$ different interpretations of our formula,
         % so this means the formula is not valid.
         % \todo{the value of this is restriction isn't clear to me anymore… I wanted to control DPLL branching somewhat but now I don't think it does anything for that.}
 
-  %    \noindent(6) %\item
-   %     To avoid accidental difficulty introduced by visual complexity,
-   %     the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
+% \noindent(6)
+%         To avoid accidental difficulty introduced by visual complexity,
+%         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
 %\end{compactenum}
 
 While the combination of the above conditions might seem very restrictive,
@@ -164,58 +133,33 @@ we note that
 there are $20\,390\,076$ different SAT formulas satisfying the above
 criteria. Further, 
 if we do not want to distinguish formulas that differ only by a permutation of atoms,
-$3\,398\,346$ formulas remain. Thus, we are able to generate a large 
+$3\,398\,346$ formulas remain. Thus, we are able to generate a large
 number of unique SAT formulas to be used in online examinations and
 beyond.
+
+
 
 
 
 \subsection{Non-Ground Superposition with Redundancy}\label{sec:fo}
 
 Moving beyond boolean satisfiability, we developed a random problem
-generator for first-order formulas with equality, by exploiting
+generator for first-order formulas with equality, in the setting of
 superposition-based first-order theorem proving with redundancy elimination~\cite{Rubio01,Vampire13}.
-We illustrate the first-order reasoning task of our
-exam in our randomly generated Example~\ref{ex:fo}. 
+In this problem, a concrete inference\footnote{i.e., an instance of an inference rule as opposed to the rule itself}
+was given to the students, and their task was to
+(a) prove that the inference is sound
+and (b) that the inference is a simplification inference.
+% We illustrate the first-order reasoning task of our
+% exam in our randomly generated Example~\ref{ex:fo}.
 
-\begin{mdframed}
-    \begin{example}\label{ex:fo}
-        Consider the following inference:
-        \begin{center}
-            \begin{tabular}{c}
-                $P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
-                $\lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )$ \\
-                \hline
-                $\lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )$ \\
-            \end{tabular}
-        \end{center}
-        % \[
-        %     % Random number generator seed: Just 123
-        %     % Index: 36
-        %     % Substitution: {x -> g(d,d),y -> a}
-        %     \prftree{P ( h ( g ( g ( d , d ) , b ) ) ) \lor  \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}{ \lnot P ( h ( g ( x , b ) ) ) \lor f ( d ) \neq h ( g ( y , y ) )}{ \lnot P ( h ( f ( d ) ) ) \lor f ( d ) \neq h ( g ( a , a ) )}
-        % \]
-        in the non-ground superposition inference system $\textrm{Sup}$
-        (including the rules of the non-ground binary resolution inference system $\textrm{BR}$),
-        where $P$ is a predicate symbol, $f$, $g$, $h$ are function symbols, $a$, $b$, $d$ are constants, and $x$, $y$ are variables.
-        %
-        \begin{enumerate}[(a)]
-            \item
-                Prove that the above inference is a sound inference of $\textrm{Sup}$.
-            \item
-                Is the above inference a simplifying inference of $\textrm{Sup}$?
-                % Justify your answer based on conditions of clauses being redundant.
-               % \qed
-        \end{enumerate}
-    \end{example}
-\end{mdframed}
-
-For generating first-order reasoning problems similar to
-Example~\ref{ex:fo}, we randomized problem generation in the setting
-of simplification inferences within saturation-based theorem
-proving. We recall that a simplification inference is an inference
+% For generating first-order reasoning problems similar to
+% Example~\ref{ex:fo}, we randomized problem generation in the setting
+% of simplification inferences within saturation-based theorem
+% proving.
+We recall that a simplification inference is an inference
 that removes clauses from the proof search space, whereas a generating
-inference add new clauses to the search space~\cite{Vampire13}. In our work, we
+inferences add new clauses to the search space~\cite{Vampire13}. In our work, we
 considered the simplification inference of 
 \emph{subsumption resolution} 
 \begin{equation}\label{eq:sr}
@@ -236,18 +180,17 @@ considered the simplification inference of
       {B \vee D}
     }
       \end{equation}
-      where $A,B,C,D$ are clauses
+      where $A,B$ are atoms and $C,D$ are clauses
       such that for some substitution (or mgu) $\theta$ we have $A\theta\vee
 C\theta\subseteq B\vee D$, and hence the second premise $\neg B \vee
 D$ (or $B \vee
 D$) of~\eqref{eq:sr} is redundant and can  be deleted from the search
 space after applying~\eqref{eq:sr} within proof search.
 %
-%also known as \emph{contextual literal cutting}~\cite{Vampire13} and
-We randomly generated first-order instance of the inference rule~\eqref{eq:sr}, as next
-discussed. Our setting could however be extended with other
-simplification, and even generating, inferences, such as 
-subsumption demodulation~\cite{Rath20}.\smallskip
+We randomly generated first-order instances of the inference rule~\eqref{eq:sr}, as
+discussed next. Our setting could however be easily extended to other
+simplification inferences such as subsumption demodulation~\cite{Rath20},
+and even generating inferences.
 
 \noindent (1) To randomly generate first-order terms and literals,
 we fix  a first-order signature consisting of % three sets specifying the allowed
@@ -267,7 +210,8 @@ that is the maximal nesting level of function calls
 
 \noindent (2)  To generate random instances of~\eqref{eq:sr}, 
 we first generate non-ground clauses $C_2 \coloneqq L_1 \lor L_2$
-corresponding to an instance of the second premise of~\eqref{eq:sr}. 
+% corresponding to an instance of the second premise of~\eqref{eq:sr}.
+corresponding to an instance of the first premise of~\eqref{eq:sr}.
 To this end, we generate a random uninterpreted literal $L_1$ containing exactly one variable occurrence,
 and a random equality literal $L_2$ containing at least two occurrences of a different variable.\smallskip
 %The restrictions on variable occurrences are implemented as
@@ -277,8 +221,9 @@ and a random equality literal $L_2$ containing at least two occurrences of a dif
 % Following this, we generate another uninterpreted literal $L_3$.
 % Here, we also check that at least one function symbol of arity 2 appears in at least one of the literals.
 
-\noindent (3)  We next generate the clause $C_1 \coloneqq \overline{L_1\theta}
-  \lor L_3 \lor L_2\theta$ as an instance of the first premise of~\eqref{eq:sr}
+\noindent (3)  We next generate the clause
+$C_1 \coloneqq \overline{L_1\theta} \lor L_2\theta \lor L_3$
+as an instance of the second premise of~\eqref{eq:sr}
 where $\theta$ is a randomly generated grounding substitution,
 $L_3$ is a randomly generated ground literal,
 and
@@ -291,7 +236,7 @@ literal to $L$.\smallskip
 
 \noindent (4)
 We set $C_3 \coloneqq L_3 \lor L_2\theta$ as an instance of the
-conclusion of of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
+conclusion of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
       C_3
       }{
       C_1
@@ -319,7 +264,6 @@ conclusion of of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
 %($C_3, C_2 \models C_1$), ensuring that the randomly
 %generated instance of~\eqref{eq:sr} is indeed a simplification
 %inference. For these sanity checks, we used the Vampire theorem
-%prover~\cite{Vampire13}.\smallskip  
+%prover~\cite{Vampire13}.\smallskip
 
-
-TODO ADD: How many problems are there?
+\todo{ADD: How many problems are there?}
