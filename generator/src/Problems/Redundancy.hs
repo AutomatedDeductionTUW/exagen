@@ -3,6 +3,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -30,6 +31,9 @@ import System.FilePath
 -- lens
 import Control.Lens
 
+-- list-transformer
+import qualified List.Transformer as ListT
+
 -- mtl
 import Control.Monad.Reader
 
@@ -54,6 +58,8 @@ import Util
 
 main :: Options -> RedOptions -> IO ()
 main Options{optNumExams,optOutputDir,optSeed} RedOptions = do
+
+  -- enumerateSampleSpace
 
   infs <-
     let normalize x = (fst x :: Inference PredSym FnSym Variable)
@@ -453,3 +459,15 @@ genSubstitution
 genSubstitution opts domain = do
   pairs <- traverse (\v -> fmap (v,) (genTerm opts)) domain
   return $ Substitution (Map.fromList pairs)
+
+
+enumerateSampleSpace :: IO ()
+enumerateSampleSpace = do
+  putStrLn $ "Enumerating sample space..."
+  total :: Int <-
+    ListT.foldM (\n _ -> do
+                    when (n `mod` 100_000 == 0) $ do
+                      putStrLn ("Still working, results so far: " <> show n)
+                    return $! n+1) (pure 0) pure $
+    genExamInference
+  putStrLn $ "Size of sample space: " <> show total
