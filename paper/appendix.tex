@@ -83,11 +83,13 @@ genExamInference = do
   -- l3: ground literal
   l3 <- genUninterpretedLiteral opts{ vars = [] }
 
-  -- [rest omitted]
+  -- (rest omitted)
   return inference
+
+genEqualityLiteral, genUninterpretedLiteral
+  :: MonadChoose m => GenOptions -> m Literal
+-- (literal generators omitted)
 \end{lstlisting}
-
-
 
 We used two concrete implementations to evaluate generators:
 \begin{enumerate}
