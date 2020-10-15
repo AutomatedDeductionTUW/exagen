@@ -4,13 +4,13 @@ aimed at (i)  generating  unsatisfiable sets $S$ of ground formulas with
 uninterpreted functions symbols, such that (ii)  refutation proofs
 of $S$ had similar lengths and complexities. Similar to
 Section~\ref{sec:smt}, we fixed a template for $S$  and only varied
-the KBO simplification ordering $\prec$ to be used for refuting  $S$
+the Knuth-Bendix ordering (KBO)~\cite{Knuth1970}~$\succ$ to be used for refuting  $S$
 within the superposition calculus. To this end, we considered
 variations of weight functions $w$ and symbol precedence $\gg$ over $S$,
-yielding thus different KBOs $\prec$ to be used for refuting $S$.
+yielding thus different KBOs $\succ$ to be used for refuting $S$.
 The main steps of our approach are summarized below.\smallskip
 
-\noindent(1) We fixed the template for $S$ to be the following set of four clauses
+\noindent(i) We fixed the template for $S$ to be the following set of four clauses
 \begin{align}
   &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
   &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:2} \\
@@ -21,7 +21,7 @@ where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$, and the literal
 in $[~]$ is added to the clauses optionally.\smallskip
 
 
-\noindent(2)
+\noindent(ii)
 We created
 instances of $S$ of this template ensuring that no clause in $S$ is
 redundant, by considering the following constraints.
@@ -46,29 +46,29 @@ As a result, we produced 12 instances of $S$ satisfying the above properties.\sm
 %Generating the weight function and symbol precedence was slightly more
 %complicated. The reason was that we wanted
 
-\noindent(3) We considered the term algebras induced by the generated
-instances of $S$ and designed KBO orderings $\prec$ such that
-refuting the respective instances of $S$ using $\prec$ requires
+\noindent(iii) We considered the term algebras induced by the generated
+instances of $S$ and designed KBOs $\succ$ such that
+refuting the respective instances of $S$ using $\succ$ requires
 ordering terms both using weight $w$ and precedence $\gg$. %To make the exam problem fair and sufficiently challenging, we wanted to find
 %weight and precedence such that the resulting ordering of the terms used
 %in the refutation would depend not only on the weights, but also on the precedence,
 %and
-In addition, we imposed that  either $F(X) \prec a \prec G(Y)$ 
-or $G(Y) \prec a \prec F(X)$ hold. With such orderings $\prec$,
+In addition, we imposed that  either $F(X) \succ a \succ G(Y)$ 
+or $G(Y) \succ a \succ F(X)$ holds. With such orderings $\succ$,
 the shortest refutations of instances of $S$ are of the same length, and in
 at least one application of superposition, $a$ is replaced by either $F(X)$ or $G(Y)$
 in the resulting clause. % (this is desirable because it contradicts
 %an incorrect intuition that a constant should always be smaller than a term
 %containing a unary function).
-We generated eight different KBOs $\prec$ fulfilling these conditions,
+We generated eight different KBOs $\succ$ fulfilling these conditions,
 to be used with instances of $S$, as
 illustrated in Table~\ref{tab:ground-sup} of Appendix~\ref{appB:FO}.\smallskip
 
 %Then, for each instance of the clause set, we generated three instances of the exam problem
 %using three out of the eight possible orderings, selected depending on the values
 %of $E, F, G, H, X$ and $Y$.
-\noindent(4) As a result, we obtained 36 different problems (combinations of
-instances of $S$ and $\prec$) for  the ground
+Subsequently, we obtained 36 different problems (combinations of
+instances of $S$ and $\succ$) for  the ground
 superposition reasoning task of our exam; Problem~3 of
 Appendix~\ref{appendixA} shows such an instance.
 

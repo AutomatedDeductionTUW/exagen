@@ -17,7 +17,7 @@ logic and refer to the literature~\cite{SAT09,Vampire13} for further details.
 % below.
 In our exam problem on SAT solving, students were asked to
 (a)~determine which atoms are of pure polarity in the formula,
-(b)~compute a polarity-optimized clausal normal form~\cite{Tseytin70},
+(b)~compute a polarity-optimized clausal normal form (CNF)~\cite{Tseytin70},
 and (c)~decide satisfiability of the computed CNF formula by applying the DPLL algorithm.
 % Thus, our task for this problem was to generate suitable propositional formulas.
 
@@ -26,7 +26,7 @@ to a huge variety of formulas,
 spanning both formulas for which the above questions %on SAT solving
 are trivial to answer (e.g. clauses as propositional tautologies)
 and others requiring much more effort
-(e.g. arbitrary formulas using only $\leftrightarrow$).
+(e.g. arbitrary formulas using only ``$\leftrightarrow$'').
 More work was thus needed to
 ensure comparable workload for solving exam sheets.
 %This is obviously undesirable in an exam setting,
@@ -35,10 +35,12 @@ ensure comparable workload for solving exam sheets.
 % the variation in difficulty between different exams should be kept as small as possible,
 % to make the setting as fair to the examinees as possible.
 
-To this end,
-we identified several  syntactical characteristics that the exam problems on SAT solving should exhibit,
+To this end, we identified several  syntactical characteristics
+that the exam problems on SAT solving should exhibit,
 and filtered the generated formulas by these, as summarized  partially
-below. \smallskip
+below.
+\todo{How were these characteristics identified? (Based on experience/exam assignments from previous years?)}
+\smallskip
 %
 % The criteria are the following:
 % Size: 7 connectives
@@ -59,7 +61,7 @@ below. \smallskip
 % ]
 
 %\begin{compactenum}
-\noindent(1) %    \item
+\noindent(i) %    \item
         The SAT formula contains exactly seven logical connectives 
         and exactly three different propositional variables. \smallskip
         % (but each of these may appear multiple times).
@@ -69,13 +71,13 @@ below. \smallskip
     %     The formula contains exactly three different atomic propositions
     %     (but each of these may appear multiple times).
 
-\noindent(2)        
+\noindent(ii)        
 %    \item\label{item:polarity}
         There is at least one atom that appears with a pure polarity.\smallskip
         % (i.e., either only in positive position or only in negative
         % position).
         
-\noindent(3) %   \item
+\noindent(iii) %   \item
         The connectives ``$\leftrightarrow$'', ``$\rightarrow$'', and ``$\lnot$'' appear at least once,
         with ``$\leftrightarrow$'' appearing at most twice.
         At least one of ``$\land$'' and ``$\lor$'' appears. \smallskip
@@ -103,15 +105,15 @@ below. \smallskip
     %     For example, this excludes subformulas such as $p \land \lnot p$ and $p \lor p$,
     %     but not $p \rightarrow q$.
 
-\noindent(4)
+\noindent(iv)
         The polarity-optimized clausal normal form results in a set of definitions,
         each of which is of the form
         $n \circ \varphi$ with $\circ \in \{ \rightarrow, \leftarrow, \leftrightarrow \}$,
         a fresh propositional variable~$n$, and a formula~$\varphi$.
         We restrict the SAT formula such that at least two of the choices for
-        $\circ$ appear in the clausal normal form (CNF). \smallskip
+        $\circ$ appear in its CNF.\smallskip
 
-\noindent(5)
+\noindent(v)
         The SAT formula has at most $6$ models.
         % Since there are $2^3 = 8$ different interpretations,
         % this means the formula is not valid.
@@ -141,7 +143,7 @@ if we do not want to distinguish formulas that differ only by a permutation of a
 
 \subsection{Non-Ground Superposition with Redundancy}\label{sec:fo}
 
-Moving beyond boolean satisfiability, we developed a random problem
+Moving beyond Boolean satisfiability, we developed a random problem
 generator for first-order formulas with equality, in the setting of
 superposition-based first-order theorem proving with redundancy elimination~\cite{Rubio01,Vampire13}.
 In this problem, a concrete inference\footnote{i.e., an instance of an inference rule as opposed to the rule itself}
@@ -157,7 +159,7 @@ and (b) that the inference is a simplification inference.
 % proving.
 We recall that a simplification inference is an inference
 that removes clauses from the proof search space, whereas a generating
-inferences add new clauses to the search space~\cite{Vampire13}. In our work, we
+inference adds new clauses to the search space~\cite{Vampire13}. In our work, we
 considered the simplification inference of 
 \emph{subsumption resolution} 
 \begin{equation}\label{eq:sr}
@@ -179,18 +181,19 @@ considered the simplification inference of
     }
       \end{equation}
       where $A,B$ are atoms and $C,D$ are clauses
-      such that for some substitution (or mgu) $\theta$ we have $A\theta\vee
+      such that for some substitution (or a most general unifier) $\theta$ we have $A\theta\vee
 C\theta\subseteq B\vee D$, and hence the second premise $\neg B \vee
 D$ (or $B \vee
 D$) of~\eqref{eq:sr} is redundant and can  be deleted from the search
 space after applying~\eqref{eq:sr} within proof search.
-%
+\todo{Should we define mgu/substitution? (One reviewer asked us to.)}
+
 We randomly generated first-order instances of the inference rule~\eqref{eq:sr}, as
 discussed next. Our setting could however be easily extended to other
-simplification inferences such as subsumption demodulation~\cite{Rath20},
+simplification inferences, such as subsumption demodulation~\cite{Rath20},
 and even generating inferences.
 
-\noindent (1) To randomly generate first-order terms and literals,
+\noindent (i) To randomly generate first-order terms and literals,
 we fixed a first-order signature consisting of % three sets specifying the allowed
 predicate and function symbols and specified a set of logical
 variables. 
@@ -206,8 +209,8 @@ that is the maximal nesting level of function calls
 % First, we generate the second premise, which should always be non-ground.
 % To this end, we invoke our literal generator twice, filtering out any ground literals.
 
-\noindent (2)  To obtain random instances of~\eqref{eq:sr}, 
-we first generated non-ground clauses $C_2 \coloneqq L_1 \lor L_2$
+\noindent (ii)  To obtain random instances of~\eqref{eq:sr}, 
+we first generated non-ground clauses $C_1 \coloneqq L_1 \lor L_2$
 % corresponding to an instance of the second premise of~\eqref{eq:sr}.
 corresponding to an instance of the first premise of~\eqref{eq:sr}.
 To this end, we generated a random uninterpreted literal $L_1$ containing exactly one variable occurrence,
@@ -219,20 +222,20 @@ and a random equality literal $L_2$ containing at least two occurrences of a dif
 % Following this, we generate another uninterpreted literal $L_3$.
 % Here, we also check that at least one function symbol of arity 2 appears in at least one of the literals.
 
-\noindent (3)  We next generated the clause
-$C_1 \coloneqq \overline{L_1\theta} \lor L_2\theta \lor L_3$
+\noindent (iii)  We next generated the clause
+$C_2 \coloneqq \overline{L_1\theta} \lor L_2\theta \lor L_3$
 as an instance of the second premise of~\eqref{eq:sr}
 where $\theta$ is a randomly generated grounding substitution,
 $L_3$ is a randomly generated ground literal,
 and
 $\overline{L}$ is the complementary%
-\footnote{i.e., $\overline{L} = \lnot L$ and $\overline{\lnot L} = L$.}
+\footnote{I.e., $\overline{L} = \lnot L$ and $\overline{\lnot L} = L$.}
 literal to $L$.\smallskip
 %Note that is very easy to restrict the term generation to ground terms:
 %we simply fix the set of variables in the desired signature to the
 %empty set before calling the generator.
 
-\noindent (4)
+\noindent (iv)
 We set $C_3 \coloneqq L_3 \lor L_2\theta$ as an instance of the
 conclusion of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
       C_3

@@ -5,13 +5,13 @@ some issues may arise if the restrictions on the randomly generated formula are 
 \begin{itemize}
     \item
         The sample space might be empty or very sparse.
-        In practice, this manifests as the generator seemingly getting stuck,
+        In practice, it seems to the user as if the generator got stuck,
         usually resulting in the process being killed by the user. 
         For example,
         consider the restriction on polarities of propositional
         variables. % (Sect.~\ref{sec:sat}).
         Combined with the other restrictions,
-        it is impossible to get a formula that contains atomic proposition
+        it is impossible to get a formula that contains atomic propositions
         of purely positive and purely negative polarity at the same time.
 
     \item
@@ -45,7 +45,7 @@ QuickCheck~\cite{ClaessenHughes:2000:QuickCheck}.
 %which we used for the first prototype.
 However, because of our many filtering criteria, we wanted the generator to support backtracking.
 To this end,
-we created a simple mtl-style typeclass \texttt{MonadChoose}
+we created a simple typeclass \texttt{MonadChoose} in the style of monad transformer library,
 with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices:
 \lstset{
     language=Haskell,
@@ -116,7 +116,7 @@ and $I \in \{f, g\}$ (for convenience, the table contains both $w_{i, f}$
 and $w_{i, g}$, as well as $p_{i, f}$ and $p_{i, g}$ for all values of~$i$).
 The lower part of the table displays the values of $i_1, I_1; i_2, I_2$; and $i_3, I_3$,
 corresponding to the three weight and precedence combinations selected for
-each instance of the clause set.
+each instance of the clause set.\todo{Make this easier to read?}
 
 \begin{table}
 \begin{center}
