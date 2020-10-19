@@ -1,5 +1,5 @@
 We implemented our approach to randomly generating
-SAT, SMT, and non-ground first-order problems within Haskell, whereas
+SAT, SMT, and non-ground first-order problems in Haskell, whereas
 our ground superposition problem generator was implemented in
 Python. All together, our toolchain involved about 2\,300 lines of code,
 including additional scripts for putting parts together.
@@ -20,7 +20,7 @@ including additional scripts for putting parts together.
 %Our random generators are generic over the evaluation method of choice points.
 %This allowed us to use the same code both for random sampling (to generate exams)
 %and for enumerating the sample space (to check whether it is sufficiently large).
-We encoded each randomly generated SMT and first-order formula within
+We encoded each randomly generated SMT and first-order formula into
 %%% (NOTE: didn't use any external solvers for the SAT part)
 the SMT-LIB input format~\cite{barrett2017smtlib} and, for sanity checks, ran the SMT
 solver Z3~\cite{Z3}  and the first-order theorem prover

@@ -1,25 +1,17 @@
 We first describe our solution for generating automated reasoning
 benchmarks in a fully automated and random manner. We used this
 setting for generating exam problems on SAT solving and first-order
-theorem proving, by 
-% we discuss the two remaining problems of our exam sheet.
-%For these problems, we generate instances randomly,
-filtering out problem instances that are either too
+theorem proving, by filtering out problem instances that are either too
 hard or too easy. Throughout this paper, we assume basic familiarity with standard first-order
 logic and refer to the literature~\cite{SAT09,Vampire13} for further details.
 
 
 \subsection{Boolean Satisfiability (SAT)}\label{sec:sat}
 
-% We describe our random generation of exam problems on SAT solving by
-% first
-% showing  one generated SAT exam problem, as
-% below.
 In our exam problem on SAT solving, students were asked to
 (a)~determine which atoms are of pure polarity in the formula,
 (b)~compute a polarity-optimized clausal normal form (CNF)~\cite{Tseytin70},
 and (c)~decide satisfiability of the computed CNF formula by applying the DPLL algorithm.
-% Thus, our task for this problem was to generate suitable propositional formulas.
 
 Randomly generating propositional formulas in a naive setting would lead
 to a huge variety of formulas,
@@ -39,7 +31,6 @@ To this end, we identified several  syntactical characteristics
 that the exam problems on SAT solving should exhibit,
 and filtered the generated formulas by these, as summarized  partially
 below.
-\todo{How were these characteristics identified? (Based on experience/exam assignments from previous years?)}
 \smallskip
 %
 % The criteria are the following:
@@ -124,6 +115,13 @@ below.
 %         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
 %\end{compactenum}
 
+Our aim was to create problems of similar difficulty as in previous iterations of the course,
+which is why we used exams from previous years as a reference point.
+Some of the criteria, such as the number of connectives and variables,
+come from this previous experience.
+Other criteria, such as the restrictions on connectives and atom polarity,
+have been refined iteratively by checking the output for trivial or too complicated instances.
+
 While the combination of the above conditions might seem very restrictive,
 we note that 
 %Thus, we enumerated the sample space to see how much variety is possible:
@@ -146,7 +144,7 @@ if we do not want to distinguish formulas that differ only by a permutation of a
 Moving beyond Boolean satisfiability, we developed a random problem
 generator for first-order formulas with equality, in the setting of
 superposition-based first-order theorem proving with redundancy elimination~\cite{Rubio01,Vampire13}.
-In this problem, a concrete inference\footnote{i.e., an instance of an inference rule as opposed to the rule itself}
+In this problem, a concrete inference\footnote{I.e., an instance of an inference rule as opposed to the rule itself}
 was given to the students, and their task was to
 (a) prove that the inference is sound
 and (b) that the inference is a simplification inference.
@@ -186,7 +184,10 @@ C\theta\subseteq B\vee D$, and hence the second premise $\neg B \vee
 D$ (or $B \vee
 D$) of~\eqref{eq:sr} is redundant and can  be deleted from the search
 space after applying~\eqref{eq:sr} within proof search.
-\todo{Should we define mgu/substitution? (One reviewer asked us to.)}
+\todo{Should we define mgu/substitution? (One reviewer asked us to.);
+JR: I would not define it in this paper, because to really understand this part
+you need much more background anyways, which we can't provide here
+(but expanding the abbreviation ``mgu'' is a good idea)}
 
 We randomly generated first-order instances of the inference rule~\eqref{eq:sr}, as
 discussed next. Our setting could however be easily extended to other
@@ -244,7 +245,6 @@ conclusion of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
       &
       {C_2}}$ as an instance of~\eqref{eq:sr}.\smallskip
 
- 
 
 % Following this, we generate a ground substitution $\theta$ by randomly generating two ground terms.
 % Note that is very easy to restrict the term generation to ground terms:

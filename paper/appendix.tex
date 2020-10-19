@@ -45,7 +45,7 @@ QuickCheck~\cite{ClaessenHughes:2000:QuickCheck}.
 %which we used for the first prototype.
 However, because of our many filtering criteria, we wanted the generator to support backtracking.
 To this end,
-we created a simple typeclass \texttt{MonadChoose} in the style of monad transformer library,
+we created a simple typeclass \texttt{MonadChoose} in the style of the monad transformer library (mtl),
 with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices:
 \lstset{
     language=Haskell,

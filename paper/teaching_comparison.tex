@@ -17,7 +17,32 @@ the solutions require applying complicated reasoning algorithms on paper, and
 the grade has to take into account the whole process, not just the result.
 However, the use of templates made the grading fairly similar to grading multiple
 solutions of the same problem by providing a clear pattern to follow.
-\todo{How about problems 1 and 4?}
+%
+%  4 -- underlying argument was independent of term structure,
+%       so that was easy to check,
+%       what varied per student was the substitution/mgu
+This observation extends to %problem 4,
+the problem on non-ground superposition,
+because the argument required in the solution does not depend majorly on the generated parts,
+even though we did not use an explicit template.
+% The same holds for problem 4, where we do not use an explicit template
+% but the argument does not depend majorly on the generated parts.
+%
+%  1 -- more work to check as all steps may vary depending on the input;
+%       (to help here, one could automate also the solution generation;
+%       but: at some points there are multiple correct possibilities which affect the way forward,
+%       order is not fixed,
+%       and: if the student makes a mistake, we still give points for subsequent work
+%           if the reasoning is correct (even if the result is not).
+The situation is different for %problem 1, however.
+the problem on boolean satisfiability.
+There, the solution varies greatly with the input formula,
+and grading a different instance requires mentally stepping through the problem again.
+% It might be interesting future work to also automatically generate fully worked solutions
+One might suggest to also generate fully worked solutions to this problem,
+however it is not immediately clear that this would be helpful:
+at various points, the students may choose among multiple correct possibilities,
+each of which leads to differences in subsequent parts of the solution.
 
 The average exam score was 79.9\%, compared to TODO in 2019 (2018).
 \todo{If the scores are comparable, say something like "Thus, we believe

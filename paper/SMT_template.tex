@@ -10,38 +10,16 @@ Nelson-Oppen decision procedure~\cite{Nelson79}.
 %One of our goals for this problem was to ensure that a correct solution
 %requires combined reasoning in the theories of arrays, equality, and integers.
 
-With a  naive random generation,  it might however happen
+With naive random generation, it might however happen
 that, for example, array reasoning is actually not needed to derive
 (un)satisfi\-ability of the generated SMT formula. We therefore constructed an
-SMT formula template and 
-%
-% We did not opt for full random generation of this problem
-% for pragmatic reasons:
-% we want the Nelson-Oppen-style reasoning to be roughly the same for all instances,
-% i.e., we want a correct solution to require combined reasoning
-% in the theories of arrays, equality, and integers.
-% With naive random generation it might well happen that e.g. array operations appear in the formula,
-% but no array reasoning is required to prove unsatisfiability.
-%
-% For this reason, we prepared a suitable formula to be used as template
-%For this reason,
-%we did not opt for full random generation of this problem
-%but instead prepared a suitable formula to be used as template.
-%To obtain different problems,
-%we
-randomly introduced small perturbations in this template,  so that the
-theory-specific reasoning in all generated SMT instances is
+SMT formula template and randomly introduced small perturbations in this template,
+so that the theory-specific reasoning in all generated SMT instances is
 different while reasoning in all theories is necessary.
-%that the resulting SMT instances .
-%These variations may slightly alter the reasoning required inside the theories,
-%but should not change the fact that reasoning in \emph{all} theories is necessary.
+%
 For doing so, we considered an SMT template with two constants of
 integer sorts and replaced an integer-sorted constant symbol $c$ by  integer-sorted terms $c+i$,
 where $i \in \{-3,-2,\dots,3\}$ is chosen randomly. We flattened nested arithmetic terms such as $(c+i)+j$ to $c+k$,
 where $i,j,k$ are integers and $k = i+j$. As a result, we
 generated 49 different SMT problems; we illustrate one such formula, together
 with its reasoning tasks, in Problem~2 of Appendix~\ref{appendixA}.
-
-% These changes may slightly alter the reasoning required inside the
-% theories, but do not change the fact that reasoning in \emph{all} theories
-% is necessary.
