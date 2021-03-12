@@ -18,8 +18,8 @@ so that the theory-specific reasoning in all generated SMT instances is
 different while reasoning in all theories is necessary.
 %
 For doing so, we considered an SMT template with two constants of
-integer sorts and replaced an integer-sorted constant symbol $c$ by  integer-sorted terms $c+i$,
+integer sort and replaced an integer-sorted constant symbol $c$ by  integer-sorted terms $c+i$,
 where $i \in \{-3,-2,\dots,3\}$ is chosen randomly. We flattened nested arithmetic terms such as $(c+i)+j$ to $c+k$,
 where $i,j,k$ are integers and $k = i+j$. As a result, we
-generated 49 different SMT problems; we illustrate one such formula, together
-with its reasoning tasks, in Problem~2 of Appendix~\ref{appendixA}.
+generated 49 different SMT problems; we show one such formula, together
+with the corresponding reasoning tasks, in Problem~2 of Appendix~\ref{appendixA}.

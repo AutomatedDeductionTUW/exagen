@@ -2,11 +2,12 @@ For generating quantifier-free first-order formulas with equalities,
 over which ground and ordered superposition reasoning had to be employed, we
 aimed at (i)  generating  unsatisfiable sets $S$ of ground formulas with
 uninterpreted functions symbols, such that (ii)  refutation proofs
-of $S$ had similar lengths and complexities. Similar to
+of $S$ had similar lengths and complexities. Similarly to
 Section~\ref{sec:smt}, we fixed a template for $S$  and only varied
+its instantiation and
 the Knuth-Bendix ordering (KBO)~\cite{Knuth1970}~$\succ$ to be used for refuting  $S$
 within the superposition calculus. To this end, we considered
-variations of weight functions $w$ and symbol precedence $\gg$ over $S$,
+variations of weight function $w$ and symbol precedence $\gg$ over $S$,
 yielding thus different KBOs $\succ$ to be used for refuting $S$.
 The main steps of our approach are summarized below.\smallskip
 
@@ -46,6 +47,45 @@ As a result, we produced 12 instances of $S$ satisfying the above properties.\sm
 %Generating the weight function and symbol precedence was slightly more
 %complicated. The reason was that we wanted
 
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{r@{\hskip 0.5em}c c c c@{\hskip 0.5em} |@{\hskip 0.5em} l@{\hskip 1em} ||@{\hskip 0.5em} r@{\hskip 0.5em} c c c c@{\hskip 0.5em} |@{\hskip 0.5em} l}
+  weight of: & $f$ & $g$ & $a$ & $b$ & precedence
+  & weight of: & $f$ & $g$ & $a$ & $b$ & precedence \\ \hline
+  $w_{1,f}:$  & 1   & 3   & 2   & 1   & $p_{1,f}: a \gg b \gg f \gg g$ &
+  $w_{1,g}:$  & 3   & 1   & 2   & 1   & $p_{1,g}: a \gg b \gg g \gg f$ \\ \hline
+  $w_{2,f}:$  & 0   & 3   & 2   & 1   & $p_{2,f}: f \gg a \gg g \gg b$ &
+  $w_{2,g}:$  & 3   & 0   & 2   & 1   & $p_{2,g}: g \gg a \gg f \gg b$ \\ \hline
+  $w_{3,f}:$  & 0   & 1   & 3   & 1   & $p_{3,f}: f \gg a \gg b \gg g$ &
+  $w_{3,g}:$  & 1   & 0   & 3   & 1   & $p_{3,g}: g \gg a \gg b \gg f$ \\ \hline
+  $w_{4,f}:$  & 1   & 2   & 3   & 1   & $p_{4,f}: g \gg f \gg a \gg b$ &
+  $w_{4,g}:$  & 2   & 1   & 3   & 1   & $p_{4,g}: f \gg g \gg a \gg b$ 
+  % original table:
+  %$w_1(h_1) = w_1(b) = 1, w_1(a) = 2, w_1(h_2) = 3$ & \quad $p_1: a \gg b \gg h_1 \gg h_2$ \\
+  %$w_2(h_1) = 0, w_2(b) = 1, w_2(a) = 2, w_2(h_2) = 3$ & \quad $p_2: h_1 \gg a \gg h_2 \gg b$ \\
+  %$w_3(h_1) = 0, w_3(b) = w_3(h_2) = 1, w_3(a) = 3$ & \quad $p_3: h_1 \gg a \gg b \gg h_2$ \\
+  %$w_4(b) = w_4(h_1) = 1, w_4(h_2) = 2, w_4(a) = 3$ & \quad $p_4: h_2 \gg h_1 \gg a \gg b$ \\
+\end{tabular}
+\hspace*{0.5em}
+\caption{Weights and precedences for the ground superposition problem.}
+\label{tab:ground-sup-wp}
+\end{center}
+\end{table}
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{l@{\hskip 1.05em} || c | c | c}
+condition & $i_1, I_1$ & $i_2, I_2$ & $i_3, I_3$ \\ \hline
+$F \not = G$ and $X \not= Y$ & $1,E$ & $2, E$ & $3, E$ \\
+$F \not = G$ and $X = Y$ & $1, H$ & $2, E$ & $4, H$ \\
+$F = G$ and $X \not= Y$ & $1, H$ & $2, H$ & $3, E$
+\end{tabular}
+\hspace*{0.5em}
+\caption{Assignment of KBOs to instances of the ground superposition problem.}
+\label{tab:ground-sup-as}
+\end{center}
+\end{table}
+
 \noindent(iii) We considered the term algebras induced by the generated
 instances of $S$ and designed KBOs $\succ$ such that
 refuting the respective instances of $S$ using $\succ$ requires
@@ -60,9 +100,24 @@ at least one application of superposition, $a$ is replaced by either $F(X)$ or $
 in the resulting clause. % (this is desirable because it contradicts
 %an incorrect intuition that a constant should always be smaller than a term
 %containing a unary function).
-We generated eight different KBOs $\succ$ fulfilling these conditions,
-to be used with instances of $S$, as
-illustrated in Table~\ref{tab:ground-sup} of Appendix~\ref{appB:FO}.\smallskip
+We generated eight different KBOs $\succ$ fulfilling these conditions.
+The weights and precedences used to generate the KBOs
+are displayed in Table~\ref{tab:ground-sup-wp}.
+The table shows all weight and precedence combinations,
+denoted as $w_{i, I}, p_{i, I}$ for $i \in \{1, 2, 3, 4\}$
+and $I \in \{f, g\}$.\footnote{Note that for all values of~$i$,
+$w_{i, f}(f) = w_{i, g}(g)$ and $w_{i, f}(g) = w_{i, g}(f)$,
+and the precedences $p_{i, f}, p_{i, g}$ are the same except for
+the precedence of $f, g$. However,
+for convenience, the table contains both $w_{i, f}$
+and $w_{i, g}$, as well as $p_{i, f}$ and $p_{i, g}$ for all values of~$i$.}
+Each instance of $S$ was combined with three different KBOs, generated
+by pairs
+$(w_{i_1, I_1}, p_{i_1, I_1}), (w_{i_2, I_2}, p_{i_2, I_2}), (w_{i_3, I_3}, p_{i_3, I_3})$.
+The values of $i_1, I_1, i_2, I_2, i_3, I_3$ are chosen
+based on the values of $F, G, X, Y$, as expressed by the
+conditions in Table~\ref{tab:ground-sup-as}.
+\smallskip
 
 %Then, for each instance of the clause set, we generated three instances of the exam problem
 %using three out of the eight possible orderings, selected depending on the values
