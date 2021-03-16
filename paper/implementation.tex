@@ -30,7 +30,14 @@ randomly generated exam sheets -- one such exam sheet is given in
 Appendix~\ref{appendixA}. 
 \todo{Maybe explain the implementation in more detail?}
 
-%
+Regarding the filtering of generated formulas using the constraints discussed in Section~\ref{sec:satfo},
+we did not require very efficient algorithms since the formulas under consideration are very small.
+For example, for the restriction on the number of models we used a naive satisfiability test
+based on evaluating the formula under each possible interpretation.
+Thanks to this approach it is easy to add new filters/constraints.
+% An advantage of this is that the addition of new filters/constraints is relatively easy.
+
+
 %problem generation Our implementation consists of various programs that are tied together by a control script.
 %The control script calls all problem generators
 %and compiles the exam sheets, resulting in $n$ different exams in PDF format.

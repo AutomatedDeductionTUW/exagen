@@ -1,48 +1,48 @@
-\subsection{Details on Random Problem Generation}\label{appB:SAT}
+\subsection{Implementation Details on Random Problem Generation}\label{appB:SAT}
 
-As we alluded to in Section~\ref{sec:sat},
-some issues may arise if the restrictions on the randomly generated formula are too strict:
-\begin{itemize}
-    \item
-        The sample space might be empty or very sparse.
-        In practice, it seems to the user as if the generator got stuck,
-        usually resulting in the process being killed by the user. 
-        For example,
-        consider the restriction on polarities of propositional
-        variables. % (Sect.~\ref{sec:sat}).
-        Combined with the other restrictions,
-        it is impossible to get a formula that contains atomic propositions
-        of purely positive and purely negative polarity at the same time.
+% As we alluded to in Section~\ref{sec:sat},
+% some issues may arise if the restrictions on the randomly generated formula are too strict:
+% \begin{itemize}
+%     \item
+%         The sample space might be empty or very sparse.
+%         In practice, it seems to the user as if the generator got stuck,
+%         usually resulting in the process being killed by the user. 
+%         For example,
+%         consider the restriction on polarities of propositional
+%         variables. % (Sect.~\ref{sec:sat}).
+%         Combined with the other restrictions,
+%         it is impossible to get a formula that contains atomic propositions
+%         of purely positive and purely negative polarity at the same time.
 
-    \item
-        The second issue manifests less drastically but is perhaps more problematic:
-        the sample space may be too uniform,
-        leading to the generation of trivial and/or very similar
-        formulas. 
-        In particular, we encountered this problem
-        when we restricted the number of models to exactly one, or zero.
-        We note that there simply are not that many ways to rule out 8 interpretations
-        using only 7 connectives.
-\end{itemize}
-
-
+%     \item
+%         The second issue manifests less drastically but is perhaps more problematic:
+%         the sample space may be too uniform,
+%         leading to the generation of trivial and/or very similar
+%         formulas. 
+%         In particular, we encountered this problem
+%         when we restricted the number of models to exactly one, or zero.
+%         We note that there simply are not that many ways to rule out 8 interpretations
+%         using only 7 connectives.
+% \end{itemize}
 
 
 
-Regarding the filtering of generated formulas using the constraints discussed in Section~\ref{sec:satfo},
-we did not require very efficient algorithms since
-the formulas under consideration are very small.
-For example, for the restriction on the number of models we used a naive satisfiability test
-based on evaluating the formula under each possible interpretation.
-An advantage of this is that the addition of new filters/constraints is relatively easy.
+
+
+% Regarding the filtering of generated formulas using the constraints discussed in Section~\ref{sec:satfo},
+% we did not require very efficient algorithms since
+% the formulas under consideration are very small.
+% For example, for the restriction on the number of models we used a naive satisfiability test
+% based on evaluating the formula under each possible interpretation.
+% An advantage of this is that the addition of new filters/constraints is relatively easy.
 
 
 
 
 For the random problem generation setting of Section~\ref{sec:satfo},
-we used design principles from the Haskell library
+we applied design principles of the Haskell library
 QuickCheck~\cite{ClaessenHughes:2000:QuickCheck}.
-%which we used for the first prototype.
+\todoi{There should be a sentence about the "design principles" that says what a generator is...}
 However, because of our many filtering criteria, we wanted the generator to support backtracking.
 To this end,
 we created a simple typeclass \texttt{MonadChoose} in the style of the monad transformer library (mtl),

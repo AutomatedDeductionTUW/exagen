@@ -97,7 +97,9 @@ below.
     %     but not $p \rightarrow q$.
 
 \noindent(iv)
-        The polarity-optimized clausal normal form results in a set of definitions,
+        % The polarity-optimized clausal normal form of the SAT formula should not be trivial.
+        % \todo{JR: the first sentence reads like a restriction when it's in fact an explanation}
+        Recall that the polarity-optimized clausal normal form involves a set of definitions,
         each of which is of the form
         $n \circ \varphi$ with $\circ \in \{ \rightarrow, \leftarrow, \leftrightarrow \}$,
         a fresh propositional variable~$n$, and a formula~$\varphi$.
@@ -105,7 +107,7 @@ below.
         $\circ$ appear in its CNF.\smallskip
 
 \noindent(v)
-        The SAT formula has at most $6$ models.
+        The SAT formula has at most six models.
         % Since there are $2^3 = 8$ different interpretations,
         % this means the formula is not valid.
         \smallskip
@@ -122,7 +124,7 @@ come from this previous experience.
 Other criteria, such as the restrictions on connectives and atom polarity,
 have been refined iteratively by checking the output for trivial or too complicated instances.
 
-While the combination of the above conditions might seem very restrictive,
+Although the combination of the above conditions might seem very restrictive,
 we note that 
 %Thus, we enumerated the sample space to see how much variety is possible:
 %as it turns out,
@@ -134,6 +136,27 @@ if we do not want to distinguish formulas that differ only by a permutation of a
 % Thus, we are able to generate a large
 % number of unique SAT formulas to be used in online examinations and
 % beyond.
+
+While experimenting with different constraints, we encountered the following
+issues that may arise if the restrictions on the randomly generated formula are too strict:
+\begin{itemize}
+    \item
+        The sample space might be empty or very sparse.
+        In practice, it seems to the user as if the problem generator got stuck,
+        usually resulting in the process being killed by the user.
+        For example, consider the restriction on polarities of propositional variables.
+        Combined with the other restrictions,
+        it is impossible to get a formula that contains atomic propositions
+        of purely positive and purely negative polarity at the same time.
+    \item
+        The second issue manifests less drastically but is perhaps more problematic:
+        the sample space may be too uniform,
+        leading to the generation of trivial and/or very similar formulas.
+        In particular, we encountered this problem
+        when we restricted the number of models to exactly one, or zero.
+        We note that there simply are not that many ways to rule out eight interpretations
+        using only seven connectives.
+\end{itemize}
 
 
 
@@ -177,17 +200,13 @@ considered the simplification inference of
       &
       {B \vee D}
     }
-      \end{equation}
-      where $A,B$ are atoms and $C,D$ are clauses
-      such that for some substitution (or a most general unifier) $\theta$ we have $A\theta\vee
-C\theta\subseteq B\vee D$, and hence the second premise $\neg B \vee
-D$ (or $B \vee
-D$) of~\eqref{eq:sr} is redundant and can  be deleted from the search
+\end{equation}
+where $A,B$ are atoms and $C,D$ are clauses
+such that~$A$ and~$B$ are unifiable with the most general unifier~$\theta$,
+and we have $A\theta\vee C\theta\subseteq B\vee D$.
+Due to the last condition, the second premise $\neg B \vee D$ (or $B \vee D$)
+of~\eqref{eq:sr} is redundant and can  be deleted from the search
 space after applying~\eqref{eq:sr} within proof search.
-\todo{Should we define mgu/substitution? (One reviewer asked us to.);
-JR: I would not define it in this paper, because to really understand this part
-you need much more background anyways, which we can't provide here
-(but expanding the abbreviation ``mgu'' is a good idea)}
 
 We randomly generated first-order instances of the inference rule~\eqref{eq:sr}, as
 discussed next. Our setting could however be easily extended to other
