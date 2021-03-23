@@ -17,7 +17,7 @@ not much work on online examinations has so far emerged.
 In this paper we survey our teaching-related project work in organizing online
 written exams, where the exam solutions require rigorous
 logical reasoning and proofs rather than using mechanized test grids.
-In particular, we were faced with the challenge of organizing online
+In particular, we are faced with the challenge of organizing online
 written exams for our master's level course ``Automated
 Deduction'' in logic and computation at TU
 Wien\footnote{\url{https://tiss.tuwien.ac.at/course/courseDetails.xhtml?dswid=2002\&dsrid=601\&courseNr=184774\&semester=2020S}}.
@@ -48,32 +48,43 @@ individual exam problems on
 \item
     SAT solving, by imposing (mostly) syntactical constraints on
     randomly generated SAT formulas (Section~\ref{sec:sat});
+    
 \item Satisfiability modulo theory (SMT) reasoning, by exploiting reasoning in a combination of theories
-  and varying patterns of SMT problem templates (Section~\ref{sec:smt}); 
+  and varying patterns of SMT problem templates
+  (Section~\ref{sec:smt});
+  
 \item First-order theorem proving, by adjusting simplification
   orderings in superposition reasoning and using redundancy elimination
   in first-order proving, both in the ground/quantifier-free 
   and non-ground/quantified setting (Section~\ref{sec:fo}
   and Section~\ref{sec:qf}). 
 \end{itemize}
+
 For each of the SMT and first-order problems we generated, we used respective
 SMT and first-order solvers to perform an additional sanity check
 (Section~\ref{sec:implementation}).
-Our toolchain and the generated benchmarks/exams are available at \url{https://github.com/JakobR/exagen}.
+Our toolchain and the generated benchmarks/exams are available at
 
-We believe our framework could be beneficial not only for other
+\begin{center}
+  \url{https://github.com/JakobR/exagen}
+\end{center}
+
+We believe our framework is beneficial not only for other
 distance learning platforms, but also to researchers in automated
-reasoning, by providing our community with a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
-While our proposal is specific to the formal aspects of automated
-reasoning, we note that  our framework can be extended with further
+reasoning as we provide our scientific community
+a large set of randomly generated benchmarks in SAT/SMT solving and first-order theorem proving.
+While our teaching-related project delivery is specific to formal aspects of automated
+reasoning, we note that our work can be extended with further
 constraints to scale it to other courses in formal methods. 
 
-This paper is structured as follows. In Sections~\ref{sec:satfo} and~\ref{sec:smtqf}
-we discuss the high-level approach to generating the exam problems,
-while in Section~\ref{sec:implementation}
-we describe the implementation. Finally, in Section~\ref{sec:comparison} we compare
-the teaching outcomes from the exam with those from previous years.
-\todo{PH: Do we want to keep the section with teaching outcomes?
-JR: I would tend towards keeping it (if we can fill the remaining
-numbers for the TODOs). LK: yes, we should keep this; good for project
-survery :)}
+This paper is structured as follows. In Sections~\ref{sec:satfo}-~\ref{sec:smtqf}
+we discuss the high-level approach to generating the exam
+problems. Section~\ref{sec:implementation} surveys the main implementation principles supporting our
+solution.
+Finally, in Section~\ref{sec:comparison} we compare
+the teaching outcomes of our online written exam with those coming
+from previou in-class examinations. \todo{complete the summary of comparison}
+%\todo{PH: Do we want to keep the section with teaching outcomes?
+%JR: I would tend towards keeping it (if we can fill the remaining
+%numbers for the TODOs). LK: yes, we should keep this; good for project
+%survery :)}

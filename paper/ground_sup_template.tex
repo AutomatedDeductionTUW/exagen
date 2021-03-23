@@ -11,41 +11,6 @@ variations of weight function $w$ and symbol precedence $\gg$ over $S$,
 yielding thus different KBOs $\succ$ to be used for refuting $S$.
 The main steps of our approach are summarized below.\smallskip
 
-\noindent(i) We fixed the template for $S$ to be the following set of four clauses
-\begin{align}
-  &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
-  &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:2} \\
-  &G(Y) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:3} \\
-  &E(a) \not= a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:4},
-\end{align}
-where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$, and the literal
-in $[~]$ is added to the clauses optionally.\smallskip
-
-
-\noindent(ii)
-We created
-instances of $S$ of this template ensuring that no clause in $S$ is
-redundant, by considering the following constraints.
-\begin{itemize}
-  \item $E \not = H$ and $F(X) \not = G(Y)$;
-  \item Either $X$ or $Y$ is not $a$. Similarly, either $F$ or $G$ is not $E$;
-  \item The literal $H(b) \not = H(b)$ is in exactly one of the
-    clauses~\eqref{gs:2},~\eqref{gs:3},~\eqref{gs:4}.
-\end{itemize}
-%These properties ensure that no clause in the set is redundant,
-%and that different instances of the set look sufficiently different.
-As a result, we produced 12 instances of $S$ satisfying the above properties.\smallskip
-%
-%An example of such instance of the clause set is:
-%\begin{align}
-%  &f(g(a)) = a \,\lor\, f(f(b)) = a \label{gs:1} \\
-%  &g(a) = a  \label{gs:2} \\
-%  &f(b) = a \, \lor\, g(b) \not= g(b) \label{gs:3} \\
-%  &f(a) \not= a  \label{gs:4},
-%\end{align}
-
-%Generating the weight function and symbol precedence was slightly more
-%complicated. The reason was that we wanted
 
 \begin{table}[t]
 \begin{center}
@@ -69,8 +34,46 @@ As a result, we produced 12 instances of $S$ satisfying the above properties.\sm
 \hspace*{0.5em}
 \caption{Weights and precedences for the ground superposition problem.}
 \label{tab:ground-sup-wp}
-\end{center}
+\end{center}\vspace*{-2em}
 \end{table}
+
+\begin{itemize}
+\item[(i)] We fixed the template for $S$ to be the following set of four clauses
+\begin{align}
+  &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
+  &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:2} \\
+  &G(Y) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:3} \\
+  &E(a) \not= a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:4},
+\end{align}
+where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$, and the literal
+in $[~]$ is added to the clauses optionally.\\
+
+
+\item[(ii)]
+We created
+instances of $S$ of this template ensuring that no clause in $S$ is
+redundant, by considering the following constraints.
+\begin{itemize}
+  \item $E \not = H$ and $F(X) \not = G(Y)$;
+  \item Either $X$ or $Y$ is not $a$. Similarly, either $F$ or $G$ is not $E$;
+  \item The literal $H(b) \not = H(b)$ is in exactly one of the
+    clauses~\eqref{gs:2},~\eqref{gs:3},~\eqref{gs:4}.
+\end{itemize}
+%These properties ensure that no clause in the set is redundant,
+%and that different instances of the set look sufficiently different.
+As a result, we produced 12 instances of $S$ satisfying the above properties.\\
+%
+%An example of such instance of the clause set is:
+%\begin{align}
+%  &f(g(a)) = a \,\lor\, f(f(b)) = a \label{gs:1} \\
+%  &g(a) = a  \label{gs:2} \\
+%  &f(b) = a \, \lor\, g(b) \not= g(b) \label{gs:3} \\
+%  &f(a) \not= a  \label{gs:4},
+%\end{align}
+
+%Generating the weight function and symbol precedence was slightly more
+%complicated. The reason was that we wanted
+
 
 \begin{table}[t]
 \begin{center}
@@ -86,7 +89,7 @@ $F = G$ and $X \not= Y$ & $1, H$ & $2, H$ & $3, E$
 \end{center}
 \end{table}
 
-\noindent(iii) We considered the term algebras induced by the generated
+\item[(iii)] We considered the term algebras induced by the generated
 instances of $S$ and designed KBOs $\succ$ such that
 refuting the respective instances of $S$ using $\succ$ requires
 ordering terms both using weight $w$ and precedence $\gg$. %To make the exam problem fair and sufficiently challenging, we wanted to find
@@ -118,11 +121,12 @@ The values of $i_1, I_1, i_2, I_2, i_3, I_3$ are chosen
 based on the values of $F, G, X, Y$, as expressed by the
 conditions in Table~\ref{tab:ground-sup-as}.
 \smallskip
-
+\end{itemize}
 %Then, for each instance of the clause set, we generated three instances of the exam problem
 %using three out of the eight possible orderings, selected depending on the values
 %of $E, F, G, H, X$ and $Y$.
-Ultimately, we obtained 36 different problems (combinations of
+
+  Ultimately, we obtained 36 different problems (combinations of
 instances of $S$ and $\succ$) for  the ground
-superposition reasoning task of our exam; Problem~3 of
+superposition reasoning task of our exam.  Problem~3 of
 Appendix~\ref{appendixA} shows such an instance.
