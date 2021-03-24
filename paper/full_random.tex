@@ -125,6 +125,19 @@ come from this previous experience.
 Other criteria, such as the restrictions on connectives and atom polarity,
 have been refined iteratively by checking the output for trivial or too complicated instances.
 
+\begin{figure}
+  \makebox[\textwidth][c]{
+    % WITHOUT FRAME:
+    % \includegraphics[page=1,width=1.5\textwidth,trim=0in 1.8in 0in 0in]{./exam-36.pdf}
+    % WITH FRAME:
+    \frame{
+      \includegraphics[page=1,width=1.2\textwidth,trim=0.8in 1.7in 0.8in 0.1in]{./exam-36.pdf}
+    }
+  }
+  \caption{An example of a randomly generated exam sheet of automated deduction.}
+  \label{fig:exam}
+\end{figure}
+
 Although the combination of the above conditions (i)-(v) might seem very restrictive,
 we note that 
 %Thus, we enumerated the sample space to see how much variety is possible:
@@ -135,7 +148,7 @@ Further,
 if we do not want to distinguish formulas that differ only by a permutation of atoms,
 3\,398\,346 formulas remain.
 We are thus able to generate a large number of unique SAT formulas to be used in online examinations and
-beyond. Problem~1 of Appendix~\ref{appendixA} showcases one SAT
+beyond. Problem~1 of Figure~\ref{fig:exam} showcases one SAT
 reasoning challenge we automatically generated for one  online
 examination sheet. 
 
@@ -204,7 +217,7 @@ considered the simplification inference of
       {B \vee D}
     }
   \end{equation}
-  
+%
 where $A,B$ are atoms and $C,D$ are clauses
 such that~$A$ and~$B$ are unifiable with the most general unifier~$\theta$,
 and we have $A\theta\vee C\theta\subseteq B\vee D$.
@@ -294,5 +307,5 @@ conclusion of~\eqref{eq:sr}, yielding thus the inference $\infer[]{
 
 We found that with the concrete signature used for our exam,
 based on the above steps (i)-(iv), our approach can generate more than $10^{11}$ different instances
-of the inference~\eqref{eq:sr}. Problem~4 of Appendix~\ref{appendixA}
+of the inference~\eqref{eq:sr}. Problem~4 of Figure~\ref{fig:exam}
 lists one such an instance. 
