@@ -1,4 +1,4 @@
-\subsection{Implementation Details on Random Problem Generation}\label{appB:SAT}
+% \subsection{Implementation Details on Random Problem Generation}\label{appB:SAT}
 
 % As we alluded to in Section~\ref{sec:sat},
 % some issues may arise if the restrictions on the randomly generated formula are too strict:
@@ -39,71 +39,72 @@
 
 
 
-For the random problem generation setting of Section~\ref{sec:satfo},
-we applied design principles of the Haskell library
-QuickCheck~\cite{ClaessenHughes:2000:QuickCheck}.
-\todoi{There should be a sentence about the "design principles" that says what a generator is...}
-However, because of our many filtering criteria, we wanted the generator to support backtracking.
-To this end,
-we created a simple typeclass \texttt{MonadChoose} in the style of the monad transformer library (mtl),
-with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices:
-\lstset{
-    language=Haskell,
-    basicstyle=\small\ttfamily,
-    deletekeywords={MonadPlus,filter,length},
-    columns=fixed,
-}
-\begin{lstlisting}
-class MonadPlus m => MonadChoose m where
-  -- Choose element with uniform probability
-  choose :: [a] -> m a
-\end{lstlisting}
+% For the random problem generation setting of Section~\ref{sec:satfo},
+% we applied design principles of the Haskell library
+% QuickCheck~\cite{ClaessenHughes:2000:QuickCheck}.
+% Using QuickCheck, randomly generated data can easily be defined in an embedded generator language.
+% However, because of our many filtering criteria, we wanted the generator to additionally support backtracking.
+% Furthermore, we were interested in determining the size of the filtered sample space.
+% To this end,
+% we created a simple typeclass \texttt{MonadChoose} in the style of the monad transformer library (mtl),
+% with a single primitive operation \texttt{choose} for choosing an element from a list of possible choices:
+% \lstset{
+%     language=Haskell,
+%     basicstyle=\small\ttfamily,
+%     deletekeywords={MonadPlus,filter,length},
+%     columns=fixed,
+% }
+% \begin{lstlisting}
+% class MonadPlus m => MonadChoose m where
+%   -- Choose element with uniform probability
+%   choose :: [a] -> m a
+% \end{lstlisting}
 
-Our generator implementations are generic over the monad, constrained by \texttt{MonadChoose}.
-The following listing shows (a slightly simplified) part of the inference generator
-discussed in Section~\ref{sec:fo}.
-\begin{lstlisting}
-genExamInference :: MonadChoose m => m Inference
-genExamInference = do
-  -- Define signature (partially omitted)
-  let vars = ["x", "y", "z"]
-  let opts = GenOptions{ vars = vars, ... }
+% Our generator implementations are generic over the monad, constrained by \texttt{MonadChoose}.
+% The following listing shows (a slightly simplified) part of the inference generator
+% discussed in Section~\ref{sec:fo}.
+% \begin{lstlisting}
+% genExamInference :: MonadChoose m => m Inference
+% genExamInference = do
+%   -- Define signature (partially omitted)
+%   let vars = ["x", "y", "z"]
+%   let opts = GenOptions{ vars = vars, ... }
 
-  -- Choose variables to appear in l1 and l2
-  v1 <- choose vars
-  v2 <- choose (filter (/= v1) vars)
+%   -- Choose variables to appear in l1 and l2
+%   v1 <- choose vars
+%   v2 <- choose (filter (/= v1) vars)
 
-  -- Generate literals
-  -- l1: exactly one occurrence of v1
-  l1 <- mfilter ((==1) . length . toListOf variables)
-        $ genUninterpretedLiteral opts{ vars = [v1] }
-  -- l2: at least two occurrences of v2
-  l2 <- mfilter ((>=2) . length . toListOf variables)
-        $ genEqualityLiteral opts{ vars = [v2] }
-  -- l3: ground literal
-  l3 <- genUninterpretedLiteral opts{ vars = [] }
+%   -- Generate literals
+%   -- l1: exactly one occurrence of v1
+%   l1 <- mfilter ((==1) . length . toListOf variables)
+%         $ genUninterpretedLiteral opts{ vars = [v1] }
+%   -- l2: at least two occurrences of v2
+%   l2 <- mfilter ((>=2) . length . toListOf variables)
+%         $ genEqualityLiteral opts{ vars = [v2] }
+%   -- l3: ground literal
+%   l3 <- genUninterpretedLiteral opts{ vars = [] }
 
-  -- (rest omitted)
-  return inference
+%   -- (rest omitted)
+%   return inference
 
-genEqualityLiteral, genUninterpretedLiteral
-  :: MonadChoose m => GenOptions -> m Literal
--- (literal generators omitted)
-\end{lstlisting}
+% genEqualityLiteral, genUninterpretedLiteral
+%   :: MonadChoose m => GenOptions -> m Literal
+% -- (literal generators omitted)
+% \end{lstlisting}
 
-We used two concrete implementations to evaluate generators:
-\begin{enumerate}
-    \item
-        \texttt{RandomChoice}, a monad that implements \texttt{choose}
-        as uniform random choice with backtracking support.
-        Conceptually, this is like the standard list monad
-        where \texttt{choose} works like the regular monadic bind for lists
-        except that it shuffles the list with a random permutation first.
-        This evaluation method is used to generate random exams.
-    \item
-        The standard list monad to enumerate the sample space.
-        This second evaluation method helps verifying that the sample space is sufficiently large.
-\end{enumerate}
+% We used two concrete implementations to evaluate generators:
+% \begin{enumerate}
+%     \item
+%         \texttt{RandomChoice}, a monad that implements \texttt{choose}
+%         as uniform random choice with backtracking support.
+%         Conceptually, this is like the standard list monad
+%         where \texttt{choose} works like the regular monadic bind for lists
+%         except that it shuffles the list with a random permutation first.
+%         This evaluation method is used to generate random exams.
+%     \item
+%         The standard list monad to enumerate the sample space.
+%         This second evaluation method helps verifying that the sample space is sufficiently large.
+% \end{enumerate}
 
 %\subsection{Weights and Precedences for Ground Superposition}\label{appB:FO}
 %
