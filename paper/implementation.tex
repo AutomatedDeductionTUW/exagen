@@ -30,7 +30,9 @@ randomly generated exam sheets -- one such exam sheet is given in
 Figure~\ref{fig:exam}.
 
 Regarding the filtering of generated formulas using the constraints discussed in Section~\ref{sec:satfo},
-we did not require very efficient algorithms since the formulas under consideration are very small.
+we implemented restrictions on the shape of formulas (items~(i) and~(iii) in Section~\ref{sec:sat}) as constraints during formula generation,
+while other critera were realized as post-generation filters.
+Regarding post-generation filtering, we did not require very efficient algorithms since the formulas under consideration are very small.
 For example, for the restriction on the number of models we used a naive satisfiability test
 based on evaluating the formula under each possible interpretation.
 Thanks to this approach it is easy to add new filters/constraints.

@@ -32,9 +32,6 @@ that the exam problems on SAT solving should exhibit,
 and filtered the generated formulas by these, as summarized  partially
 below.
 
-\todo[inline]{Which of the following are implemented as constraints on generation
-and which as a post-generation filter?}
-
 %
 % The criteria are the following:
 % Size: 7 connectives
@@ -55,7 +52,7 @@ and which as a post-generation filter?}
 % ]
 
 \begin{itemize}
-\item[(i)] %    \item
+\item[(i)] %\label{item:satsize} %    \item
         The SAT formula contains exactly seven logical connectives 
         and exactly three different propositional variables. \smallskip
         % (but each of these may appear multiple times).
@@ -70,8 +67,8 @@ and which as a post-generation filter?}
         There is at least one atom that appears with a pure polarity.\smallskip
         % (i.e., either only in positive position or only in negative
         % position).
-        
-\item[(iii)] %   \item
+
+\item[(iii)] %\label{item:satconn} %   \item
         The connectives ``$\leftrightarrow$'', ``$\rightarrow$'', and ``$\lnot$'' appear at least once,
         with ``$\leftrightarrow$'' appearing at most twice.
         At least one of ``$\land$'' and ``$\lor$'' appears. \smallskip
@@ -119,6 +116,9 @@ and which as a post-generation filter?}
 %         To avoid accidental difficulty introduced by visual complexity,
 %         the \LaTeX{} rendering of the formula should have a parenthesis nesting level of at most two.\smallskip
 \end{itemize}
+
+% Of these, items (i) and (iii) were implemented as constraints during formula generation,
+% while the other criteria were realized as post-generation filters.
 
 Our aim was to create problems of similar difficulty as in previous iterations of the course,
 which is why we used exams from previous years as a reference point.
