@@ -1,0 +1,245 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass[xcolor={table}]{beamer}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[frame number] % To replace the footer line in all slides with a simple slide count uncomment this line
+\setbeamertemplate{footline}{
+  \hspace*{0.8em}\insertshorttitle
+  \hfill
+  \insertframenumber{} \hspace*{0.8em}
+  \vspace*{0.3em}
+}
+
+\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage[table]{xcolor}
+%\usepackage{graphicx} % Allows including images
+%\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{amsmath}
+%\usepackage{proof}
+%\usepackage{array}
+%\usepackage{rotating}
+%\usepackage{adjustbox}
+%\usepackage{multirow}
+\usepackage[T1]{fontenc}
+
+\renewcommand{\implies}{\rightarrow}
+\newcommand\Wider[2][3em]{%
+\makebox[\linewidth][c]{%
+  \begin{minipage}{\dimexpr\textwidth+#1\relax}
+  \raggedright#2
+  \end{minipage}%
+  }%
+}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title{Automated Generation of Exam Sheets for Automated Deduction} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Petra Hozzov\'a, Laura Kov\'acs, \underline{Jakob Rath}} % Your name
+\institute{
+Vienna University of Technology%\\ % Your institution for the title page
+%\medskip
+%\textit{john@smith.com} % Your email address
+}
+\date{\vspace*{-3em}\small July 29, 2021} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage % Print the title page as the first slide
+\end{frame}
+\addtocounter{framenumber}{-1}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Motivation}
+\begin{itemize}
+\item Remote exams for Automated Deduction course
+\item Monitoring students -- not feasible
+\item Mulitple-choice exam format -- not sufficient
+\end{itemize}
+\pause
+  \vspace*{1em}
+\qquad $\Rightarrow$ generate unique exam for each student
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Goals}
+\begin{itemize}
+\item 4 problems requiring complex reasoning:
+  SAT solving, SMT solving, ground superposition, first-order theorem proving
+\item Tradeoff between problems being sufficiently similar and sufficiently different
+\item At least 31 instances of each problem
+\item Effcient generation
+\item Soundness checking
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Our solution}
+Combination of 2 approaches:
+\begin{enumerate}
+\item Random generation with filtering
+\item Variation of templates
+\end{enumerate}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Random problem generation}
+\begin{itemize}
+\item Used for problems on SAT solving and first-order theorem proving
+\item Generate a lot of problem instances and filter out unsuitable ones
+\item TODO: implementation details
+\item TODO: examples
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Random variation of problem template}
+\begin{itemize}
+\item Used for problems on SMT solving and ground superposition
+\item Design templates for first-order formulas (and orderings)
+  and generate their instances
+\item TODO: implementation details
+\item TODO: examples
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Implementation summary (TODO better slide title)}
+\begin{itemize}
+\item Around 2300 lines of code
+\item Sanity checks using Z3 and Vampire
+\item Conversion to \LaTeX
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Teaching outcomes}
+\begin{itemize}
+\item Less effort to generate the exams compared to manual method
+\item Grading reasonably simple
+\item Comparable students' performance
+\item High levels of student satisfaction (small sample)
+\item Framework reused in Summer 2021
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Conclusions}
+TODO some take-away message
+\begin{itemize}
+\item
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+
+\end{document} 
