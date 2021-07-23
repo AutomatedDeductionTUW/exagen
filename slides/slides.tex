@@ -223,16 +223,16 @@ Combination of 2 approaches:
   \begin{itemize}[<+->]
 \item[(i)] Fix the template for $S$:
 {\small
-\begin{align}
-  &E(F(X)) = a \,\lor\, E(G(Y)) = a \label{gs:1} \\
-  &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:2} \\
-  &G(Y) = a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:3} \\
-  &E(a) \not= a \,[\, \lor\, H(b) \not= H(b) \,] \label{gs:4},
-\end{align}
+\begin{align*}
+  &E(F(X)) = a \,\lor\, E(G(Y)) = a \\
+  &F(X) = a \,[\, \lor\, H(b) \not= H(b) \,] \\
+  &G(Y) = a \,[\, \lor\, H(b) \not= H(b) \,] \\
+  &E(a) \not= a \,[\, \lor\, H(b) \not= H(b) \,],
+\end{align*}
 }
 where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$.
 %and the literal in $[~]$ is added to the clauses optionally.\\
-\item[(ii)] Create 12 instances of the template without redundancy in $S$
+\item[(ii)] Generate 12 instances of the template without redundancy in $S$
   (using simple syntactic criteria).
 %, by considering the following constraints.
 %\begin{itemize}
