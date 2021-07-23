@@ -64,7 +64,7 @@
 %\usecolortheme{fly}
 %\usecolortheme{lily}
 %\usecolortheme{orchid}
-%\usecolortheme{rose}
+\usecolortheme{rose}
 %\usecolortheme{seagull}
 %\usecolortheme{seahorse}
 %\usecolortheme{whale}
@@ -102,13 +102,17 @@
   }%
 }
 
+\newcommand{\limpl}{\rightarrow}
+\newcommand{\liff}{\leftrightarrow}
+
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
 \title{Automated Generation of Exam Sheets for Automated Deduction} % The short title appears at the bottom of every slide, the full title is only on the title page
 
-\author{Petra Hozzov\'a, Laura Kov\'acs, \underline{Jakob Rath}} % Your name
+% \author{Petra Hozzov\'a, Laura Kov\'acs, \underline{Jakob Rath}} % Your name
+\author{todo} % Your name
 \institute{
 Vienna University of Technology%\\ % Your institution for the title page
 %\medskip
@@ -131,14 +135,38 @@ Vienna University of Technology%\\ % Your institution for the title page
 
 \begin{frame}
 \frametitle{Motivation}
-\begin{itemize}
-\item Remote exams for Automated Deduction course
-\item Monitoring students -- not feasible
-\item Mulitple-choice exam format -- not sufficient
-\end{itemize}
-\pause
-  \vspace*{1em}
-\qquad $\Rightarrow$ generate unique exam for each student
+
+    \begin{block}{Automated Deduction}
+        \begin{itemize}
+            \item Elective Master's level course at TU Wien
+            \item SAT solving, SMT solving, first-order ATP
+            \item Held remotely in summer semester 2020 (and 2021)
+        \end{itemize}
+    \end{block}
+
+    % \medskip
+
+    % Challenge:
+    % held remotely in summer semester 2020 (and 2021)
+
+    \medskip
+    \pause
+
+    \begin{alertblock}{Challenge: remote exams}
+        \begin{itemize}
+            \item Monitoring students -- not feasible
+            \item Multiple-choice exam format -- not sufficient
+        \end{itemize}
+    \end{alertblock}
+    % \begin{itemize}
+    %     \item 
+    %     \item Remote exams
+    %     \item Monitoring students -- not feasible
+    %     \item Multiple-choice exam format -- not sufficient
+    % \end{itemize}
+    \pause
+    \vspace*{1em}
+    \qquad $\Rightarrow$ generate unique exam for each student
 \end{frame}
 
 %------------------------------------------------
@@ -178,10 +206,84 @@ Combination of 2 approaches:
 \frametitle{Random problem generation}
 \begin{itemize}
 \item Used for problems on SAT solving and first-order theorem proving
-\item Generate a lot of problem instances and filter out unsuitable ones
-\item TODO: implementation details
-\item TODO: examples
+\item Generate random problem instances
+\item Filter out unsuitable ones
+% \item TODO: implementation details
+% \item TODO: examples
 \end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+    \frametitle{Random problem generation -- SAT solving}
+
+    \begin{block}{Exam problem}
+        Consider the propositional formula:
+        \[
+            (r \land \lnot (q \limpl p)) \lor (q \liff \lnot (p \limpl q))
+        \]
+        \vspace*{-1.5em}
+        \begin{enumerate}
+            \item Which atoms are pure?
+            \item Compute a clausal normal form.
+            \item Decide satisfiability using the DPLL algorithm.
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Random problem generation -- SAT solving}
+
+    TODO: impl details
+    (constraints during generation vs. post-filters;
+    Haskell-based and inspired by QuickCheck;
+    can use the same code for random generation and counting instances)
+
+    TODO: maybe give a list of 5 different formulas as examples
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+    \frametitle{Random problem generation -- First-order ATP}
+
+    \begin{block}{Exam problem}
+        Consider the inference:
+        \begin{align*}
+            & P(h(g(g(d,d),b))) \lor \lnot P(h(f(d))) \lor f(d) \neq h(g(a,a)) \\
+            & \lnot P(h(g(x,b))) \lor f(d) \neq h(g(y,y)) \\
+            \cline{1-2}
+            & \lnot P(h(f(d))) \lor f(d) \neq h(g(a,a))
+        \end{align*}
+        \vspace*{-1.5em}
+        \begin{enumerate}
+            \item Prove that the inference is sound.
+            \item Is the inference simplifying?
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Random problem generation -- First-order ATP}
+
+    Implementation based on same principles as the SAT problem:
+    \begin{enumerate}
+        \item Fix a signature
+        \item Generate three random literals
+        \item Post-filter ensures minimum number of variable occurrences
+        \item Generate random substitution
+        \item Arrange into inference rule
+    \end{enumerate}
+
+    TODO: example of generator code like in paper (just 2-3 lines, simplified)?
+    % l1 <- mfilter ((==1) . length . variables)
+    %     $ genUninterpretedLiteral sig{ vars = [v1] }
+    % l3 <- genUninterpretedLiteral sig{ vars = [] }
 \end{frame}
 
 %------------------------------------------------
@@ -193,7 +295,7 @@ Combination of 2 approaches:
 \begin{itemize}
 \item Used for problems on SMT solving and ground superposition
 \item Design templates for first-order formulas (and orderings)
-  and generate their instances
+  and generate different instances
 \end{itemize}
 \end{frame}
 
@@ -202,11 +304,60 @@ Combination of 2 approaches:
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{Random variation of problem template -- SMT solving}
-\begin{itemize}
-\item TODO: implementation details
-\item TODO: example
-\end{itemize}
+    \frametitle{Random variation of problem template -- SMT solving}
+
+    \begin{block}{Exam problem}
+        Is the following formula satisfiable?
+        \[
+            f(b+1) \neq b+2
+            \land
+            read(A,f(c+1))=c
+            \land
+            \dots
+        \]
+        Use the Nelson-Oppen decision procedure
+        in conjunction with DPLL-based reasoning
+        in the combination of the theories of
+        arrays, uninterpreted functions, and linear arithmetic.
+    \end{block}
+    % NOTE: why template? naive variations might create problems where theory reasoning is not required.
+    % TODO: for each of the four problem types: 1. example 2. explain 3. implementation.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Random variation of problem template -- SMT solving}
+
+    Issue with randomly generated formulas: \\
+    proving UNSAT might not require reasoning in all theories!
+    \bigskip
+
+    Solution:
+    \begin{itemize}
+        % \item
+            % Naive random generation:
+            % Why template?
+            % naive random generation might create problems that do
+            % not need nelson-oppen style reasoning to prove unsat
+            % (but we want the students to use e.g. array reasoning)
+        \item
+            Provide a formula as template
+        \item
+            Shift integer constants by a small random value
+        \item
+            Reasoning task stays essentially the same
+            % (modulo some calculations)
+        % \item
+        %     e.g., replace all occurrences of $b$ by $b+3$.
+        % \item TODO: implementation details
+        % \item TODO: example
+    \end{itemize}
+
+    \begin{example}
+        Template:
+        \[ f(b) \neq b+1 \]
+        Shifting $b$ by $1$:
+        \[ f(b+1) \neq b+2 \]
+    \end{example}
 \end{frame}
 
 %------------------------------------------------
@@ -322,9 +473,27 @@ and $\sigma$ is a well-behaved selection function wrt $\succ$:
 \begin{frame}
 \frametitle{Conclusions}
 TODO some take-away message
+
+
+\bigskip
+\pause
+
+
+Future plans (TODO: put on previous slide?)
 \begin{itemize}
-\item
+    \item Larger pool of problems
+    \item Generate solutions as well (where feasible)
+    % (future work: generate solutions as well... non-trivial when there are multiple paths)
+    \item Instead random generator, encode constraints into SAT/SMT
+            (then use the SAT solver for random generation... question is how maintainable such a solution would be...)
 \end{itemize}
+
+\bigskip
+\pause
+
+\begin{center}
+    Thank you!
+\end{center}
 \end{frame}
 
 %------------------------------------------------
