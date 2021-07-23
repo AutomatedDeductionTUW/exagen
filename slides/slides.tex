@@ -328,8 +328,9 @@ Combination of 2 approaches:
     \frametitle{Random variation of problem template -- SMT solving}
 
     Issue with randomly generated formulas: \\
-    proving UNSAT might not require reasoning in all theories!
+    solution might not require reasoning in all theories!
     \bigskip
+    \pause
 
     Solution:
     \begin{itemize}
@@ -462,7 +463,21 @@ and $\sigma$ is a well-behaved selection function wrt $\succ$:
 \item Grading reasonably simple
 \item Comparable students' performance
 \item High levels of student satisfaction (small sample)
-\item Framework reused in Summer 2021
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Future plans}
+\begin{itemize}
+    \item Larger pool of problems
+    \item Generate more solutions (where feasible)
+    % (future work: generate solutions as well... non-trivial when there are multiple paths)
+    \item Instead random generator, encode constraints into SAT/SMT
+            (then use the SAT solver for random generation... question is how maintainable such a solution would be...)
 \end{itemize}
 \end{frame}
 
@@ -472,21 +487,9 @@ and $\sigma$ is a well-behaved selection function wrt $\succ$:
 
 \begin{frame}
 \frametitle{Conclusions}
-TODO some take-away message
+TODO: summary of main points
 
-
-\bigskip
-\pause
-
-
-Future plans (TODO: put on previous slide?)
-\begin{itemize}
-    \item Larger pool of problems
-    \item Generate solutions as well (where feasible)
-    % (future work: generate solutions as well... non-trivial when there are multiple paths)
-    \item Instead random generator, encode constraints into SAT/SMT
-            (then use the SAT solver for random generation... question is how maintainable such a solution would be...)
-\end{itemize}
+TODO take-away message: Framework reused in Summer 2021
 
 \bigskip
 \pause
