@@ -91,6 +91,7 @@
 %\usepackage{rotating}
 %\usepackage{adjustbox}
 %\usepackage{multirow}
+\usepackage{listings}
 \usepackage[T1]{fontenc}
 
 \renewcommand{\implies}{\rightarrow}
@@ -111,14 +112,26 @@
 
 \title{Automated Generation of Exam Sheets for Automated Deduction} % The short title appears at the bottom of every slide, the full title is only on the title page
 
-% \author{Petra Hozzov\'a, Laura Kov\'acs, \underline{Jakob Rath}} % Your name
-\author{todo} % Your name
+\author{
+    Petra Hozzov\'a
+    \and
+    Laura Kov\'acs
+    \and
+    \texorpdfstring{\underline{Jakob Rath}}{Jakob Rath}
+}
 \institute{
 Vienna University of Technology%\\ % Your institution for the title page
 %\medskip
 %\textit{john@smith.com} % Your email address
 }
 \date{\vspace*{-3em}\small July 29, 2021} % Date, can be changed to a custom date
+
+\lstset{
+    language=Haskell,
+    basicstyle=\small\ttfamily,
+    deletekeywords={MonadPlus,filter,length},
+    columns=fixed,
+}
 
 \begin{document}
 
@@ -166,7 +179,7 @@ Vienna University of Technology%\\ % Your institution for the title page
     % \end{itemize}
     \pause
     \vspace*{1em}
-    \qquad $\Rightarrow$ generate unique exam for each student
+    \qquad $\rightsquigarrow$ create a unique exam for each student
 \end{frame}
 
 %------------------------------------------------
@@ -174,10 +187,15 @@ Vienna University of Technology%\\ % Your institution for the title page
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Goals}
+\frametitle{Goal: unique exam for each student}
 \begin{itemize}
 \item 4 problems requiring complex reasoning:
-  SAT solving, SMT solving, ground superposition, first-order theorem proving
+    \begin{enumerate}
+        \item SAT solving
+        \item SMT solving
+        \item ground superposition
+        \item first-order theorem proving
+    \end{enumerate}
 \item Tradeoff between problems being sufficiently similar and sufficiently different
 \item At least 31 instances of each problem
 \item Efficient generation
@@ -234,15 +252,76 @@ Combination of 2 approaches:
     \end{block}
 \end{frame}
 
+
+\begin{frame}[fragile]
+    \frametitle{Random problem generation -- SAT solving}
+
+    \begin{itemize}
+        \item
+            Implementation in Haskell
+        \item
+            Inspired by QuickCheck library\footnote{K. Claessen and J. Hughes, ICFP 2000}
+        \item
+            Specifications are generic over generator monad
+        \item
+            Used two concrete implementations:
+
+            \begin{enumerate}
+                \item choose by uniform random distribution
+                \item enumerate all choices
+            \end{enumerate}
+    \end{itemize}
+
+    \bigskip
+
+\begin{lstlisting}
+class MonadPlus m => MonadChoose m where
+  choose :: [a] -> m a
+\end{lstlisting}
+\end{frame}
+
+
 \begin{frame}
     \frametitle{Random problem generation -- SAT solving}
 
-    TODO: impl details
-    (constraints during generation vs. post-filters;
-    Haskell-based and inspired by QuickCheck;
-    can use the same code for random generation and counting instances)
+    Constraints during generation
+    \begin{itemize}
+        \item
+            number of connectives
+        \item
+            no trivial binary connectives such as $p \land \lnot p$
+        \item
+            ...
+    \end{itemize}
 
-    TODO: maybe give a list of 5 different formulas as examples
+    \bigskip
+    \pause
+
+    Constraints as post-filters
+    \begin{itemize}
+        \item
+            all three variables appear
+        \item
+            there is at least one atom of pure polarity
+        \item
+            variety in definitional NF \\
+            (at least two of the forms $n \limpl F$, $F \limpl n$, $n \liff F$)
+        \item
+            ...
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Random problem generation -- SAT solving}
+
+    Examples:
+    \begin{itemize}
+        \item $ ( \lnot p \rightarrow \lnot r ) \land ( ( r \land q ) \rightarrow ( p \leftrightarrow q ) ) $
+        \item $ ( ( p \rightarrow r ) \rightarrow ( r \leftrightarrow p ) ) \land ( \lnot p \lor ( q \land r ) ) $
+        \item $ \lnot ( ( q \lor p ) \land \lnot r ) \rightarrow ( ( r \leftrightarrow p ) \land r ) $
+        \item $ ( ( p \land r ) \rightarrow ( r \lor q ) ) \rightarrow ( \lnot r \land ( r \leftrightarrow q ) ) $
+        \item $ ( p \lor ( r \land q ) ) \rightarrow \lnot ( \lnot ( p \leftrightarrow q ) \lor q ) $
+    \end{itemize}
 \end{frame}
 
 %------------------------------------------------
@@ -279,11 +358,18 @@ Combination of 2 approaches:
         \item Generate random substitution
         \item Arrange into inference rule
     \end{enumerate}
+\end{frame}
 
-    TODO: example of generator code like in paper (just 2-3 lines, simplified)?
-    % l1 <- mfilter ((==1) . length . variables)
-    %     $ genUninterpretedLiteral sig{ vars = [v1] }
-    % l3 <- genUninterpretedLiteral sig{ vars = [] }
+\begin{frame}[fragile]
+    \frametitle{Random problem generation -- first-order ATP}
+
+    Excerpt from literal generator:
+
+\begin{lstlisting}
+l1 <- mfilter ((==1) . length . variables)
+    $ genUninterpretedLiteral sig{ vars = [v1] }
+l3 <- genUninterpretedLiteral sig{ vars = [] }
+\end{lstlisting}
 \end{frame}
 
 %------------------------------------------------
@@ -308,6 +394,13 @@ Combination of 2 approaches:
 
     \begin{block}{Exam problem}
         Is the following formula satisfiable?
+        % \begin{align*}
+        %     & f(b+1) \neq b+2 \\
+        %     \land~
+        %     & read(A,f(c+1))=c \\
+        %     \land~
+        %     & …
+        % \end{align*}
         \[
             f(b+1) \neq b+2
             \land
@@ -328,7 +421,7 @@ Combination of 2 approaches:
     \frametitle{Random variation of problem template -- SMT solving}
 
     Issue with randomly generated formulas: \\
-    solution might not require reasoning in all theories!
+    might not require reasoning in all theories!
     \bigskip
     \pause
 
@@ -379,8 +472,8 @@ Combination of 2 approaches:
       ~\\~
         & g(b)  \neq  g(b) \lor f(a)  \neq  a \,\}
       \end{align*}
-      Show that $S$ is unsatisfiable by saturation using ground superposition
-      with the KBO generated by:
+      Show that $S$ is unsatisfiable by saturation using superposition
+      with the Knuth-Bendix ordering generated by:
       \vspace*{-0.5em}
       \begin{gather*}
         f \gg a \gg b \gg g, \text{ and} \\
@@ -479,7 +572,7 @@ where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$.
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Conclusions}
+\frametitle{Conclusion}
 
   \begin{itemize}
     \item Efficient fully automated generation of exam problems % including soundness checking
