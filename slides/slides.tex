@@ -153,6 +153,7 @@ Vienna University of Technology%\\ % Your institution for the title page
         \begin{itemize}
             \item Elective Master's level course at TU Wien
             \item SAT solving, SMT solving, first-order ATP
+            \item Exercise sheets as homework, open-book final exam
             \item Held remotely in summer semester 2020 (and 2021)
         \end{itemize}
     \end{block}
@@ -189,14 +190,21 @@ Vienna University of Technology%\\ % Your institution for the title page
 \begin{frame}
 \frametitle{Goal: unique exam for each student}
 \begin{itemize}
-\item 4 problems requiring complex reasoning:
+\item Four problems requiring complex reasoning:
     \begin{enumerate}
         \item SAT solving
         \item SMT solving
         \item ground superposition
         \item first-order theorem proving
     \end{enumerate}
-\item Tradeoff between problems being sufficiently similar and sufficiently different
+    \pause
+\item Tradeoff:
+    \begin{itemize}
+    \item Exams should be sufficiently different (prevent cheating)
+    \item But also sufficiently similar (fairness)
+    \end{itemize}
+% \item Tradeoff between exams being sufficiently similar and sufficiently different
+    \pause
 \item At least 31 instances of each problem
 \item Efficient generation
 \item Soundness checking
@@ -262,22 +270,23 @@ Combination of 2 approaches:
         \item
             Inspired by QuickCheck library\footnote{K. Claessen and J. Hughes, ICFP 2000}
         \item
-            Specifications are generic over generator monad
+            Specifications are generic over generator monad \texttt{m}
+            \\
+            (like \texttt{Gen} in QuickCheck, but with backtracking support)
+
+\begin{lstlisting}
+class MonadPlus m => MonadChoose m where
+  choose :: [a] -> m a
+\end{lstlisting}
+
         \item
-            Used two concrete implementations:
+            Two concrete implementations:
 
             \begin{enumerate}
                 \item choose by uniform random distribution
                 \item enumerate all choices
             \end{enumerate}
     \end{itemize}
-
-    \bigskip
-
-\begin{lstlisting}
-class MonadPlus m => MonadChoose m where
-  choose :: [a] -> m a
-\end{lstlisting}
 \end{frame}
 
 
@@ -305,7 +314,7 @@ class MonadPlus m => MonadChoose m where
             there is at least one atom of pure polarity
         \item
             variety in definitional NF \\
-            (at least two of the forms $n \limpl F$, $F \limpl n$, $n \liff F$)
+            (at least two of the forms $n \limpl F$, $F \limpl n$, $n \liff F$ appear)
         \item
             ...
     \end{itemize}
@@ -345,6 +354,7 @@ class MonadPlus m => MonadChoose m where
             \item Is the inference simplifying?
         \end{enumerate}
     \end{block}
+    % TODO: during talk explicitly mention that we have two premises, one conclusion (maybe point at them)
 \end{frame}
 
 \begin{frame}
@@ -414,7 +424,6 @@ l3 <- genUninterpretedLiteral sig{ vars = [] }
         arrays, uninterpreted functions, and linear arithmetic.
     \end{block}
     % NOTE: why template? naive variations might create problems where theory reasoning is not required.
-    % TODO: for each of the four problem types: 1. example 2. explain 3. implementation.
 \end{frame}
 
 \begin{frame}
@@ -530,7 +539,7 @@ where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$.
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Implementation summary (TODO better slide title)}
+\frametitle{Assembling the parts}
 \begin{itemize}
 \item Around 2300 lines of code in Haskell and Python
 \item Sanity checks using Z3 and Vampire
@@ -562,8 +571,8 @@ where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$.
     \item Larger pool of problems
     \item Generate more solutions (where feasible)
     % (future work: generate solutions as well... non-trivial when there are multiple paths)
-    \item Instead random generator, encode constraints into SAT/SMT
-            (then use the SAT solver for random generation... question is how maintainable such a solution would be...)
+    \item Instead of random generator, encode constraints into SAT/SMT?
+            % (then use the SAT solver for random generation... question is how maintainable such a solution would be...)
 \end{itemize}
 \end{frame}
 
@@ -575,8 +584,8 @@ where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$.
 \frametitle{Conclusion}
 
   \begin{itemize}
-    \item Efficient fully automated generation of exam problems % including soundness checking
-    \item Balance between sufficiently similar and different problems
+    \item Efficient automated generation of exam problems
+    \item Balance between variety and fairness
     \item Framework reused in Summer 2021
   \end{itemize}
 
