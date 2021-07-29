@@ -106,6 +106,9 @@
 \newcommand{\limpl}{\rightarrow}
 \newcommand{\liff}{\leftrightarrow}
 
+% To avoid warning "Token not allowed in a PDF string"
+\newcommand{\br}{\texorpdfstring{\\}{}}
+
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
@@ -119,12 +122,12 @@
     \and
     \texorpdfstring{\underline{Jakob Rath}}{Jakob Rath}
 }
-\institute{
-Vienna University of Technology%\\ % Your institution for the title page
-%\medskip
-%\textit{john@smith.com} % Your email address
+\institute{Vienna University of Technology}
+\date{%
+    \small%
+    14th Conference on Intelligent Computer Mathematics\br%
+    July 29, 2021%
 }
-\date{\vspace*{-3em}\small July 29, 2021} % Date, can be changed to a custom date
 
 \lstset{
     language=Haskell,
@@ -234,8 +237,6 @@ Combination of 2 approaches:
 \item Used for problems on SAT solving and first-order theorem proving
 \item Generate random problem instances
 \item Filter out unsuitable ones
-% \item TODO: implementation details
-% \item TODO: examples
 \end{itemize}
 \end{frame}
 
@@ -269,6 +270,8 @@ Combination of 2 approaches:
             Implementation in Haskell
         \item
             Inspired by QuickCheck library\footnote{K. Claessen and J. Hughes, ICFP 2000}
+
+            \pause
         \item
             Specifications are generic over generator monad \texttt{m}
             \\
@@ -279,6 +282,7 @@ class MonadPlus m => MonadChoose m where
   choose :: [a] -> m a
 \end{lstlisting}
 
+            \pause
         \item
             Two concrete implementations:
 
@@ -298,6 +302,8 @@ class MonadPlus m => MonadChoose m where
         \item
             number of connectives
         \item
+            each of $\liff$, $\limpl$, $\lnot$ appears at least once
+        \item
             no trivial binary connectives such as $p \land \lnot p$
         \item
             ...
@@ -313,7 +319,7 @@ class MonadPlus m => MonadChoose m where
         \item
             there is at least one atom of pure polarity
         \item
-            variety in definitional NF \\
+            variety in the clausal normal form \\
             (at least two of the forms $n \limpl F$, $F \limpl n$, $n \liff F$ appear)
         \item
             ...
@@ -354,7 +360,6 @@ class MonadPlus m => MonadChoose m where
             \item Is the inference simplifying?
         \end{enumerate}
     \end{block}
-    % TODO: during talk explicitly mention that we have two premises, one conclusion (maybe point at them)
 \end{frame}
 
 \begin{frame}
@@ -364,7 +369,7 @@ class MonadPlus m => MonadChoose m where
     \begin{enumerate}
         \item Fix a signature
         \item Generate three random literals
-        \item Post-filter ensures minimum number of variable occurrences
+        % \item Post-filter ensures minimum number of variable occurrences
         \item Generate random substitution
         \item Arrange into inference rule
     \end{enumerate}
@@ -373,12 +378,16 @@ class MonadPlus m => MonadChoose m where
 \begin{frame}[fragile]
     \frametitle{Random problem generation -- first-order ATP}
 
-    Excerpt from literal generator:
+    Excerpt from inference generator (simplified):
 
 \begin{lstlisting}
-l1 <- mfilter ((==1) . length . variables)
-    $ genUninterpretedLiteral sig{ vars = [v1] }
-l3 <- genUninterpretedLiteral sig{ vars = [] }
+
+groundLit <- genLiteral sig{ vars = [] }
+
+v1 <- choose variables
+oneVarLit <-
+    mfilter ((==1) . numberOfVariables)
+    $ genLiteral sig{ vars = [v1] }
 \end{lstlisting}
 \end{frame}
 
@@ -404,26 +413,29 @@ l3 <- genUninterpretedLiteral sig{ vars = [] }
 
     \begin{block}{Exam problem}
         Is the following formula satisfiable?
-        % \begin{align*}
-        %     & f(b+1) \neq b+2 \\
-        %     \land~
-        %     & read(A,f(c+1))=c \\
-        %     \land~
-        %     & …
-        % \end{align*}
-        \[
-            f(b+1) \neq b+2
-            \land
-            read(A,f(c+1))=c
-            \land
-            \dots
-        \]
+        \begin{align*}
+            & f(b+1) \neq b+2 \\
+            \land~
+            & read(A,f(c+1))=c \\
+            \land~
+            & \bigl(
+                read(A,f(b+1))=b+3 \\
+            & ~\lor
+                read(write(A,b+2,f(c)),f(c+1))=c+2
+              \bigr)
+        \end{align*}
+        % \[
+        %     f(b+1) \neq b+2
+        %     \land
+        %     read(A,f(c+1))=c
+        %     \land
+        %     \dots
+        % \]
         Use the Nelson-Oppen decision procedure
         in conjunction with DPLL-based reasoning
         in the combination of the theories of
         arrays, uninterpreted functions, and linear arithmetic.
     \end{block}
-    % NOTE: why template? naive variations might create problems where theory reasoning is not required.
 \end{frame}
 
 \begin{frame}
@@ -451,8 +463,6 @@ l3 <- genUninterpretedLiteral sig{ vars = [] }
             % (modulo some calculations)
         % \item
         %     e.g., replace all occurrences of $b$ by $b+3$.
-        % \item TODO: implementation details
-        % \item TODO: example
     \end{itemize}
 
     \begin{example}
@@ -589,6 +599,7 @@ where $E, F, G, H \in \{f, g\}$, $X, Y \in \{a, b\}$.
     \item Framework reused in Summer 2021
   \end{itemize}
 
+\bigskip
 \bigskip
 \pause
 
