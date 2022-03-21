@@ -118,9 +118,9 @@ variations = do
   b_offset <- choose [-3, -2, -1, 0, 1, 2, 3]
   c_offset <- choose [-3, -2, -1, 0, 1, 2, 3]
   -- TODO: other possible variations
-  -- * shuffle equations (e.g. add n on both sides and simplify)
-  -- * rename constants "b"/"c"
-  -- * reorder equations (or any commutative operation)
+  -- shuffle equations (e.g. add n on both sides and simplify)
+  -- rename constants "b"/"c"
+  -- reorder equations (or any commutative operation)
 
   return [ AddOffset "b" b_offset
          , AddOffset "c" c_offset

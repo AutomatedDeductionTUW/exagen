@@ -301,8 +301,8 @@ genExamInference = do
   -- TODO: might also permute the order of literals
 
   -- TODO
-  -- * Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
-  --         So if someone gets less binary functions, they will have more nesting instead.
+  -- Idea: Control total number of symbols in term? [ not exactly, but in narrow range ]
+  --       So if someone gets less binary functions, they will have more nesting instead.
   let inf = Inference{ premises = [ mainPremise, sidePremise ]
                      , conclusion = conclusion
                      }
